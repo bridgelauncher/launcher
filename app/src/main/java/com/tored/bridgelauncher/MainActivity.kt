@@ -31,8 +31,6 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.tored.bridgelauncher.composables.ResIcon
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
 
-val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
-
 class MainActivity : ComponentActivity()
 {
     override fun onCreate(savedInstanceState: Bundle?)

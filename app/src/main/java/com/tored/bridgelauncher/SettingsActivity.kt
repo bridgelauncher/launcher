@@ -1,6 +1,7 @@
 package com.tored.bridgelauncher
 
 import android.app.Activity
+import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -9,15 +10,13 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.*
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
 import kotlinx.coroutines.flow.MutableStateFlow
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,15 +26,27 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
+import androidx.lifecycle.viewModelScope
 import com.tored.bridgelauncher.composables.Btn
 import com.tored.bridgelauncher.composables.ResIcon
+import com.tored.bridgelauncher.composables.Tip
 import com.tored.bridgelauncher.ui.theme.borders
 import com.tored.bridgelauncher.ui.theme.checkedItemBg
 import com.tored.bridgelauncher.ui.theme.textSec
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.instanceParameter
+
+val Context.settingsDataStore by preferencesDataStore("settings")
 
 data class SettingsUIState(
 
@@ -68,9 +79,56 @@ data class SettingsUIState(
 @Target(AnnotationTarget.PROPERTY)
 annotation class Display(val name: String)
 
-class SettingsVM : ViewModel()
+class SettingsVM(
+    private val _ds: DataStore<Preferences>
+) : ViewModel()
 {
-    val settingsUIState = MutableStateFlow(SettingsUIState())
+    private val _themeKey = intPreferencesKey(SettingsUIState::theme.name)
+    fun request()
+    {
+        viewModelScope.launch {
+            _ds.data.collectLatest { prefs ->
+                _settingsUIState.update {
+                    it.copy(
+                        theme = intToEnumOrDefault(prefs[_themeKey], ThemeOptions.System)
+                    )
+                }
+            }
+        }
+    }
+
+    fun switchTheme(theme: ThemeOptions)
+    {
+        viewModelScope.launch {
+            _ds.edit {
+                it[_themeKey] = theme.rawValue
+            }
+        }
+    }
+
+    private val _settingsUIState = MutableStateFlow(SettingsUIState())
+    val settingsUIState = _settingsUIState.asStateFlow()
+}
+
+// https://stackoverflow.com/a/71578372/6796433
+interface RawRepresentable<T>
+{
+    val rawValue: T
+}
+
+inline fun <reified TEnum, TBacking> valueOf(value: TBacking): TEnum?
+        where TEnum : Enum<TEnum>, TEnum : RawRepresentable<TBacking>
+{
+    return enumValues<TEnum>().firstOrNull { it.rawValue == value }
+}
+
+inline fun <reified TEnum> intToEnumOrDefault(int: Int?, default: TEnum): TEnum
+        where TEnum : Enum<TEnum>, TEnum : RawRepresentable<Int>
+{
+    return if (int == null)
+        default
+    else
+        valueOf(int) ?: default
 }
 
 class SettingsActivity : ComponentActivity()
@@ -80,8 +138,18 @@ class SettingsActivity : ComponentActivity()
         super.onCreate(savedInstanceState)
 
         setContent {
-            BridgeLauncherTheme() {
-                SettingsScreen()
+
+            val context = LocalContext.current
+            val vm = remember { SettingsVM(context.settingsDataStore) }
+            val state by vm.settingsUIState.collectAsState()
+
+            LaunchedEffect(vm) { vm.request() }
+
+            val darkTheme = state.theme == ThemeOptions.Dark || isSystemInDarkTheme()
+
+            BridgeLauncherTheme(darkTheme)
+            {
+                SettingsScreen(vm)
             }
         }
     }
@@ -95,10 +163,10 @@ fun <TProp> displayNameFor(prop: KProperty1<SettingsUIState, TProp>): String
 
 @Composable
 fun SettingsScreen(
-    viewModel: SettingsVM = viewModel()
+    vm: SettingsVM = viewModel()
 )
 {
-    val uiState by viewModel.settingsUIState.collectAsStateWithLifecycle()
+    val uiState by vm.settingsUIState.collectAsStateWithLifecycle()
 
     @Composable
     fun checkboxFieldFor(prop: KProperty1<SettingsUIState, Boolean>)
@@ -112,14 +180,15 @@ fun SettingsScreen(
             label = displayNameFor(prop),
             isChecked = prop.getValue(uiState, prop),
             onCheckedChange = { isChecked ->
-                viewModel.settingsUIState.update {
-                    SettingsUIState::copy.callBy(
-                        mapOf(
-                            instanceParam to it,
-                            param to isChecked
-                        )
-                    )
-                }
+                // TODO
+//                viewModel.settingsUIState.update {
+//                    SettingsUIState::copy.callBy(
+//                        mapOf(
+//                            instanceParam to it,
+//                            param to isChecked
+//                        )
+//                    )
+//                }
             }
         )
     }
@@ -136,14 +205,14 @@ fun SettingsScreen(
             label = displayNameFor(prop),
             selectedOption = prop.getValue(uiState, prop),
             onChange = { value ->
-                viewModel.settingsUIState.update {
-                    SettingsUIState::copy.callBy(
-                        mapOf(
-                            instanceParam to it,
-                            param to value
-                        )
-                    )
-                }
+//                viewModel.settingsUIState.update {
+//                    SettingsUIState::copy.callBy(
+//                        mapOf(
+//                            instanceParam to it,
+//                            param to value
+//                        )
+//                    )
+//                }
             }
         )
     }
@@ -174,172 +243,183 @@ fun SettingsScreen(
         }
     }
 
-    Column() {
-
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .verticalScroll(rememberScrollState())
-                .padding(0.dp, 8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        )
+    Surface(
+        color = MaterialTheme.colors.background
+    )
+    {
+        Column()
         {
-            SettingsSection(label = "Project", iconResId = R.drawable.ic_open_folder)
-            {
-                CurrentProjectCard(uiState.currentProjName) { }
-                checkboxFieldFor(SettingsUIState::allowProjectsToTurnScreenOff)
-            }
 
-            Divider()
-
-            SettingsSection(label = "System wallpaper", iconResId = R.drawable.ic_image)
-            {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                )
-                {
-                    Btn(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        text = "Set system wallpaper",
-                        outlined = true,
-                        onClick = { /*TODO*/ },
-                    )
-
-                    checkboxFieldFor(SettingsUIState::drawSystemWallpaperBehindWebView)
-                }
-            }
-
-            Divider()
-
-            SettingsSection(label = "Overlays", iconResId = R.drawable.ic_overlays)
-            {
-                systemBarOptionsFieldFor(SettingsUIState::statusBarAppearance)
-                systemBarOptionsFieldFor(SettingsUIState::navigationBarAppearance)
-                checkboxFieldFor(SettingsUIState::drawWebViewOverscrollEffects)
-            }
-
-            Divider()
-
-            SettingsSection(label = "Bridge", iconResId = R.drawable.ic_bridge)
-            {
-                OptionsRow(
-                    label = "Theme",
-                    options = mapOf(
-                        ThemeOptions.System to "System",
-                        ThemeOptions.Light to "Light",
-                        ThemeOptions.Dark to "Dark",
-                    ),
-                    selectedOption = uiState.theme,
-                    onChange = {
-                        theme ->
-                        viewModel.settingsUIState.update {
-                            it.copy(theme = theme)
-                        }
-                    }
-                )
-
-                checkboxFieldFor(SettingsUIState::showBridgeButton)
-
-                ProvideTextStyle(value = MaterialTheme.typography.body2.copy(color = MaterialTheme.colors.textSec))
-                {
-                    Tip("Tap and hold the button to move it.")
-                }
-
-                checkboxFieldFor(SettingsUIState::showLaunchAppsWhenBridgeButtonCollapsed)
-
-                ActionCard(
-                    title = "Quick settings tile",
-                    description = "You can add a quick settings tile to unobtrusively toggle the Bridge button."
-                )
-                {
-                    Btn(text = "Add tile", suffixIcon = R.drawable.ic_plus, onClick = { /* TODO */ })
-                }
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .wrapContentHeight()
-                        .border(MaterialTheme.borders.soft, RoundedCornerShape(8.dp))
-                        .padding(start = 12.dp, top = 16.dp, bottom = 16.dp, end = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                )
-                {
-                    ResIcon(R.drawable.ic_check, color = MaterialTheme.colors.primary)
-                    Text("Quick settings tile added.")
-                }
-            }
-
-            Divider()
-
-            SettingsSection(label = "Development", iconResId = R.drawable.ic_tools)
-            {
-                ActionCard(
-                    title = "Bridge developer hub",
-                    description = "Documentation and tools to help you develop Bridge Launcher projects."
-                )
-                {
-                    Btn(text = "Open in browser", suffixIcon = R.drawable.ic_open_in_new, onClick = { /* TODO */ })
-                }
-
-                ActionCard(
-                    title = "Export installed apps",
-                    description = "Create a folder with information about apps installed on this phone, including icons. You can use this folder to work on projects from your PC."
-                )
-                {
-                    Btn(text = "Export", suffixIcon = R.drawable.ic_save_to_device, onClick = { /* TODO */ })
-                }
-            }
-
-            Divider()
-
-            SettingsSection(label = "About & Contact", iconResId = R.drawable.ic_about)
-            {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                    horizontalAlignment = Alignment.End,
-                )
-                {
-                    Btn(text = "GitHub repository", suffixIcon = R.drawable.ic_open_in_new, onClick = { /* TODO */ })
-                    Btn(text = "Discord server", suffixIcon = R.drawable.ic_open_in_new, onClick = { /* TODO */ })
-                    Btn(text = "Send me an email", suffixIcon = R.drawable.ic_arrow_right, onClick = { /* TODO */ })
-                    Btn(text = "Copy my email address", suffixIcon = R.drawable.ic_copy, onClick = { /* TODO */ })
-                }
-            }
-        }
-
-        Surface(
-            modifier = Modifier
-                .height(56.dp),
-            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
-            elevation = 4.dp,
-        )
-        {
-            Row(
+            Column(
                 modifier = Modifier
-                    .padding(4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+                    .padding(0.dp, 8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             )
             {
-                val context = LocalContext.current as Activity
-
-                IconButton(onClick = { context.finish() })
+                SettingsSection(label = "Project", iconResId = R.drawable.ic_open_folder)
                 {
-                    ResIcon(R.drawable.ic_arrow_left)
+                    CurrentProjectCard(uiState.currentProjName) { }
+                    checkboxFieldFor(SettingsUIState::allowProjectsToTurnScreenOff)
                 }
-                Text(
-                    modifier = Modifier
-                        .weight(1f)
-                        .wrapContentHeight(),
-                    text = "Settings",
-                    style = MaterialTheme.typography.h6,
-                    textAlign = TextAlign.Center,
-                )
-                Spacer(modifier = Modifier.size(48.dp))
+
+                Divider()
+
+                SettingsSection(label = "System wallpaper", iconResId = R.drawable.ic_image)
+                {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    )
+                    {
+                        Btn(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            text = "Set system wallpaper",
+                            outlined = true,
+                            onClick = { /*TODO*/ },
+                        )
+
+                        checkboxFieldFor(SettingsUIState::drawSystemWallpaperBehindWebView)
+                    }
+                }
+
+                Divider()
+
+                SettingsSection(label = "Overlays", iconResId = R.drawable.ic_overlays)
+                {
+                    systemBarOptionsFieldFor(SettingsUIState::statusBarAppearance)
+                    systemBarOptionsFieldFor(SettingsUIState::navigationBarAppearance)
+                    checkboxFieldFor(SettingsUIState::drawWebViewOverscrollEffects)
+                }
+
+                Divider()
+
+                SettingsSection(label = "Bridge", iconResId = R.drawable.ic_bridge)
+                {
+                    OptionsRow(
+                        label = "Theme",
+                        options = mapOf(
+                            ThemeOptions.System to "System",
+                            ThemeOptions.Light to "Light",
+                            ThemeOptions.Dark to "Dark",
+                        ),
+                        selectedOption = uiState.theme,
+                        onChange = vm::switchTheme,
+                    )
+
+                    checkboxFieldFor(SettingsUIState::showBridgeButton)
+
+                    ProvideTextStyle(value = MaterialTheme.typography.body2.copy(color = MaterialTheme.colors.textSec))
+                    {
+                        Tip("Tap and hold the button to move it.")
+                    }
+
+                    checkboxFieldFor(SettingsUIState::showLaunchAppsWhenBridgeButtonCollapsed)
+
+                    ActionCard(
+                        title = "Quick settings tile",
+                        description = "You can add a quick settings tile to unobtrusively toggle the Bridge button."
+                    )
+                    {
+                        Btn(text = "Add tile", suffixIcon = R.drawable.ic_plus, onClick = { /* TODO */ })
+                    }
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight()
+                            .border(MaterialTheme.borders.soft, RoundedCornerShape(8.dp))
+                            .padding(start = 12.dp, top = 16.dp, bottom = 16.dp, end = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    )
+                    {
+                        ResIcon(R.drawable.ic_check, color = MaterialTheme.colors.primary)
+                        Text("Quick settings tile added.")
+                    }
+                }
+
+                Divider()
+
+                SettingsSection(label = "Development", iconResId = R.drawable.ic_tools)
+                {
+                    ActionCard(
+                        title = "Bridge developer hub",
+                        description = "Documentation and tools to help you develop Bridge Launcher projects."
+                    )
+                    {
+                        Btn(text = "Open in browser", suffixIcon = R.drawable.ic_open_in_new, onClick = { /* TODO */ })
+                    }
+
+                    ActionCard(
+                        title = "Export installed apps",
+                        description = "Create a folder with information about apps installed on this phone, including icons. You can use this folder to work on projects from your PC."
+                    )
+                    {
+                        Btn(text = "Export", suffixIcon = R.drawable.ic_save_to_device, onClick = { /* TODO */ })
+                    }
+                }
+
+                Divider()
+
+                SettingsSection(label = "About & Contact", iconResId = R.drawable.ic_about)
+                {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        horizontalAlignment = Alignment.End,
+                    )
+                    {
+                        Btn(text = "GitHub repository", suffixIcon = R.drawable.ic_open_in_new, onClick = { /* TODO */ })
+                        Btn(text = "Discord server", suffixIcon = R.drawable.ic_open_in_new, onClick = { /* TODO */ })
+                        Btn(text = "Send me an email", suffixIcon = R.drawable.ic_arrow_right, onClick = { /* TODO */ })
+                        Btn(text = "Copy my email address", suffixIcon = R.drawable.ic_copy, onClick = { /* TODO */ })
+                    }
+                }
+            }
+
+            SettingsBotBar()
+
+        }
+    }
+}
+
+@Composable
+fun SettingsBotBar(modifier: Modifier = Modifier)
+{
+    Surface(
+        color = MaterialTheme.colors.surface,
+        modifier = modifier
+            .height(56.dp)
+            .fillMaxWidth(),
+        shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
+//        elevation = 4.dp,
+    )
+    {
+        Row(
+            modifier = Modifier
+                .padding(4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        )
+        {
+            val context = LocalContext.current as Activity
+
+            IconButton(onClick = { context.finish() })
+            {
+                ResIcon(R.drawable.ic_arrow_left)
+            }
+            Text(
+                modifier = Modifier
+                    .weight(1f)
+                    .wrapContentHeight(),
+                text = "Settings",
+                style = MaterialTheme.typography.h6,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(modifier = Modifier.size(48.dp))
 //                IconToggleButton(
 //                    checked = MaterialTheme.colors.isLight,
 //                    onCheckedChange = { /* TODO */ }
@@ -347,9 +427,7 @@ fun SettingsScreen(
 //                {
 //                    ResIcon(iconResId = R.drawable.ic_dark_mode)
 //                }
-            }
         }
-
     }
 }
 
@@ -459,21 +537,6 @@ fun ActionCard(title: String, description: String, footer: ComposableContent)
     }
 }
 
-@Composable
-fun Tip(text: String)
-{
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp, alignment = Alignment.CenterHorizontally),
-        verticalAlignment = Alignment.CenterVertically,
-    )
-    {
-        ResIcon(R.drawable.ic_tip, inline = true)
-        Text(text)
-    }
-}
 
 @Composable
 fun CheckboxField(label: String, isChecked: Boolean, onCheckedChange: (Boolean) -> Unit)
@@ -513,18 +576,18 @@ fun CheckboxField(label: String, isChecked: Boolean, onCheckedChange: (Boolean) 
     }
 }
 
-enum class SystemBarAppearanceOptions
+enum class SystemBarAppearanceOptions(override val rawValue: Int) : RawRepresentable<Int>
 {
-    Hide,
-    LightIcons,
-    DarkIcons,
+    Hide(0),
+    LightIcons(1),
+    DarkIcons(2),
 }
 
-enum class ThemeOptions
+enum class ThemeOptions(override val rawValue: Int) : RawRepresentable<Int>
 {
-    System,
-    Light,
-    Dark,
+    System(0),
+    Light(1),
+    Dark(2),
 }
 
 @Composable

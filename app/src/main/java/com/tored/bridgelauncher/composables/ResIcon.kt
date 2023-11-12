@@ -24,7 +24,7 @@ fun ResIcon(iconResId: Int, color: Color? = null, inline: Boolean = false)
                 24.dp
         ),
         tint = color
-            ?: if (LocalContentColor.current == Color.Unspecified)
+            ?: if (inline || LocalContentColor.current == Color.Unspecified)
                 LocalTextStyle.current.color
             else
                 LocalContentColor.current,
