@@ -12,125 +12,49 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
-import kotlinx.coroutines.flow.MutableStateFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import androidx.lifecycle.viewModelScope
+import com.tored.bridgelauncher.annotations.Display
 import com.tored.bridgelauncher.composables.Btn
 import com.tored.bridgelauncher.composables.ResIcon
 import com.tored.bridgelauncher.composables.Tip
+import com.tored.bridgelauncher.ui.shared.CheckboxField
+import com.tored.bridgelauncher.ui.shared.OptionsRow
 import com.tored.bridgelauncher.ui.theme.borders
-import com.tored.bridgelauncher.ui.theme.checkedItemBg
 import com.tored.bridgelauncher.ui.theme.textSec
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
+import com.tored.bridgelauncher.utils.RawRepresentable
+import com.tored.bridgelauncher.vms.SettingsUIState
+import com.tored.bridgelauncher.vms.SettingsVM
+import dagger.hilt.android.AndroidEntryPoint
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.instanceParameter
 
-val Context.settingsDataStore by preferencesDataStore("settings")
-
-data class SettingsUIState(
-
-    val theme: ThemeOptions = ThemeOptions.System,
-
-    val currentProjName: String = "Test Launcher",
-
-    @Display("Allow projects to turn the screen off")
-    val allowProjectsToTurnScreenOff: Boolean = false,
-
-    @Display("Draw system wallpaper behind WebView")
-    val drawSystemWallpaperBehindWebView: Boolean = true,
-
-    @Display("Status bar")
-    val statusBarAppearance: SystemBarAppearanceOptions = SystemBarAppearanceOptions.DarkIcons,
-
-    @Display("Navigation bar")
-    val navigationBarAppearance: SystemBarAppearanceOptions = SystemBarAppearanceOptions.DarkIcons,
-
-    @Display("Draw WebView overscroll effects")
-    val drawWebViewOverscrollEffects: Boolean = false,
-
-    @Display("Show Bridge button")
-    val showBridgeButton: Boolean = true,
-
-    @Display("Show Launch apps button when the Bridge menu is collapsed")
-    val showLaunchAppsWhenBridgeButtonCollapsed: Boolean = false,
-)
-
-@Target(AnnotationTarget.PROPERTY)
-annotation class Display(val name: String)
-
-class SettingsVM(
-    private val _ds: DataStore<Preferences>
-) : ViewModel()
+enum class SystemBarAppearanceOptions(override val rawValue: Int) : RawRepresentable<Int>
 {
-    private val _themeKey = intPreferencesKey(SettingsUIState::theme.name)
-    fun request()
-    {
-        viewModelScope.launch {
-            _ds.data.collectLatest { prefs ->
-                _settingsUIState.update {
-                    it.copy(
-                        theme = intToEnumOrDefault(prefs[_themeKey], ThemeOptions.System)
-                    )
-                }
-            }
-        }
-    }
-
-    fun switchTheme(theme: ThemeOptions)
-    {
-        viewModelScope.launch {
-            _ds.edit {
-                it[_themeKey] = theme.rawValue
-            }
-        }
-    }
-
-    private val _settingsUIState = MutableStateFlow(SettingsUIState())
-    val settingsUIState = _settingsUIState.asStateFlow()
+    Hide(0),
+    LightIcons(1),
+    DarkIcons(2),
 }
 
-// https://stackoverflow.com/a/71578372/6796433
-interface RawRepresentable<T>
+enum class ThemeOptions(override val rawValue: Int) : RawRepresentable<Int>
 {
-    val rawValue: T
+    System(0),
+    Light(1),
+    Dark(2),
 }
 
-inline fun <reified TEnum, TBacking> valueOf(value: TBacking): TEnum?
-        where TEnum : Enum<TEnum>, TEnum : RawRepresentable<TBacking>
-{
-    return enumValues<TEnum>().firstOrNull { it.rawValue == value }
-}
-
-inline fun <reified TEnum> intToEnumOrDefault(int: Int?, default: TEnum): TEnum
-        where TEnum : Enum<TEnum>, TEnum : RawRepresentable<Int>
-{
-    return if (int == null)
-        default
-    else
-        valueOf(int) ?: default
-}
-
+@AndroidEntryPoint
 class SettingsActivity : ComponentActivity()
 {
     override fun onCreate(savedInstanceState: Bundle?)
@@ -138,18 +62,9 @@ class SettingsActivity : ComponentActivity()
         super.onCreate(savedInstanceState)
 
         setContent {
-
-            val context = LocalContext.current
-            val vm = remember { SettingsVM(context.settingsDataStore) }
-            val state by vm.settingsUIState.collectAsState()
-
-            LaunchedEffect(vm) { vm.request() }
-
-            val darkTheme = state.theme == ThemeOptions.Dark || isSystemInDarkTheme()
-
-            BridgeLauncherTheme(darkTheme)
+            BridgeLauncherTheme()
             {
-                SettingsScreen(vm)
+                SettingsScreen()
             }
         }
     }
@@ -162,9 +77,7 @@ fun <TProp> displayNameFor(prop: KProperty1<SettingsUIState, TProp>): String
 }
 
 @Composable
-fun SettingsScreen(
-    vm: SettingsVM = viewModel()
-)
+fun SettingsScreen(vm: SettingsVM = viewModel())
 {
     val uiState by vm.settingsUIState.collectAsStateWithLifecycle()
 
@@ -539,58 +452,6 @@ fun ActionCard(title: String, description: String, footer: ComposableContent)
 
 
 @Composable
-fun CheckboxField(label: String, isChecked: Boolean, onCheckedChange: (Boolean) -> Unit)
-{
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight(),
-        shape = RoundedCornerShape(8.dp),
-        color = if (isChecked)
-            MaterialTheme.colors.checkedItemBg
-        else
-            Color.Transparent
-    )
-    {
-        Row(
-            modifier = Modifier
-                .clickable { onCheckedChange(!isChecked) }
-                .defaultMinSize(minHeight = 48.dp)
-                .fillMaxWidth()
-                .wrapContentHeight()
-                .padding(12.dp, 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        )
-        {
-            Checkbox(
-                checked = isChecked,
-                onCheckedChange = null,
-                colors = CheckboxDefaults.colors(
-                    checkedColor = MaterialTheme.colors.onSurface,
-                    uncheckedColor = MaterialTheme.colors.onSurface,
-                )
-            )
-            Text(label)
-        }
-    }
-}
-
-enum class SystemBarAppearanceOptions(override val rawValue: Int) : RawRepresentable<Int>
-{
-    Hide(0),
-    LightIcons(1),
-    DarkIcons(2),
-}
-
-enum class ThemeOptions(override val rawValue: Int) : RawRepresentable<Int>
-{
-    System(0),
-    Light(1),
-    Dark(2),
-}
-
-@Composable
 fun SystemBarAppearanceOptionsField(label: String, selectedOption: SystemBarAppearanceOptions, onChange: (SystemBarAppearanceOptions) -> Unit)
 {
     OptionsRow(
@@ -603,53 +464,6 @@ fun SystemBarAppearanceOptionsField(label: String, selectedOption: SystemBarAppe
         selectedOption = selectedOption,
         onChange = onChange
     )
-}
-
-@Composable
-fun <TOption> OptionsRow(label: String, options: Map<TOption, String>, selectedOption: TOption, onChange: (TOption) -> Unit)
-{
-    Column(
-        modifier = Modifier
-            .fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    )
-    {
-        Text(label, modifier = Modifier.padding(4.dp, 0.dp))
-
-        Row(
-            modifier = Modifier
-                .border(MaterialTheme.borders.soft, RoundedCornerShape(9.dp))
-                .padding(1.dp)
-                .fillMaxWidth()
-                .wrapContentHeight(),
-        )
-        {
-
-            for (entry in options)
-            {
-                Surface(
-                    modifier = Modifier
-                        .weight(1f)
-                        .defaultMinSize(minHeight = 48.dp),
-                    color = if (selectedOption == entry.key)
-                        MaterialTheme.colors.checkedItemBg
-                    else
-                        Color.Transparent,
-                    shape = RoundedCornerShape(8.dp),
-                )
-                {
-                    Box(
-                        modifier = Modifier
-                            .clickable { onChange(entry.key) },
-                        contentAlignment = Alignment.Center,
-                    )
-                    {
-                        Text(entry.value)
-                    }
-                }
-            }
-        }
-    }
 }
 
 

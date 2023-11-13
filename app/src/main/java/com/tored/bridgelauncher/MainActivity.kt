@@ -1,18 +1,18 @@
 package com.tored.bridgelauncher
 
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.view.WindowInsetsController
-import android.view.WindowManager.LayoutParams
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material.Divider
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -23,14 +23,12 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.preferencesDataStore
 import com.tored.bridgelauncher.composables.ResIcon
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity()
 {
     override fun onCreate(savedInstanceState: Bundle?)
@@ -48,11 +46,11 @@ class MainActivity : ComponentActivity()
 @Composable
 fun HomeScreen()
 {
-    val currentView = LocalView.current;
+    val currentView = LocalView.current
     if (!currentView.isInEditMode)
     {
         val currentWindow = (currentView.context as? Activity)?.window
-            ?: throw Exception("Attempt to access a window from outside an activity.");
+            ?: throw Exception("Attempt to access a window from outside an activity.")
 
         SideEffect()
         {
@@ -143,7 +141,7 @@ fun BridgeButtonStateless(isExpanded: Boolean, onIsExpandedChange: (newState: Bo
             {
                 if (isExpanded)
                 {
-                    val context = LocalContext.current;
+                    val context = LocalContext.current
 
                     TouchTarget(iconResId = R.drawable.ic_refresh) { }
                     TouchTarget(iconResId = R.drawable.ic_dev_console) { }
