@@ -33,8 +33,10 @@ import com.tored.bridgelauncher.ui.shared.OptionsRow
 import com.tored.bridgelauncher.ui.theme.borders
 import com.tored.bridgelauncher.ui.theme.textSec
 import com.tored.bridgelauncher.utils.RawRepresentable
-import com.tored.bridgelauncher.vms.SettingsUIState
+import com.tored.bridgelauncher.vms.SettingsState
 import com.tored.bridgelauncher.vms.SettingsVM
+import com.tored.bridgelauncher.vms.writeBool
+import com.tored.bridgelauncher.vms.writeEnum
 import dagger.hilt.android.AndroidEntryPoint
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotation
@@ -70,7 +72,7 @@ class SettingsActivity : ComponentActivity()
     }
 }
 
-fun <TProp> displayNameFor(prop: KProperty1<SettingsUIState, TProp>): String
+fun <TProp> displayNameFor(prop: KProperty1<SettingsState, TProp>): String
 {
     val ann = prop.findAnnotation<Display>()
     return ann?.name ?: prop.name
@@ -80,52 +82,32 @@ fun <TProp> displayNameFor(prop: KProperty1<SettingsUIState, TProp>): String
 fun SettingsScreen(vm: SettingsVM = viewModel())
 {
     val uiState by vm.settingsUIState.collectAsStateWithLifecycle()
+    LaunchedEffect(vm) { vm.request() }
 
     @Composable
-    fun checkboxFieldFor(prop: KProperty1<SettingsUIState, Boolean>)
+    fun checkboxFieldFor(prop: KProperty1<SettingsState, Boolean>)
     {
-        val instanceParam = SettingsUIState::copy.instanceParameter
-            ?: throw Exception("Instance parameter not found.")
-        val param = SettingsUIState::copy.parameters.find { it.name == prop.name }
-            ?: throw Exception("Parameter ${prop.name} not found.")
-
         CheckboxField(
             label = displayNameFor(prop),
             isChecked = prop.getValue(uiState, prop),
             onCheckedChange = { isChecked ->
-                // TODO
-//                viewModel.settingsUIState.update {
-//                    SettingsUIState::copy.callBy(
-//                        mapOf(
-//                            instanceParam to it,
-//                            param to isChecked
-//                        )
-//                    )
-//                }
+                vm.edit {
+                    it.writeBool(prop, isChecked)
+                }
             }
         )
     }
 
     @Composable
-    fun systemBarOptionsFieldFor(prop: KProperty1<SettingsUIState, SystemBarAppearanceOptions>)
+    fun systemBarOptionsFieldFor(prop: KProperty1<SettingsState, SystemBarAppearanceOptions>, vm: SettingsVM = viewModel())
     {
-        val instanceParam = SettingsUIState::copy.instanceParameter
-            ?: throw Exception("Instance parameter not found.")
-        val param = SettingsUIState::copy.parameters.find { it.name == prop.name }
-            ?: throw Exception("Parameter ${prop.name} not found.")
-
         SystemBarAppearanceOptionsField(
             label = displayNameFor(prop),
             selectedOption = prop.getValue(uiState, prop),
             onChange = { value ->
-//                viewModel.settingsUIState.update {
-//                    SettingsUIState::copy.callBy(
-//                        mapOf(
-//                            instanceParam to it,
-//                            param to value
-//                        )
-//                    )
-//                }
+                vm.edit {
+                    it.writeEnum(prop, value)
+                }
             }
         )
     }
@@ -142,7 +124,6 @@ fun SettingsScreen(vm: SettingsVM = viewModel())
         SideEffect()
         {
             val insetsController = WindowCompat.getInsetsController(currentWindow, currentView)
-                ?: throw Exception("Could not access insets controller.")
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
             {
@@ -174,7 +155,7 @@ fun SettingsScreen(vm: SettingsVM = viewModel())
                 SettingsSection(label = "Project", iconResId = R.drawable.ic_open_folder)
                 {
                     CurrentProjectCard(uiState.currentProjName) { }
-                    checkboxFieldFor(SettingsUIState::allowProjectsToTurnScreenOff)
+                    checkboxFieldFor(SettingsState::allowProjectsToTurnScreenOff)
                 }
 
                 Divider()
@@ -193,7 +174,7 @@ fun SettingsScreen(vm: SettingsVM = viewModel())
                             onClick = { /*TODO*/ },
                         )
 
-                        checkboxFieldFor(SettingsUIState::drawSystemWallpaperBehindWebView)
+                        checkboxFieldFor(SettingsState::drawSystemWallpaperBehindWebView)
                     }
                 }
 
@@ -201,9 +182,9 @@ fun SettingsScreen(vm: SettingsVM = viewModel())
 
                 SettingsSection(label = "Overlays", iconResId = R.drawable.ic_overlays)
                 {
-                    systemBarOptionsFieldFor(SettingsUIState::statusBarAppearance)
-                    systemBarOptionsFieldFor(SettingsUIState::navigationBarAppearance)
-                    checkboxFieldFor(SettingsUIState::drawWebViewOverscrollEffects)
+                    systemBarOptionsFieldFor(SettingsState::statusBarAppearance)
+                    systemBarOptionsFieldFor(SettingsState::navigationBarAppearance)
+                    checkboxFieldFor(SettingsState::drawWebViewOverscrollEffects)
                 }
 
                 Divider()
@@ -218,17 +199,21 @@ fun SettingsScreen(vm: SettingsVM = viewModel())
                             ThemeOptions.Dark to "Dark",
                         ),
                         selectedOption = uiState.theme,
-                        onChange = vm::switchTheme,
+                        onChange = { theme ->
+                            vm.edit {
+                                it.writeEnum(SettingsState::theme, theme)
+                            }
+                        },
                     )
 
-                    checkboxFieldFor(SettingsUIState::showBridgeButton)
+                    checkboxFieldFor(SettingsState::showBridgeButton)
 
                     ProvideTextStyle(value = MaterialTheme.typography.body2.copy(color = MaterialTheme.colors.textSec))
                     {
                         Tip("Tap and hold the button to move it.")
                     }
 
-                    checkboxFieldFor(SettingsUIState::showLaunchAppsWhenBridgeButtonCollapsed)
+                    checkboxFieldFor(SettingsState::showLaunchAppsWhenBridgeButtonCollapsed)
 
                     ActionCard(
                         title = "Quick settings tile",

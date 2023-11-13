@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.view.WindowManager.LayoutParams
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
@@ -23,9 +24,13 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tored.bridgelauncher.composables.ResIcon
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
+import com.tored.bridgelauncher.vms.SettingsVM
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -44,27 +49,56 @@ class MainActivity : ComponentActivity()
 }
 
 @Composable
-fun HomeScreen()
+fun HomeScreen(settingsVM: SettingsVM = viewModel())
 {
+    val settingsUIState by settingsVM.settingsUIState.collectAsStateWithLifecycle()
+    LaunchedEffect(settingsVM) { settingsVM.request() }
+
     val currentView = LocalView.current
     if (!currentView.isInEditMode)
     {
+        val showWallpaper = settingsUIState.drawSystemWallpaperBehindWebView
+        val statusBarAppearance = settingsUIState.statusBarAppearance
+        val navigationBarAppearance = settingsUIState.navigationBarAppearance
+
         val currentWindow = (currentView.context as? Activity)?.window
             ?: throw Exception("Attempt to access a window from outside an activity.")
 
         SideEffect()
         {
             val insetsController = WindowCompat.getInsetsController(currentWindow, currentView)
-                ?: throw Exception("Could not access insets controller.")
+
+            if (showWallpaper)
+                currentWindow.addFlags(LayoutParams.FLAG_SHOW_WALLPAPER)
+            else
+                currentWindow.clearFlags(LayoutParams.FLAG_SHOW_WALLPAPER)
+
+            insetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
             {
                 currentWindow.isNavigationBarContrastEnforced = false
             }
 
-            insetsController.isAppearanceLightStatusBars = true
-            insetsController.isAppearanceLightNavigationBars = true
-            insetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            if (statusBarAppearance == SystemBarAppearanceOptions.Hide)
+            {
+                insetsController.hide(WindowInsetsCompat.Type.statusBars())
+            }
+            else
+            {
+                insetsController.show(WindowInsetsCompat.Type.statusBars())
+                insetsController.isAppearanceLightStatusBars = statusBarAppearance == SystemBarAppearanceOptions.DarkIcons
+            }
+
+            if (navigationBarAppearance == SystemBarAppearanceOptions.Hide)
+            {
+                insetsController.hide(WindowInsetsCompat.Type.navigationBars())
+            }
+            else
+            {
+                insetsController.show(WindowInsetsCompat.Type.navigationBars())
+                insetsController.isAppearanceLightNavigationBars = navigationBarAppearance == SystemBarAppearanceOptions.DarkIcons
+            }
         }
     }
 

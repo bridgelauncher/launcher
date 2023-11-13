@@ -6,6 +6,7 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tored.bridgelauncher.vms.SettingsVM
 import com.tored.bridgelauncher.ThemeOptions
@@ -37,7 +38,7 @@ private val LightColorPalette = lightColors(
 @Composable
 fun BridgeLauncherTheme(settingsVM: SettingsVM = viewModel(), content: @Composable () -> Unit)
 {
-    val state by settingsVM.settingsUIState.collectAsState()
+    val state by settingsVM.settingsUIState.collectAsStateWithLifecycle()
 
     LaunchedEffect(settingsVM) { settingsVM.request() }
 
