@@ -8,7 +8,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.tored.bridgelauncher.vms.SettingsVM
+import com.tored.bridgelauncher.settings.SettingsVM
 import com.tored.bridgelauncher.ThemeOptions
 
 private val DarkColorPalette = darkColors(

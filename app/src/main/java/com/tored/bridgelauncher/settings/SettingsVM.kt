@@ -1,4 +1,4 @@
-package com.tored.bridgelauncher.vms
+package com.tored.bridgelauncher.settings
 
 import android.content.Context
 import androidx.datastore.preferences.core.*

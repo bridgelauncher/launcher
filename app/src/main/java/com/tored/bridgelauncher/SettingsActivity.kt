@@ -1,7 +1,6 @@
 package com.tored.bridgelauncher
 
 import android.app.Activity
-import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -23,7 +22,6 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
-import androidx.datastore.preferences.preferencesDataStore
 import com.tored.bridgelauncher.annotations.Display
 import com.tored.bridgelauncher.composables.Btn
 import com.tored.bridgelauncher.composables.ResIcon
@@ -33,14 +31,13 @@ import com.tored.bridgelauncher.ui.shared.OptionsRow
 import com.tored.bridgelauncher.ui.theme.borders
 import com.tored.bridgelauncher.ui.theme.textSec
 import com.tored.bridgelauncher.utils.RawRepresentable
-import com.tored.bridgelauncher.vms.SettingsState
-import com.tored.bridgelauncher.vms.SettingsVM
-import com.tored.bridgelauncher.vms.writeBool
-import com.tored.bridgelauncher.vms.writeEnum
+import com.tored.bridgelauncher.settings.SettingsState
+import com.tored.bridgelauncher.settings.SettingsVM
+import com.tored.bridgelauncher.settings.writeBool
+import com.tored.bridgelauncher.settings.writeEnum
 import dagger.hilt.android.AndroidEntryPoint
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotation
-import kotlin.reflect.full.instanceParameter
 
 enum class SystemBarAppearanceOptions(override val rawValue: Int) : RawRepresentable<Int>
 {
