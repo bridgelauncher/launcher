@@ -7,13 +7,10 @@ import android.service.quicksettings.TileService
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LifecycleRegistry
 import com.tored.bridgelauncher.settings.*
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collectLatest
-import kotlin.coroutines.suspendCoroutine
 
 class LifecycleImpl(override val currentState: State) : Lifecycle()
 {
@@ -53,6 +50,7 @@ class BridgeButtonQSTileService : TileService()
                     }
                     catch (_: java.lang.Exception)
                     {
+                        { }()
                     }
                 }
             }
@@ -68,7 +66,7 @@ class BridgeButtonQSTileService : TileService()
     {
         runBlocking {
             applicationContext.settingsDataStore.edit { prefs ->
-                prefs.writeBool(SettingsState::qsTileIsAdded, isAdded)
+                prefs.writeBool(SettingsState::isQSTileAdded, isAdded)
             }
         }
     }
@@ -105,7 +103,7 @@ class BridgeButtonQSTileService : TileService()
     {
         val showButton = qsTile.state != Tile.STATE_ACTIVE
 
-        _scope.launch {
+        runBlocking {
             applicationContext.settingsDataStore.edit { prefs ->
                 prefs.writeBool(SettingsState::showBridgeButton, showButton)
             }

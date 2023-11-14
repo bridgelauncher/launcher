@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.WindowManager.LayoutParams
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -23,15 +24,19 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat.startActivity
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tored.bridgelauncher.composables.ResIcon
-import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
+import com.tored.bridgelauncher.settings.SettingsState
 import com.tored.bridgelauncher.settings.SettingsVM
+import com.tored.bridgelauncher.settings.writeBool
+import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
 import dagger.hilt.android.AndroidEntryPoint
+
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity()
@@ -187,12 +192,27 @@ fun BridgeButtonStateless(isExpanded: Boolean, onIsExpandedChange: (newState: Bo
 
                     Divider()
 
-                    TouchTarget(iconResId = R.drawable.ic_switch_launchers) { }
+                    TouchTarget(iconResId = R.drawable.ic_switch_launchers)
+                    {
+                        context.startActivity(
+                            Intent(Settings.ACTION_HOME_SETTINGS).apply()
+                            {
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            }
+                        )
+                    }
+
                     TouchTarget(iconResId = R.drawable.ic_settings)
                     {
                         context.startActivity(Intent(context, SettingsActivity::class.java))
                     }
-                    TouchTarget(iconResId = R.drawable.ic_hide) { }
+
+                    TouchTarget(iconResId = R.drawable.ic_hide)
+                    {
+                        settingsVM.edit { prefs ->
+                            prefs.writeBool(SettingsState::showBridgeButton, false)
+                        }
+                    }
                 }
 
                 if (isExpanded || settingsState.showLaunchAppsWhenBridgeButtonCollapsed)

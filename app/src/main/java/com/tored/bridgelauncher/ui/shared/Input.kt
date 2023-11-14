@@ -12,9 +12,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.tored.bridgelauncher.ui.theme.borders
 import com.tored.bridgelauncher.ui.theme.checkedItemBg
+import com.tored.bridgelauncher.ui.theme.textSec
 
 @Composable
-fun CheckboxField(label: String, isChecked: Boolean, onCheckedChange: (Boolean) -> Unit)
+fun CheckboxField(label: String, isChecked: Boolean, onCheckedChange: (Boolean) -> Unit, description: String = "")
 {
     Surface(
         modifier = Modifier
@@ -46,7 +47,13 @@ fun CheckboxField(label: String, isChecked: Boolean, onCheckedChange: (Boolean) 
                     uncheckedColor = MaterialTheme.colors.onSurface,
                 )
             )
-            Text(label)
+            Column() {
+                Text(label)
+                if (description.isNotEmpty())
+                {
+                    Text(description, style = MaterialTheme.typography.body2, color = MaterialTheme.colors.textSec)
+                }
+            }
         }
     }
 }

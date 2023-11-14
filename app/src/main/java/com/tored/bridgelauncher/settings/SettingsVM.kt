@@ -24,9 +24,11 @@ val Context.settingsDataStore by preferencesDataStore("settings")
 
 data class SettingsState(
 
-    val theme: ThemeOptions = ThemeOptions.System,
-
     val currentProjName: String = "Test Launcher",
+    val isQSTileAdded: Boolean = false,
+    val isDeviceAdminEnabled: Boolean = false,
+
+    val theme: ThemeOptions = ThemeOptions.System,
 
     @Display("Allow projects to turn the screen off")
     val allowProjectsToTurnScreenOff: Boolean = false,
@@ -45,8 +47,6 @@ data class SettingsState(
 
     @Display("Show Bridge button")
     val showBridgeButton: Boolean = true,
-
-    val qsTileIsAdded: Boolean = false,
 
     @Display("Show Launch apps button when the Bridge menu is collapsed")
     val showLaunchAppsWhenBridgeButtonCollapsed: Boolean = false,
@@ -99,6 +99,9 @@ class SettingsVM @Inject constructor(@ApplicationContext appContext: Context) : 
             _ds.data.collectLatest { prefs ->
                 _settingsUIState.update {
                     it.copy(
+                        isQSTileAdded = prefs.readBool(SettingsState::isQSTileAdded, false),
+                        isDeviceAdminEnabled = prefs.readBool(SettingsState::isDeviceAdminEnabled, false),
+
                         theme = prefs.readEnum(SettingsState::theme, ThemeOptions.System),
 
                         allowProjectsToTurnScreenOff = prefs.readBool(SettingsState::allowProjectsToTurnScreenOff, false),
@@ -110,8 +113,6 @@ class SettingsVM @Inject constructor(@ApplicationContext appContext: Context) : 
                         drawWebViewOverscrollEffects = prefs.readBool(SettingsState::drawWebViewOverscrollEffects, false),
                         showBridgeButton = prefs.readBool(SettingsState::showBridgeButton, true),
                         showLaunchAppsWhenBridgeButtonCollapsed = prefs.readBool(SettingsState::showLaunchAppsWhenBridgeButtonCollapsed, false),
-
-                        qsTileIsAdded = prefs.readBool(SettingsState::qsTileIsAdded, false),
                     )
                 }
             }
