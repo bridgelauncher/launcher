@@ -3,6 +3,7 @@ package com.tored.bridgelauncher
 import android.app.Activity
 import android.app.StatusBarManager
 import android.content.ComponentName
+import android.content.Intent
 import android.graphics.drawable.Icon
 import android.os.Build
 import android.os.Bundle
@@ -84,6 +85,8 @@ fun SettingsScreen(vm: SettingsVM = viewModel())
 {
     val uiState by vm.settingsUIState.collectAsStateWithLifecycle()
     LaunchedEffect(vm) { vm.request() }
+
+    val context = LocalContext.current
 
     @Composable
     fun checkboxFieldFor(prop: KProperty1<SettingsState, Boolean>)
@@ -172,7 +175,7 @@ fun SettingsScreen(vm: SettingsVM = viewModel())
                                 .fillMaxWidth(),
                             text = "Set system wallpaper",
                             outlined = true,
-                            onClick = { /*TODO*/ },
+                            onClick = { context.startActivity(Intent(Intent.ACTION_SET_WALLPAPER)) },
                         )
 
                         checkboxFieldFor(SettingsState::drawSystemWallpaperBehindWebView)
@@ -225,15 +228,14 @@ fun SettingsScreen(vm: SettingsVM = viewModel())
                                 description = "You can add a quick settings tile to unobtrusively toggle the Bridge button. Long-pressing the tile opens this settings screen."
                             )
                             {
-                                val ctx = LocalContext.current
-                                val sbm = ctx.getSystemService(StatusBarManager::class.java)
-                                val compName = ComponentName(ctx, BridgeButtonQSTileService::class.java)
+                                val sbm = context.getSystemService(StatusBarManager::class.java)
+                                val compName = ComponentName(context, BridgeButtonQSTileService::class.java)
 
                                 Btn(text = "Add tile", suffixIcon = R.drawable.ic_plus, onClick = {
                                     sbm.requestAddTileService(
                                         compName,
                                         "Bridge button",
-                                        Icon.createWithResource(ctx, R.drawable.ic_bridge_white),
+                                        Icon.createWithResource(context, R.drawable.ic_bridge_white),
                                         {},
                                         {}
                                     )
