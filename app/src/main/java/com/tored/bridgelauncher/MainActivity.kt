@@ -51,15 +51,15 @@ class MainActivity : ComponentActivity()
 @Composable
 fun HomeScreen(settingsVM: SettingsVM = viewModel())
 {
-    val settingsUIState by settingsVM.settingsUIState.collectAsStateWithLifecycle()
+    val settingsState by settingsVM.settingsUIState.collectAsStateWithLifecycle()
     LaunchedEffect(settingsVM) { settingsVM.request() }
 
     val currentView = LocalView.current
     if (!currentView.isInEditMode)
     {
-        val showWallpaper = settingsUIState.drawSystemWallpaperBehindWebView
-        val statusBarAppearance = settingsUIState.statusBarAppearance
-        val navigationBarAppearance = settingsUIState.navigationBarAppearance
+        val showWallpaper = settingsState.drawSystemWallpaperBehindWebView
+        val statusBarAppearance = settingsState.statusBarAppearance
+        val navigationBarAppearance = settingsState.navigationBarAppearance
 
         val currentWindow = (currentView.context as? Activity)?.window
             ?: throw Exception("Attempt to access a window from outside an activity.")
@@ -104,21 +104,26 @@ fun HomeScreen(settingsVM: SettingsVM = viewModel())
 
     Surface(modifier = Modifier.fillMaxSize(), color = Color.Transparent)
     {
-        Box(
-            contentAlignment = Alignment.BottomEnd,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-        )
+        if (settingsState.showBridgeButton)
         {
-            BridgeButtonStateful(false)
+            Box(
+                contentAlignment = Alignment.BottomEnd,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+            )
+            {
+                BridgeButtonStateful(false)
+            }
         }
     }
 }
 
 @Composable
-fun BridgeButtonStateless(isExpanded: Boolean, onIsExpandedChange: (newState: Boolean) -> Unit)
+fun BridgeButtonStateless(isExpanded: Boolean, onIsExpandedChange: (newState: Boolean) -> Unit, settingsVM: SettingsVM = viewModel())
 {
+    val settingsState by settingsVM.settingsUIState.collectAsStateWithLifecycle()
+
     Row(
         modifier = Modifier
             .wrapContentSize(),
@@ -188,6 +193,10 @@ fun BridgeButtonStateless(isExpanded: Boolean, onIsExpandedChange: (newState: Bo
                         context.startActivity(Intent(context, SettingsActivity::class.java))
                     }
                     TouchTarget(iconResId = R.drawable.ic_hide) { }
+                }
+
+                if (isExpanded || settingsState.showLaunchAppsWhenBridgeButtonCollapsed)
+                {
                     TouchTarget(iconResId = R.drawable.ic_apps) { }
 
                     Divider()
