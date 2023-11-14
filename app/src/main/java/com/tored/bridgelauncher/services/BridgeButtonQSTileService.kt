@@ -5,23 +5,34 @@ import android.os.Build
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import androidx.datastore.preferences.core.edit
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LifecycleRegistry
 import com.tored.bridgelauncher.settings.*
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collectLatest
 import kotlin.coroutines.suspendCoroutine
 
+class LifecycleImpl(override val currentState: State) : Lifecycle()
+{
+    override fun addObserver(observer: LifecycleObserver)
+    {
+        TODO("Not yet implemented")
+    }
+
+    override fun removeObserver(observer: LifecycleObserver)
+    {
+        TODO("Not yet implemented")
+    }
+}
+
 @AndroidEntryPoint
 class BridgeButtonQSTileService : TileService()
 {
-    companion object
-    {
-        var isAdded: Boolean = false
-            private set
-    }
-
-    private val _job = SupervisorJob()
-    private val _scope = CoroutineScope(Dispatchers.Main + _job)
+    private var _job = SupervisorJob()
+    private var _scope = CoroutineScope(Dispatchers.Main + _job)
     private var _isListening = false;
     private var _shouldBeActive = false;
 
@@ -50,7 +61,16 @@ class BridgeButtonQSTileService : TileService()
 
     override fun onTileAdded()
     {
-        isAdded = true
+        updateTileIsAdded(true)
+    }
+
+    fun updateTileIsAdded(isAdded: Boolean)
+    {
+        runBlocking {
+            applicationContext.settingsDataStore.edit { prefs ->
+                prefs.writeBool(SettingsState::qsTileIsAdded, isAdded)
+            }
+        }
     }
 
     override fun onStartListening()
@@ -104,6 +124,6 @@ class BridgeButtonQSTileService : TileService()
 
     override fun onTileRemoved()
     {
-        isAdded = false
+        updateTileIsAdded(false)
     }
 }

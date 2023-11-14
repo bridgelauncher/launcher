@@ -216,14 +216,14 @@ fun SettingsScreen(vm: SettingsVM = viewModel())
 
                     checkboxFieldFor(SettingsState::showLaunchAppsWhenBridgeButtonCollapsed)
 
-                    if (!BridgeButtonQSTileService.isAdded)
+                    if (!uiState.qsTileIsAdded)
                     {
-                        ActionCard(
-                            title = "Quick settings tile",
-                            description = "You can add a quick settings tile to unobtrusively toggle the Bridge button."
-                        )
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
                         {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+                            ActionCard(
+                                title = "Quick settings tile",
+                                description = "You can add a quick settings tile to unobtrusively toggle the Bridge button. Long-pressing the tile opens this settings screen."
+                            )
                             {
                                 val ctx = LocalContext.current
                                 val sbm = ctx.getSystemService(StatusBarManager::class.java)
@@ -239,11 +239,16 @@ fun SettingsScreen(vm: SettingsVM = viewModel())
                                     )
                                 })
                             }
-                            else
-                            {
-                                // TODO
-                            }
-
+                        }
+                        else
+                        {
+                            ActionCard(
+                                title = "Quick settings tile",
+                                description = "You can add a quick settings tile to unobtrusively toggle the Bridge button. Long-pressing the tile opens this settings screen.\n"
+                                        + "\n"
+                                        + "Quick settings are the toggles in your notifications area that you use to toggle for example WiFi or Bluetooth. "
+                                        + "To add the Bridge button tile, expand the quick settings panel and look for an edit button."
+                            )
                         }
                     }
                     else
@@ -430,7 +435,7 @@ fun CurrentProjectCard(currentProjName: String, onChangeClick: () -> Unit)
 }
 
 @Composable
-fun ActionCard(title: String, description: String, footer: ComposableContent)
+fun ActionCard(title: String, description: String, footerContent: ComposableContent? = null)
 {
     Column(
         modifier = Modifier
@@ -441,22 +446,26 @@ fun ActionCard(title: String, description: String, footer: ComposableContent)
     {
         Column(
             modifier = Modifier
-                .padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = 0.dp),
+                .padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = if (footerContent == null) 16.dp else 0.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         )
         {
             Text(title)
             Text(description, style = MaterialTheme.typography.body2, color = MaterialTheme.colors.textSec)
         }
-        Row(
-            modifier = Modifier
-                .padding(8.dp)
-                .fillMaxWidth()
-                .wrapContentHeight(),
-            horizontalArrangement = Arrangement.spacedBy(4.dp, alignment = Alignment.End)
-        )
+
+        if (footerContent != null)
         {
-            footer()
+            Row(
+                modifier = Modifier
+                    .padding(8.dp)
+                    .fillMaxWidth()
+                    .wrapContentHeight(),
+                horizontalArrangement = Arrangement.spacedBy(4.dp, alignment = Alignment.End)
+            )
+            {
+                footerContent()
+            }
         }
     }
 }

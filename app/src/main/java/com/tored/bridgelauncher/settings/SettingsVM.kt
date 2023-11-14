@@ -46,10 +46,12 @@ data class SettingsState(
     @Display("Show Bridge button")
     val showBridgeButton: Boolean = true,
 
+    val qsTileIsAdded: Boolean = false,
+
     @Display("Show Launch apps button when the Bridge menu is collapsed")
     val showLaunchAppsWhenBridgeButtonCollapsed: Boolean = false,
 
-)
+    )
 
 inline fun <reified TParent, TProp> getPrefKeyName(prop: KProperty1<TParent, TProp>) = getPrefKeyName(TParent::class.simpleName ?: "", prop.name)
 
@@ -108,6 +110,8 @@ class SettingsVM @Inject constructor(@ApplicationContext appContext: Context) : 
                         drawWebViewOverscrollEffects = prefs.readBool(SettingsState::drawWebViewOverscrollEffects, false),
                         showBridgeButton = prefs.readBool(SettingsState::showBridgeButton, true),
                         showLaunchAppsWhenBridgeButtonCollapsed = prefs.readBool(SettingsState::showLaunchAppsWhenBridgeButtonCollapsed, false),
+
+                        qsTileIsAdded = prefs.readBool(SettingsState::qsTileIsAdded, false),
                     )
                 }
             }
