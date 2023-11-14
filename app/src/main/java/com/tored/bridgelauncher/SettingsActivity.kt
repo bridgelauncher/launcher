@@ -1,6 +1,9 @@
 package com.tored.bridgelauncher
 
 import android.app.Activity
+import android.app.StatusBarManager
+import android.content.ComponentName
+import android.graphics.drawable.Icon
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -26,6 +29,7 @@ import com.tored.bridgelauncher.annotations.Display
 import com.tored.bridgelauncher.composables.Btn
 import com.tored.bridgelauncher.composables.ResIcon
 import com.tored.bridgelauncher.composables.Tip
+import com.tored.bridgelauncher.services.BridgeButtonQSTileService
 import com.tored.bridgelauncher.ui.shared.CheckboxField
 import com.tored.bridgelauncher.ui.shared.OptionsRow
 import com.tored.bridgelauncher.ui.theme.borders
@@ -212,26 +216,51 @@ fun SettingsScreen(vm: SettingsVM = viewModel())
 
                     checkboxFieldFor(SettingsState::showLaunchAppsWhenBridgeButtonCollapsed)
 
-                    ActionCard(
-                        title = "Quick settings tile",
-                        description = "You can add a quick settings tile to unobtrusively toggle the Bridge button."
-                    )
+                    if (!BridgeButtonQSTileService.isAdded)
                     {
-                        Btn(text = "Add tile", suffixIcon = R.drawable.ic_plus, onClick = { /* TODO */ })
-                    }
+                        ActionCard(
+                            title = "Quick settings tile",
+                            description = "You can add a quick settings tile to unobtrusively toggle the Bridge button."
+                        )
+                        {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+                            {
+                                val ctx = LocalContext.current
+                                val sbm = ctx.getSystemService(StatusBarManager::class.java)
+                                val compName = ComponentName(ctx, BridgeButtonQSTileService::class.java)
 
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight()
-                            .border(MaterialTheme.borders.soft, RoundedCornerShape(8.dp))
-                            .padding(start = 12.dp, top = 16.dp, bottom = 16.dp, end = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    )
+                                Btn(text = "Add tile", suffixIcon = R.drawable.ic_plus, onClick = {
+                                    sbm.requestAddTileService(
+                                        compName,
+                                        "Bridge button",
+                                        Icon.createWithResource(ctx, R.drawable.ic_bridge_white),
+                                        {},
+                                        {}
+                                    )
+                                })
+                            }
+                            else
+                            {
+                                // TODO
+                            }
+
+                        }
+                    }
+                    else
                     {
-                        ResIcon(R.drawable.ic_check, color = MaterialTheme.colors.primary)
-                        Text("Quick settings tile added.")
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight()
+                                .border(MaterialTheme.borders.soft, RoundedCornerShape(8.dp))
+                                .padding(start = 12.dp, top = 16.dp, bottom = 16.dp, end = 16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        )
+                        {
+                            ResIcon(R.drawable.ic_check, color = MaterialTheme.colors.primary)
+                            Text("Quick settings tile added.")
+                        }
                     }
                 }
 
