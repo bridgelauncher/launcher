@@ -5,3 +5,16 @@ import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
 class BridgeLauncherApp : Application()
+{
+    lateinit var installedAppsHolder: InstalledAppsStateHolder
+
+    override fun onCreate()
+    {
+        super.onCreate()
+
+        installedAppsHolder = InstalledAppsStateHolder(this.packageManager).apply()
+        {
+            loadInstalledApps()
+        }
+    }
+}

@@ -21,7 +21,7 @@ fun CheckboxField(label: String, isChecked: Boolean, onCheckedChange: (Boolean) 
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight(),
-        shape = RoundedCornerShape(8.dp),
+        shape = MaterialTheme.shapes.medium,
         color = if (isChecked)
             MaterialTheme.colors.checkedItemBg
         else
@@ -88,7 +88,7 @@ fun <TOption> OptionsRow(label: String, options: Map<TOption, String>, selectedO
                         MaterialTheme.colors.checkedItemBg
                     else
                         Color.Transparent,
-                    shape = RoundedCornerShape(8.dp),
+                    shape = MaterialTheme.shapes.medium,
                 )
                 {
                     Box(

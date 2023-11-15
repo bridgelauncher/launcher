@@ -4,17 +4,14 @@ import android.app.Activity
 import android.app.StatusBarManager
 import android.app.admin.DevicePolicyManager
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.Icon
 import android.os.Build
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.tooling.preview.Preview
@@ -23,12 +20,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.core.view.WindowCompat
 import com.tored.bridgelauncher.annotations.Display
 import com.tored.bridgelauncher.composables.Btn
 import com.tored.bridgelauncher.composables.ResIcon
@@ -44,6 +38,8 @@ import com.tored.bridgelauncher.settings.SettingsState
 import com.tored.bridgelauncher.settings.SettingsVM
 import com.tored.bridgelauncher.settings.writeBool
 import com.tored.bridgelauncher.settings.writeEnum
+import com.tored.bridgelauncher.ui.shared.SetSystemBarsForBotBarActivity
+import com.tored.bridgelauncher.ui.theme.botBar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotation
@@ -121,30 +117,7 @@ fun SettingsScreen(vm: SettingsVM = viewModel())
         )
     }
 
-    val currentView = LocalView.current
-    if (!currentView.isInEditMode)
-    {
-        val currentWindow = (currentView.context as? Activity)?.window
-            ?: throw Exception("Attempt to access a window from outside an activity.")
-
-        val surfaceColor = MaterialTheme.colors.surface.toArgb()
-        val isLight = MaterialTheme.colors.isLight
-
-        SideEffect()
-        {
-            val insetsController = WindowCompat.getInsetsController(currentWindow, currentView)
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-            {
-                currentWindow.isNavigationBarContrastEnforced = false
-            }
-
-            currentWindow.statusBarColor = surfaceColor
-            currentWindow.navigationBarColor = surfaceColor
-            insetsController.isAppearanceLightStatusBars = isLight
-            insetsController.isAppearanceLightNavigationBars = isLight
-        }
-    }
+    SetSystemBarsForBotBarActivity()
 
     Surface(
         color = MaterialTheme.colors.background
@@ -312,7 +285,7 @@ fun SettingsScreen(vm: SettingsVM = viewModel())
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .wrapContentHeight()
-                                .border(MaterialTheme.borders.soft, RoundedCornerShape(8.dp))
+                                .border(MaterialTheme.borders.soft, MaterialTheme.shapes.medium)
                                 .padding(start = 12.dp, top = 16.dp, bottom = 16.dp, end = 16.dp),
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.CenterVertically,
@@ -378,8 +351,8 @@ fun SettingsBotBar(modifier: Modifier = Modifier)
         modifier = modifier
             .height(56.dp)
             .fillMaxWidth(),
-        shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
-//        elevation = 4.dp,
+        shape = MaterialTheme.shapes.botBar,
+        elevation = 4.dp,
     )
     {
         Row(
@@ -463,9 +436,9 @@ fun CurrentProjectCard(currentProjName: String, onChangeClick: () -> Unit)
 {
     Surface(
         modifier = Modifier
-            .border(border = MaterialTheme.borders.soft, shape = RoundedCornerShape(8.dp))
+            .border(border = MaterialTheme.borders.soft, shape = MaterialTheme.shapes.medium)
             .fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
+        shape = MaterialTheme.shapes.medium,
     )
     {
         Row(
@@ -492,16 +465,23 @@ fun CurrentProjectCard(currentProjName: String, onChangeClick: () -> Unit)
 @Composable
 fun ActionCard(title: String, description: String, footerContent: ComposableContent? = null)
 {
+    val pad = 24.dp
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight()
-            .border(MaterialTheme.borders.soft, RoundedCornerShape(8.dp)),
+            .border(MaterialTheme.borders.soft, MaterialTheme.shapes.large),
     )
     {
         Column(
             modifier = Modifier
-                .padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = if (footerContent == null) 16.dp else 0.dp),
+                .padding(
+                    top = pad,
+                    start = pad,
+                    end = pad,
+                    bottom = if (footerContent == null) pad else 0.dp
+                ),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         )
         {

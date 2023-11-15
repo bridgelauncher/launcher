@@ -171,10 +171,12 @@ fun BridgeButtonStateless(isExpanded: Boolean, onIsExpandedChange: (newState: Bo
             modifier = Modifier
                 .wrapContentSize(),
             color = MaterialTheme.colors.surface,
-            shape = RoundedCornerShape(8.dp),
+            shape = MaterialTheme.shapes.large,
             elevation = 4.dp,
         )
         {
+            val context = LocalContext.current
+
             // button column
             Column(
                 modifier = Modifier
@@ -185,9 +187,7 @@ fun BridgeButtonStateless(isExpanded: Boolean, onIsExpandedChange: (newState: Bo
             {
                 if (isExpanded)
                 {
-                    val context = LocalContext.current
-
-                    TouchTarget(iconResId = R.drawable.ic_refresh) { }
+                                        TouchTarget(iconResId = R.drawable.ic_refresh) { }
                     TouchTarget(iconResId = R.drawable.ic_dev_console) { }
 
                     Divider()
@@ -217,7 +217,10 @@ fun BridgeButtonStateless(isExpanded: Boolean, onIsExpandedChange: (newState: Bo
 
                 if (isExpanded || settingsState.showLaunchAppsWhenBridgeButtonCollapsed)
                 {
-                    TouchTarget(iconResId = R.drawable.ic_apps) { }
+                    TouchTarget(iconResId = R.drawable.ic_apps)
+                    {
+                        context.startActivity(Intent(context, AppDrawerActivity::class.java))
+                    }
 
                     Divider()
                 }
@@ -268,7 +271,7 @@ fun TouchTargetLabel(text: String)
     )
     {
         Surface(
-            shape = RoundedCornerShape(4.dp),
+            shape = MaterialTheme.shapes.small,
             elevation = 4.dp
         )
         {

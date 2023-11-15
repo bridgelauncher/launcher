@@ -28,8 +28,8 @@ fun Btn(
         modifier = modifier
             .wrapContentSize()
             .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
-            .then(if (outlined) Modifier.border(MaterialTheme.borders.soft, shape = RoundedCornerShape(8.dp)) else Modifier),
-        shape = RoundedCornerShape(8.dp),
+            .then(if (outlined) Modifier.border(MaterialTheme.borders.soft, shape = MaterialTheme.shapes.medium) else Modifier),
+        shape = MaterialTheme.shapes.medium,
         color = Color.Transparent,
         contentColor = MaterialTheme.colors.primary,
     )
