@@ -12,12 +12,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun ResIcon(iconResId: Int, color: Color? = null, inline: Boolean = false)
+fun ResIcon(iconResId: Int, color: Color? = null, inline: Boolean = false, modifier: Modifier = Modifier)
 {
     Icon(
         painter = painterResource(id = iconResId),
         contentDescription = null,
-        modifier = Modifier.size(
+        modifier = modifier.size(
             if (inline)
                 with(LocalDensity.current) { LocalTextStyle.current.fontSize.toDp() }
             else
