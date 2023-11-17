@@ -21,8 +21,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -31,21 +31,25 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
-import androidx.compose.material.TextField
-import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -55,6 +59,11 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
@@ -65,10 +74,12 @@ import com.tored.bridgelauncher.composables.ResIcon
 import com.tored.bridgelauncher.ui.shared.SetSystemBarsForBotBarActivity
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
 import com.tored.bridgelauncher.ui.theme.botBar
+import com.tored.bridgelauncher.ui.theme.textPlaceholder
 import com.tored.bridgelauncher.ui.theme.textSec
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlin.coroutines.coroutineContext
 
@@ -98,6 +109,13 @@ fun AppDrawerScreen()
     val haptics = LocalHapticFeedback.current
 
     var searchString by remember { mutableStateOf("") }
+    val searchStringTrimmed = searchString.trim().lowercase()
+    val searchStringSimplified = InstalledApp.simplifyLabel(searchString)
+
+    val filteredApps = appContext.installedAppsHolder.installedApps.filter {
+        it.labelSimplified.contains(searchStringSimplified)
+                || it.packageName.lowercase().contains(searchStringTrimmed)
+    }
 
     var dropdownOpenFor by remember { mutableStateOf<InstalledApp?>(null) }
     var dropdownItemInLazyColOffset by remember { mutableStateOf(Offset(0f, 0f)) }
@@ -161,92 +179,119 @@ fun AppDrawerScreen()
                     contentPadding = PaddingValues(0.dp, 8.dp),
                 )
                 {
-                    items(appContext.installedAppsHolder.installedApps)
-                    { app ->
 
-                        val interactionSource = remember { MutableInteractionSource() }
-                        var positionInParent by remember { mutableStateOf(Offset(0f, 0f)) }
+                    if (filteredApps.any())
+                    {
+                        items(filteredApps)
+                        { app ->
 
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .defaultMinSize(minHeight = 48.dp)
-                                .indication(interactionSource, LocalIndication.current)
-                                .onGloballyPositioned {
-                                    positionInParent = it.positionInParent()
-                                }
-                                .pointerInput(Unit)
-                                {
-                                    detectTapGestures(
-                                        onPress = { offset ->
-                                            val press = PressInteraction.Press(offset)
+                            val interactionSource = remember { MutableInteractionSource() }
+                            var positionInParent by remember { mutableStateOf(Offset(0f, 0f)) }
 
-                                            val pressAfterDelayJob = CoroutineScope(coroutineContext).launch {
-                                                delay(100)
-                                                interactionSource.emit(press)
-                                            }
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .defaultMinSize(minHeight = 48.dp)
+                                    .indication(interactionSource, LocalIndication.current)
+                                    .onGloballyPositioned {
+                                        positionInParent = it.positionInParent()
+                                    }
+                                    .pointerInput(Unit)
+                                    {
+                                        detectTapGestures(
+                                            onPress = { offset ->
+                                                val press = PressInteraction.Press(offset)
 
-                                            val gotCancelled = !tryAwaitRelease()
-                                            val wasNotEmitted = !pressAfterDelayJob.isCompleted
-
-                                            if (wasNotEmitted && gotCancelled)
-                                            {
-                                                pressAfterDelayJob.cancel()
-                                            }
-                                            else
-                                            {
-                                                if (wasNotEmitted)
+                                                val pressAfterDelayJob = CoroutineScope(coroutineContext).launch {
+                                                    delay(100)
                                                     interactionSource.emit(press)
+                                                }
 
-                                                interactionSource.emit(
-                                                    if (gotCancelled)
-                                                        PressInteraction.Release(press)
-                                                    else
-                                                        PressInteraction.Cancel(press)
-                                                )
+                                                val gotCancelled = !tryAwaitRelease()
+                                                val wasNotEmitted = !pressAfterDelayJob.isCompleted
+
+                                                if (wasNotEmitted && gotCancelled)
+                                                {
+                                                    pressAfterDelayJob.cancel()
+                                                }
+                                                else
+                                                {
+                                                    if (wasNotEmitted)
+                                                        interactionSource.emit(press)
+
+                                                    interactionSource.emit(
+                                                        if (gotCancelled)
+                                                            PressInteraction.Release(press)
+                                                        else
+                                                            PressInteraction.Cancel(press)
+                                                    )
+                                                }
+                                            },
+
+                                            onTap = {
+                                                context.launch(app)
+                                            },
+
+                                            onLongPress = { offset ->
+                                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                dropdownItemInLazyColOffset = positionInParent
+                                                dropdownTouchOffset = offset
+                                                dropdownOpenFor = app
                                             }
-                                        },
-
-                                        onTap = {
-                                            context.startActivity(app.launchIntent)
-                                        },
-
-                                        onLongPress = { offset ->
-                                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            dropdownItemInLazyColOffset = positionInParent
-                                            dropdownTouchOffset = offset
-                                            dropdownOpenFor = app
-                                        }
-                                    )
-                                }
-                                .padding(8.dp, 0.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        )
-                        {
-                            Box(
-                                modifier = Modifier.size(56.dp),
-                                contentAlignment = Alignment.Center
+                                        )
+                                    }
+                                    .padding(8.dp, 0.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
                             )
                             {
-                                Image(
-                                    painter = rememberDrawablePainter(app.icon),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(40.dp),
-                                    contentScale = ContentScale.FillBounds,
+                                Box(
+                                    modifier = Modifier.size(56.dp),
+                                    contentAlignment = Alignment.Center
                                 )
+                                {
+                                    Image(
+                                        painter = rememberDrawablePainter(app.icon),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(40.dp),
+                                        contentScale = ContentScale.FillBounds,
+                                    )
+                                }
+                                Column()
+                                {
+                                    Text(app.label)
+                                    Text(app.packageName, color = MaterialTheme.colors.textSec, style = MaterialTheme.typography.body2)
+                                }
                             }
-                            Column()
+                        }
+                    }
+                    else
+                    {
+                        item {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                            )
                             {
-                                Text(app.label)
-                                Text(app.packageName, color = MaterialTheme.colors.textSec, style = MaterialTheme.typography.body2)
+                                ResIcon(R.drawable.ic_search, color = MaterialTheme.colors.textSec)
+                                Text("No apps matched the filter text.", color = MaterialTheme.colors.textSec)
                             }
                         }
                     }
                 }
             }
 
-            SearchBotBar(searchString) { searchString = it }
+            SearchBotBar(
+                searchString,
+                onSearchStringChange = { searchString = it },
+                onGoPressed = {
+                    if (filteredApps.any())
+                        context.launch(filteredApps.first())
+                },
+            )
         }
     }
 }
@@ -379,8 +424,17 @@ fun AppContextMenu(
 }
 
 @Composable
-fun SearchBotBar(searchString: String, onSearchStringChange: (String) -> Unit)
+fun SearchBotBar(searchString: String, onSearchStringChange: (String) -> Unit, onGoPressed: () -> Unit)
 {
+    val focusRequester = FocusRequester()
+    var searchbarHasFocus by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        coroutineContext.job.invokeOnCompletion {
+            focusRequester.requestFocus()
+        }
+    }
+
     Surface(
         color = MaterialTheme.colors.surface,
         modifier = Modifier
@@ -402,31 +456,53 @@ fun SearchBotBar(searchString: String, onSearchStringChange: (String) -> Unit)
             {
                 ResIcon(R.drawable.ic_arrow_left)
             }
-            TextField(
+            BasicTextField(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .weight(1f)
+                    .focusRequester(focusRequester)
+                    .onFocusChanged { searchbarHasFocus = it.hasFocus },
                 value = searchString,
                 onValueChange = onSearchStringChange,
-                modifier = Modifier
-                    .weight(1f),
-                colors = TextFieldDefaults.textFieldColors(
-                    backgroundColor = Color.Transparent,
-                    errorIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Go,
+                    autoCorrect = false,
+                    keyboardType = KeyboardType.Uri,
+                    capitalization = KeyboardCapitalization.None,
+                ),
+                textStyle = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = true)),
+                keyboardActions = KeyboardActions(
+                    onGo = { onGoPressed() }
                 ),
                 singleLine = true,
-                placeholder = {
-                    Text("Tap to search")
+                decorationBox = { innerTextField ->
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp),
+                        contentAlignment = Alignment.CenterStart,
+                    )
+                    {
+                        if (searchString.isEmpty())
+                            Text("Type to search...", color = MaterialTheme.colors.textPlaceholder)
+
+                        innerTextField()
+                    }
                 }
             )
-            Spacer(modifier = Modifier.size(48.dp))
-//                IconToggleButton(
-//                    checked = MaterialTheme.colors.isLight,
-//                    onCheckedChange = { /* TODO */ }
-//                )
-//                {
-//                    ResIcon(iconResId = R.drawable.ic_dark_mode)
-//                }
+
+            val clearIsEnabled = searchString.isNotEmpty()
+            IconButton(
+                enabled = clearIsEnabled,
+                onClick = { onSearchStringChange("") })
+            {
+                ResIcon(
+                    R.drawable.ic_close, if (clearIsEnabled)
+                        MaterialTheme.colors.textPlaceholder
+                    else
+                        MaterialTheme.colors.onSurface
+                )
+            }
         }
     }
 }

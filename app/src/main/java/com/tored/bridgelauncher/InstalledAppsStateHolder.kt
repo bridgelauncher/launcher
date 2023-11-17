@@ -1,8 +1,10 @@
 package com.tored.bridgelauncher
 
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
+import java.text.Normalizer
 
 data class InstalledApp(
     val uid: Int,
@@ -11,6 +13,25 @@ data class InstalledApp(
     var label: String,
     val icon: Drawable,
 )
+{
+    val labelSimplified = simplifyLabel(label)
+
+    companion object {
+        fun simplifyLabel(label: String): String
+        {
+            return Normalizer
+                .normalize(label.trim(), Normalizer.Form.NFD)
+                .replace(Regex("\\p{Mn}+"), "")
+                .lowercase()
+                .replace(Regex("[^a-z0-9]"), "")
+        }
+    }
+}
+
+fun Context.launch(app: InstalledApp)
+{
+    startActivity(app.launchIntent)
+}
 
 class InstalledAppsStateHolder(
     private val _pm: PackageManager

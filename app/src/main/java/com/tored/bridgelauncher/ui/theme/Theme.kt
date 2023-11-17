@@ -2,14 +2,21 @@ package com.tored.bridgelauncher.ui.theme
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material.*
-import androidx.compose.runtime.*
+import androidx.compose.material.Colors
+import androidx.compose.material.LocalElevationOverlay
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.darkColors
+import androidx.compose.material.lightColors
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.tored.bridgelauncher.settings.SettingsVM
 import com.tored.bridgelauncher.ThemeOptions
+import com.tored.bridgelauncher.settings.SettingsVM
 
 private val DarkColorPalette = darkColors(
     primary = GreenA200,
@@ -82,6 +89,9 @@ val MaterialTheme.borders: Borders
 
 val Colors.textSec: Color
     get() = if (isLight) Color(0xA6000000) else Color(0xA6FFFFFF)
+
+val Colors.textPlaceholder: Color
+    get() = if (isLight) Color(0x65000000) else Color(0x66FFFFFF)
 
 val Colors.checkedItemBg: Color
     get() = if (isLight) Color(0x26000000) else Color(0x26FFFFFF)
