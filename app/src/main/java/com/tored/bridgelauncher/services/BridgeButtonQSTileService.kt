@@ -5,25 +5,17 @@ import android.os.Build
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import androidx.datastore.preferences.core.edit
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleObserver
-import com.tored.bridgelauncher.settings.*
+import com.tored.bridgelauncher.settings.SettingsState
+import com.tored.bridgelauncher.settings.readBool
+import com.tored.bridgelauncher.settings.settingsDataStore
+import com.tored.bridgelauncher.settings.writeBool
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.collectLatest
-
-class LifecycleImpl(override val currentState: State) : Lifecycle()
-{
-    override fun addObserver(observer: LifecycleObserver)
-    {
-        TODO("Not yet implemented")
-    }
-
-    override fun removeObserver(observer: LifecycleObserver)
-    {
-        TODO("Not yet implemented")
-    }
-}
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 @AndroidEntryPoint
 class BridgeButtonQSTileService : TileService()

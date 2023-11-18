@@ -1,5 +1,6 @@
 package com.tored.bridgelauncher
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.os.Build
@@ -50,6 +51,8 @@ import com.tored.bridgelauncher.settings.SettingsState
 import com.tored.bridgelauncher.settings.SettingsVM
 import com.tored.bridgelauncher.settings.writeBool
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
+import com.tored.bridgelauncher.webview.WebView
+import com.tored.bridgelauncher.webview.rememberWebViewState
 import dagger.hilt.android.AndroidEntryPoint
 
 
@@ -68,11 +71,19 @@ class MainActivity : ComponentActivity()
     }
 }
 
+@SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun HomeScreen(settingsVM: SettingsVM = viewModel())
 {
     val settingsState by settingsVM.settingsUIState.collectAsStateWithLifecycle()
     LaunchedEffect(settingsVM) { settingsVM.request() }
+
+    val webViewState = rememberWebViewState(url = "http://localhost:5000")
+    LaunchedEffect(webViewState)
+    {
+        webViewState.webView?.settings?.javaScriptEnabled = true
+    }
+
 
     val currentView = LocalView.current
     if (!currentView.isInEditMode)
@@ -87,6 +98,8 @@ fun HomeScreen(settingsVM: SettingsVM = viewModel())
         SideEffect()
         {
             val insetsController = WindowCompat.getInsetsController(currentWindow, currentView)
+
+            WindowCompat.setDecorFitsSystemWindows(currentWindow, false)
 
             if (showWallpaper)
                 currentWindow.addFlags(LayoutParams.FLAG_SHOW_WALLPAPER)
@@ -124,23 +137,45 @@ fun HomeScreen(settingsVM: SettingsVM = viewModel())
 
     Surface(modifier = Modifier.fillMaxSize(), color = Color.Transparent)
     {
-        if (settingsState.showBridgeButton)
+        Box(
+            contentAlignment = Alignment.BottomEnd,
+            modifier = Modifier
+                .fillMaxSize(),
+        )
         {
-            Box(
-                contentAlignment = Alignment.BottomEnd,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
+
+            WebView(
+                state = webViewState,
+                modifier = Modifier.fillMaxSize(),
             )
+
+            if (settingsState.showBridgeButton)
             {
-                BridgeButtonStateful(false)
+                Box(
+                    modifier = Modifier
+                        .padding(16.dp),
+                )
+                {
+                    var isExpanded by rememberSaveable { mutableStateOf(false) }
+
+                    BridgeButtonStateless(
+                        isExpanded,
+                        onIsExpandedChange = { isExpanded = it },
+                        onWebViewRefreshRequest = { webViewState.webView?.reload() },
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-fun BridgeButtonStateless(isExpanded: Boolean, onIsExpandedChange: (newState: Boolean) -> Unit, settingsVM: SettingsVM = viewModel())
+fun BridgeButtonStateless(
+    isExpanded: Boolean,
+    onIsExpandedChange: (newState: Boolean) -> Unit,
+    onWebViewRefreshRequest: () -> Unit,
+    settingsVM: SettingsVM = viewModel(),
+)
 {
     val settingsState by settingsVM.settingsUIState.collectAsStateWithLifecycle()
 
@@ -202,7 +237,9 @@ fun BridgeButtonStateless(isExpanded: Boolean, onIsExpandedChange: (newState: Bo
             {
                 if (isExpanded)
                 {
-                    TouchTarget(iconResId = R.drawable.ic_refresh) { }
+                    TouchTarget(iconResId = R.drawable.ic_refresh) {
+                        onWebViewRefreshRequest()
+                    }
                     TouchTarget(iconResId = R.drawable.ic_dev_console) { }
 
                     Divider()
@@ -224,8 +261,8 @@ fun BridgeButtonStateless(isExpanded: Boolean, onIsExpandedChange: (newState: Bo
 
                     TouchTarget(iconResId = R.drawable.ic_hide)
                     {
-                        settingsVM.edit { prefs ->
-                            prefs.writeBool(SettingsState::showBridgeButton, false)
+                        settingsVM.edit {
+                            writeBool(SettingsState::showBridgeButton, false)
                         }
                     }
                 }
@@ -248,16 +285,6 @@ fun BridgeButtonStateless(isExpanded: Boolean, onIsExpandedChange: (newState: Bo
 
         }
     }
-}
-
-@Composable
-fun BridgeButtonStateful(startExpanded: Boolean)
-{
-    var isExpanded by rememberSaveable { mutableStateOf(startExpanded) }
-    BridgeButtonStateless(
-        isExpanded = isExpanded,
-        onIsExpandedChange = { isExpanded = it }
-    )
 }
 
 
@@ -304,6 +331,6 @@ fun TouchTargetLabel(text: String)
 fun DefaultPreview()
 {
     BridgeLauncherTheme {
-        BridgeButtonStateful(true)
+
     }
 }

@@ -4,43 +4,69 @@ import android.app.Activity
 import android.app.StatusBarManager
 import android.app.admin.DevicePolicyManager
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.Icon
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Divider
+import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.ProvideTextStyle
+import androidx.compose.material.Surface
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tored.bridgelauncher.annotations.Display
 import com.tored.bridgelauncher.composables.Btn
 import com.tored.bridgelauncher.composables.ResIcon
 import com.tored.bridgelauncher.composables.Tip
 import com.tored.bridgelauncher.services.BridgeButtonQSTileService
 import com.tored.bridgelauncher.services.BridgeLauncherDeviceAdminReceiver
-import com.tored.bridgelauncher.ui.shared.CheckboxField
-import com.tored.bridgelauncher.ui.shared.OptionsRow
-import com.tored.bridgelauncher.ui.theme.borders
-import com.tored.bridgelauncher.ui.theme.textSec
-import com.tored.bridgelauncher.utils.RawRepresentable
 import com.tored.bridgelauncher.settings.SettingsState
 import com.tored.bridgelauncher.settings.SettingsVM
 import com.tored.bridgelauncher.settings.writeBool
 import com.tored.bridgelauncher.settings.writeEnum
+import com.tored.bridgelauncher.settings.writeUri
+import com.tored.bridgelauncher.ui.shared.CheckboxField
+import com.tored.bridgelauncher.ui.shared.OptionsRow
 import com.tored.bridgelauncher.ui.shared.SetSystemBarsForBotBarActivity
+import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
+import com.tored.bridgelauncher.ui.theme.borders
 import com.tored.bridgelauncher.ui.theme.botBar
+import com.tored.bridgelauncher.ui.theme.textSec
+import com.tored.bridgelauncher.utils.RawRepresentable
 import dagger.hilt.android.AndroidEntryPoint
+import java.io.File
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotation
 
@@ -80,6 +106,18 @@ fun <TProp> displayNameFor(prop: KProperty1<SettingsState, TProp>): String
     return ann?.name ?: prop.name
 }
 
+class OpenDocumentTreePlus : ActivityResultContracts.OpenDocumentTree()
+{
+    override fun createIntent(context: Context, input: Uri?): Intent
+    {
+        return super.createIntent(context, input).also {
+            it.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            it.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+//            it.addCategory(Intent.CATEGORY_OPENABLE)
+        }
+    }
+}
+
 @Composable
 fun SettingsScreen(vm: SettingsVM = viewModel())
 {
@@ -89,6 +127,23 @@ fun SettingsScreen(vm: SettingsVM = viewModel())
     val context = LocalContext.current
     val adminReceiverComponentName = ComponentName(context, BridgeLauncherDeviceAdminReceiver::class.java)
 
+    val launcher = rememberLauncherForActivityResult(
+        contract = OpenDocumentTreePlus(),
+        onResult = { uri ->
+            if (uri != null)
+            {
+                context.contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            }
+
+            vm.edit {
+                writeUri(SettingsState::currentProjUri, uri)
+            }
+        }
+    )
+
     @Composable
     fun checkboxFieldFor(prop: KProperty1<SettingsState, Boolean>)
     {
@@ -97,7 +152,7 @@ fun SettingsScreen(vm: SettingsVM = viewModel())
             isChecked = prop.getValue(uiState, prop),
             onCheckedChange = { isChecked ->
                 vm.edit {
-                    it.writeBool(prop, isChecked)
+                    writeBool(prop, isChecked)
                 }
             }
         )
@@ -111,7 +166,7 @@ fun SettingsScreen(vm: SettingsVM = viewModel())
             selectedOption = prop.getValue(uiState, prop),
             onChange = { value ->
                 vm.edit {
-                    it.writeEnum(prop, value)
+                    writeEnum(prop, value)
                 }
             }
         )
@@ -136,7 +191,10 @@ fun SettingsScreen(vm: SettingsVM = viewModel())
             {
                 SettingsSection(label = "Project", iconResId = R.drawable.ic_open_folder)
                 {
-                    CurrentProjectCard(uiState.currentProjName) { }
+                    CurrentProjectCard(uiState.currentProjUri?.lastPathSegment)
+                    {
+                        launcher.launch(File(Environment.getExternalStorageDirectory(), "BridgeLauncherProjects").toUri())
+                    }
 
                     val prop = SettingsState::allowProjectsToTurnScreenOff
                     CheckboxField(
@@ -147,7 +205,7 @@ fun SettingsScreen(vm: SettingsVM = viewModel())
                             if (uiState.isDeviceAdminEnabled)
                             {
                                 vm.edit {
-                                    it.writeBool(prop, isChecked)
+                                    writeBool(prop, isChecked)
                                 }
                             }
                             else
@@ -231,7 +289,7 @@ fun SettingsScreen(vm: SettingsVM = viewModel())
                         selectedOption = uiState.theme,
                         onChange = { theme ->
                             vm.edit {
-                                it.writeEnum(SettingsState::theme, theme)
+                                writeEnum(SettingsState::theme, theme)
                             }
                         },
                     )
@@ -432,7 +490,7 @@ fun SettingsSectionHeader(label: String, iconResId: Int)
 }
 
 @Composable
-fun CurrentProjectCard(currentProjName: String, onChangeClick: () -> Unit)
+fun CurrentProjectCard(currentProjName: String?, onChangeClick: () -> Unit)
 {
     Surface(
         modifier = Modifier
@@ -455,7 +513,7 @@ fun CurrentProjectCard(currentProjName: String, onChangeClick: () -> Unit)
             )
             {
                 Text("Current project", style = MaterialTheme.typography.body2, color = MaterialTheme.colors.textSec)
-                Text(currentProjName, style = MaterialTheme.typography.body1)
+                Text(currentProjName ?: "-", style = MaterialTheme.typography.body1)
             }
             Btn(text = "Change", onClick = onChangeClick)
         }
