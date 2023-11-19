@@ -4,17 +4,16 @@ import android.app.Activity
 import android.app.StatusBarManager
 import android.app.admin.DevicePolicyManager
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.Icon
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.provider.Settings
+import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -31,7 +30,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Divider
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.ProvideTextStyle
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -43,20 +41,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tored.bridgelauncher.annotations.Display
 import com.tored.bridgelauncher.composables.Btn
 import com.tored.bridgelauncher.composables.ResIcon
-import com.tored.bridgelauncher.composables.Tip
 import com.tored.bridgelauncher.services.BridgeButtonQSTileService
 import com.tored.bridgelauncher.services.BridgeLauncherDeviceAdminReceiver
 import com.tored.bridgelauncher.settings.SettingsState
 import com.tored.bridgelauncher.settings.SettingsVM
 import com.tored.bridgelauncher.settings.writeBool
 import com.tored.bridgelauncher.settings.writeEnum
-import com.tored.bridgelauncher.settings.writeUri
 import com.tored.bridgelauncher.ui.shared.CheckboxField
 import com.tored.bridgelauncher.ui.shared.OptionsRow
 import com.tored.bridgelauncher.ui.shared.SetSystemBarsForBotBarActivity
@@ -66,7 +61,6 @@ import com.tored.bridgelauncher.ui.theme.botBar
 import com.tored.bridgelauncher.ui.theme.textSec
 import com.tored.bridgelauncher.utils.RawRepresentable
 import dagger.hilt.android.AndroidEntryPoint
-import java.io.File
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotation
 
@@ -106,18 +100,6 @@ fun <TProp> displayNameFor(prop: KProperty1<SettingsState, TProp>): String
     return ann?.name ?: prop.name
 }
 
-class OpenDocumentTreePlus : ActivityResultContracts.OpenDocumentTree()
-{
-    override fun createIntent(context: Context, input: Uri?): Intent
-    {
-        return super.createIntent(context, input).also {
-            it.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            it.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
-//            it.addCategory(Intent.CATEGORY_OPENABLE)
-        }
-    }
-}
-
 @Composable
 fun SettingsScreen(vm: SettingsVM = viewModel())
 {
@@ -126,23 +108,6 @@ fun SettingsScreen(vm: SettingsVM = viewModel())
 
     val context = LocalContext.current
     val adminReceiverComponentName = ComponentName(context, BridgeLauncherDeviceAdminReceiver::class.java)
-
-    val launcher = rememberLauncherForActivityResult(
-        contract = OpenDocumentTreePlus(),
-        onResult = { uri ->
-            if (uri != null)
-            {
-                context.contentResolver.takePersistableUriPermission(
-                    uri,
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION
-                )
-            }
-
-            vm.edit {
-                writeUri(SettingsState::currentProjUri, uri)
-            }
-        }
-    )
 
     @Composable
     fun checkboxFieldFor(prop: KProperty1<SettingsState, Boolean>)
@@ -189,11 +154,36 @@ fun SettingsScreen(vm: SettingsVM = viewModel())
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             )
             {
-                SettingsSection(label = "Project", iconResId = R.drawable.ic_open_folder)
+                SettingsSection(label = "Project", iconResId = R.drawable.ic_folder_open)
                 {
                     CurrentProjectCard(uiState.currentProjUri?.lastPathSegment)
                     {
-                        launcher.launch(File(Environment.getExternalStorageDirectory(), "BridgeLauncherProjects").toUri())
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+                        {
+                            if (!Environment.isExternalStorageManager())
+                            {
+                                // TODO: inform the user that this permission is needed because scoped storage is retarded
+                                try
+                                {
+                                    context.startActivity(
+                                        Intent(
+                                            Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+                                            Uri.parse("package:${context.packageName}")
+                                        )
+                                    )
+                                }
+                                catch (ex: Exception)
+                                {
+                                    Toast.makeText(context, "Could not navigate to settings to grant access to all files.", Toast.LENGTH_LONG).show()
+                                }
+
+                                return@CurrentProjectCard
+                            }
+
+                            Toast.makeText(context, "we are in the beam", Toast.LENGTH_SHORT).show()
+                        }
+
+//                        launcher.launch(File(Environment.getExternalStorageDirectory(), "BridgeLauncherProjects").toUri())
                     }
 
                     val prop = SettingsState::allowProjectsToTurnScreenOff
@@ -255,9 +245,9 @@ fun SettingsScreen(vm: SettingsVM = viewModel())
                     )
                     {
                         Btn(
+                            text = "Set system wallpaper",
                             modifier = Modifier
                                 .fillMaxWidth(),
-                            text = "Set system wallpaper",
                             outlined = true,
                             onClick = { context.startActivity(Intent(Intent.ACTION_SET_WALLPAPER)) },
                         )
@@ -296,10 +286,10 @@ fun SettingsScreen(vm: SettingsVM = viewModel())
 
                     checkboxFieldFor(SettingsState::showBridgeButton)
 
-                    ProvideTextStyle(value = MaterialTheme.typography.body2.copy(color = MaterialTheme.colors.textSec))
-                    {
-                        Tip("Tap and hold the button to move it.")
-                    }
+//                    ProvideTextStyle(value = MaterialTheme.typography.body2.copy(color = MaterialTheme.colors.textSec))
+//                    {
+//                        Tip("Tap and hold the button to move it.")
+//                    }
 
                     checkboxFieldFor(SettingsState::showLaunchAppsWhenBridgeButtonCollapsed)
 
@@ -399,6 +389,42 @@ fun SettingsScreen(vm: SettingsVM = viewModel())
 
         }
     }
+
+//    var dirPickerIsOpen by remember { mutableStateOf(true) }
+//    var dirPickerUIState by remember { mutableStateOf(DirectoryPickerUIState.NoPermission()) }
+//    DirectoryPickerDialogStateless(
+//        isOpen = dirPickerIsOpen,
+//        uiState = dirPickerUIState,
+//        onGrantPermissionRequest = {
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+//            {
+//                if (!Environment.isExternalStorageManager())
+//                {
+//                    try
+//                    {
+//                        context.startActivity(
+//                            Intent(
+//                                Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+//                                Uri.parse("package:${context.packageName}")
+//                            )
+//                        )
+//                    }
+//                    catch (ex: Exception)
+//                    {
+//                        Toast.makeText(context, "Could not navigate to settings to grant access to all files.", Toast.LENGTH_LONG).show()
+//                    }
+//                }
+//            }
+//        },
+//        onCancelRequest = {
+//            dirPickerIsOpen = false
+//        },
+//        onConfirmRequest = {
+//            vm.edit {
+////                writeString(it.canonicalPath)
+//            }
+//        }
+//    )
 }
 
 @Composable

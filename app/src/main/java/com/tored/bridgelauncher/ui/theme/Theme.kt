@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.tored.bridgelauncher.ComposableContent
 import com.tored.bridgelauncher.ThemeOptions
 import com.tored.bridgelauncher.settings.SettingsVM
 
@@ -43,25 +44,25 @@ private val LightColorPalette = lightColors(
 )
 
 @Composable
-fun BridgeLauncherTheme(settingsVM: SettingsVM = viewModel(), content: @Composable () -> Unit)
+fun BridgeLauncherTheme(settingsVM: SettingsVM = viewModel(), content: ComposableContent)
 {
     val state by settingsVM.settingsUIState.collectAsStateWithLifecycle()
-
     LaunchedEffect(settingsVM) { settingsVM.request() }
+    val useDarkTheme = state.theme == ThemeOptions.Dark || isSystemInDarkTheme()
+    BridgeLauncherThemeStateless(
+        useDarkTheme = useDarkTheme,
+        content = content,
+    )
+}
 
-    val darkTheme = state.theme == ThemeOptions.Dark || isSystemInDarkTheme()
-
-    val colors = if (darkTheme)
-    {
-        DarkColorPalette
-    }
-    else
-    {
-        LightColorPalette
-    }
-
+@Composable
+fun BridgeLauncherThemeStateless(
+    useDarkTheme: Boolean,
+    content: ComposableContent
+)
+{
     MaterialTheme(
-        colors = colors,
+        colors = if (useDarkTheme) DarkColorPalette else LightColorPalette,
         typography = Typography,
         shapes = Shapes,
     )
@@ -88,7 +89,7 @@ val MaterialTheme.borders: Borders
     get() = if (colors.isLight) LightBorders else DarkBorders
 
 val Colors.textSec: Color
-    get() = if (isLight) Color(0xA6000000) else Color(0xA6FFFFFF)
+    get() = if (isLight) Color(0x8C000000) else Color(0x8CFFFFFF)
 
 val Colors.textPlaceholder: Color
     get() = if (isLight) Color(0x65000000) else Color(0x66FFFFFF)

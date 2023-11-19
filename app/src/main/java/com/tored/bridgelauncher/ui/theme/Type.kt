@@ -56,7 +56,7 @@ val Typography = Typography(
 
     body2 = TextStyle(
         fontFamily = Signika,
-        fontSize = 14.sp,
+        fontSize = 12.sp,
         platformStyle = PlatformTextStyle(
             includeFontPadding = false
         ),
