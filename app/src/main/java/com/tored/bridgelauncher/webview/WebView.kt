@@ -49,8 +49,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.viewinterop.AndroidView
 import com.tored.bridgelauncher.webview.LoadingState.*
 import kotlinx.coroutines.CoroutineScope
@@ -234,11 +232,6 @@ fun WebView(
 
                 webChromeClient = chromeClient
                 webViewClient = client
-
-                // temporary dirty hack
-                settings.javaScriptEnabled = true
-
-                setBackgroundColor(Color.Transparent.toArgb())
 
             }.also { state.webView = it }
         },

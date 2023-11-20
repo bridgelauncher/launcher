@@ -324,7 +324,7 @@ fun SettingsScreen(
                         )
                         {
                             Btn(
-                                text = "Set system wallpaper",
+                                text = "Change system wallpaper",
                                 modifier = Modifier
                                     .fillMaxWidth(),
                                 outlined = true,
@@ -610,7 +610,7 @@ fun CurrentProjectCard(
 {
     Surface(
         modifier = Modifier
-            .border(border = MaterialTheme.borders.soft, shape = MaterialTheme.shapes.medium)
+            .border(border = MaterialTheme.borders.soft, shape = MaterialTheme.shapes.large)
             .padding(MaterialTheme.borders.soft.width)
             .fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,

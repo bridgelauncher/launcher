@@ -33,11 +33,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.tooling.preview.Preview
@@ -48,10 +50,12 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tored.bridgelauncher.composables.ResIcon
+import com.tored.bridgelauncher.jsapi.JSToBridgeAPI
 import com.tored.bridgelauncher.settings.SettingsState
 import com.tored.bridgelauncher.settings.SettingsVM
 import com.tored.bridgelauncher.settings.writeBool
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
+import com.tored.bridgelauncher.webview.BridgeWebChromeClient
 import com.tored.bridgelauncher.webview.WebView
 import com.tored.bridgelauncher.webview.rememberWebViewState
 import dagger.hilt.android.AndroidEntryPoint
@@ -80,10 +84,6 @@ fun HomeScreen(settingsVM: SettingsVM = viewModel())
     LaunchedEffect(settingsVM) { settingsVM.request() }
 
     val webViewState = rememberWebViewState(url = "http://localhost:5000")
-    LaunchedEffect(webViewState)
-    {
-        webViewState.webView?.settings?.javaScriptEnabled = true
-    }
 
     val currentView = LocalView.current
     if (!currentView.isInEditMode)
@@ -143,10 +143,38 @@ fun HomeScreen(settingsVM: SettingsVM = viewModel())
                 .fillMaxSize(),
         )
         {
+            val context = LocalContext.current
 
             WebView(
                 state = webViewState,
                 modifier = Modifier.fillMaxSize(),
+                chromeClient = remember {
+                    BridgeWebChromeClient(
+                        onConsoleMessage = {
+                            true
+                        }
+                    )
+                },
+                onCreated = { webView ->
+                    with(webView.settings)
+                    {
+                        javaScriptEnabled = true
+                        domStorageEnabled = true
+                        databaseEnabled = true
+
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                            safeBrowsingEnabled = false
+
+                        allowFileAccess = false
+                        allowFileAccessFromFileURLs = false
+                        allowUniversalAccessFromFileURLs = false
+                        allowContentAccess = true
+                    }
+
+                    webView.setBackgroundColor(Color.Transparent.toArgb())
+
+                    webView.addJavascriptInterface(JSToBridgeAPI(context), "Bridge")
+                }
             )
 
             if (settingsState.showBridgeButton)
