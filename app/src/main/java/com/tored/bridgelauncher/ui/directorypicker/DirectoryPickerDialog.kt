@@ -1,10 +1,14 @@
 package com.tored.bridgelauncher.ui.directorypicker
 
 import android.os.Environment
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
@@ -16,14 +20,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherThemeStateless
+import com.tored.bridgelauncher.ui.theme.scrim
 
 @Composable
 fun DirectoryPickerDialogStateless(
-    isOpen: Boolean,
-    uiState: DirectoryPickerUIState,
+    uiState: DirectoryPickerUIState?,
     onNavigateRequest: (Directory) -> Unit,
     onGrantPermissionRequest: () -> Unit,
     onCancelRequest: () -> Unit,
@@ -31,17 +33,22 @@ fun DirectoryPickerDialogStateless(
     modifier: Modifier = Modifier,
 )
 {
-    if (isOpen)
+    if (uiState != null)
     {
-        Dialog(
-            properties = DialogProperties(
-                usePlatformDefaultWidth = false
-            ),
-            onDismissRequest = onCancelRequest,
+        BackHandler { onCancelRequest() }
+
+        Surface(
+            modifier = modifier
+                .clickable(onClick = onCancelRequest, interactionSource = remember { MutableInteractionSource() }, indication = null),
+            color = MaterialTheme.colors.scrim,
         )
         {
             Surface(
-                modifier = modifier,
+                modifier = Modifier
+                    .systemBarsPadding()
+                    .padding(16.dp)
+                    .fillMaxSize()
+                    .clickable(onClick = {}, interactionSource = remember { MutableInteractionSource() }, indication = null),
                 color = MaterialTheme.colors.background,
                 shape = MaterialTheme.shapes.large,
                 elevation = 8.dp,
@@ -96,23 +103,16 @@ fun DirectoryPickerDialogStateless(
 
 
 @Composable
-@Preview
+@Preview(showBackground = true)
 fun DirectoryPickerDialogPreview()
 {
     BridgeLauncherThemeStateless(useDarkTheme = false)
     {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colors.surface
-        ) {}
-
         var currentDir by remember { mutableStateOf(Environment.getExternalStorageDirectory()) }
 
         DirectoryPickerDialogStateless(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            isOpen = true,
+                .fillMaxSize(),
             uiState = DirectoryPickerUIState.HasPermission(
                 currentDir = currentDir,
             ),

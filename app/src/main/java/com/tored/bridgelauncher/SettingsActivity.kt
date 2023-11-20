@@ -16,14 +16,19 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -34,13 +39,22 @@ import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tored.bridgelauncher.annotations.Display
@@ -51,10 +65,13 @@ import com.tored.bridgelauncher.services.BridgeLauncherDeviceAdminReceiver
 import com.tored.bridgelauncher.settings.SettingsState
 import com.tored.bridgelauncher.settings.SettingsVM
 import com.tored.bridgelauncher.settings.writeBool
+import com.tored.bridgelauncher.settings.writeDir
 import com.tored.bridgelauncher.settings.writeEnum
+import com.tored.bridgelauncher.ui.directorypicker.Directory
+import com.tored.bridgelauncher.ui.directorypicker.DirectoryPickerDialogStateless
+import com.tored.bridgelauncher.ui.directorypicker.DirectoryPickerUIState
 import com.tored.bridgelauncher.ui.shared.CheckboxField
 import com.tored.bridgelauncher.ui.shared.OptionsRow
-import com.tored.bridgelauncher.ui.shared.SetSystemBarsForBotBarActivity
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
 import com.tored.bridgelauncher.ui.theme.borders
 import com.tored.bridgelauncher.ui.theme.botBar
@@ -63,6 +80,8 @@ import com.tored.bridgelauncher.utils.RawRepresentable
 import dagger.hilt.android.AndroidEntryPoint
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotation
+
+private val TAG = "SETTINGS";
 
 enum class SystemBarAppearanceOptions(override val rawValue: Int) : RawRepresentable<Int>
 {
@@ -81,17 +100,35 @@ enum class ThemeOptions(override val rawValue: Int) : RawRepresentable<Int>
 @AndroidEntryPoint
 class SettingsActivity : ComponentActivity()
 {
+    private var _isExtStorageManager by mutableStateOf(false)
+
     override fun onCreate(savedInstanceState: Bundle?)
     {
         super.onCreate(savedInstanceState)
 
+        _isExtStorageManager = getIsExtStorageManager()
+
         setContent {
             BridgeLauncherTheme()
             {
-                SettingsScreen()
+                SettingsScreen(_isExtStorageManager)
             }
         }
     }
+
+    override fun onResume()
+    {
+        super.onResume()
+
+        // update state on resume
+        // we need a special permission on Android 11 and up
+        _isExtStorageManager = getIsExtStorageManager()
+    }
+}
+
+fun getIsExtStorageManager(): Boolean
+{
+    return Build.VERSION.SDK_INT < Build.VERSION_CODES.R || Environment.isExternalStorageManager();
 }
 
 fun <TProp> displayNameFor(prop: KProperty1<SettingsState, TProp>): String
@@ -101,10 +138,16 @@ fun <TProp> displayNameFor(prop: KProperty1<SettingsState, TProp>): String
 }
 
 @Composable
-fun SettingsScreen(vm: SettingsVM = viewModel())
+fun SettingsScreen(
+    isExtStorageManager: Boolean,
+    vm: SettingsVM = viewModel(),
+)
 {
     val uiState by vm.settingsUIState.collectAsStateWithLifecycle()
     LaunchedEffect(vm) { vm.request() }
+
+    var dirPickerCurrentDir by remember { mutableStateOf(uiState.currentProjDir ?: Environment.getExternalStorageDirectory()) }
+    var dirPickerIsOpen by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
     val adminReceiverComponentName = ComponentName(context, BridgeLauncherDeviceAdminReceiver::class.java)
@@ -137,84 +180,90 @@ fun SettingsScreen(vm: SettingsVM = viewModel())
         )
     }
 
-    SetSystemBarsForBotBarActivity()
+    val currentView = LocalView.current
+    if (!currentView.isInEditMode)
+    {
+        val currentWindow = (currentView.context as? Activity)?.window
+            ?: throw Exception("Attempt to access a window from outside an activity.")
 
-    Surface(
-        color = MaterialTheme.colors.background
+        val isLight = MaterialTheme.colors.isLight
+
+        SideEffect()
+        {
+            val insetsController = WindowCompat.getInsetsController(currentWindow, currentView)
+            WindowCompat.setDecorFitsSystemWindows(currentWindow, false)
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+            {
+                currentWindow.isNavigationBarContrastEnforced = false
+            }
+
+            currentWindow.statusBarColor = Color.Transparent.toArgb()
+            currentWindow.navigationBarColor = Color.Transparent.toArgb()
+            insetsController.isAppearanceLightStatusBars = isLight
+            insetsController.isAppearanceLightNavigationBars = isLight
+        }
+    }
+
+    Box(
+        modifier = Modifier.fillMaxSize()
     )
     {
-        Column()
+        Surface(
+            color = MaterialTheme.colors.background
+        )
         {
-
             Column(
                 modifier = Modifier
-                    .weight(1f)
-                    .verticalScroll(rememberScrollState())
-                    .padding(0.dp, 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                    .systemBarsPadding(),
             )
             {
-                SettingsSection(label = "Project", iconResId = R.drawable.ic_folder_open)
+
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState())
+                        .padding(0.dp, 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                )
                 {
-                    CurrentProjectCard(uiState.currentProjUri?.lastPathSegment)
+                    SettingsSection(label = "Project", iconResId = R.drawable.ic_folder_open)
                     {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+                        CurrentProjectCard(uiState.currentProjDir)
                         {
-                            if (!Environment.isExternalStorageManager())
-                            {
-                                // TODO: inform the user that this permission is needed because scoped storage is retarded
-                                try
+                            dirPickerCurrentDir = uiState.currentProjDir
+                            dirPickerIsOpen = true
+                        }
+
+                        val prop = SettingsState::allowProjectsToTurnScreenOff
+                        CheckboxField(
+                            label = displayNameFor(prop),
+                            description = if (uiState.isDeviceAdminEnabled) "Bridge has device admin permissions." else "Tap to grant Bridge device admin permissions.",
+                            isChecked = prop.getValue(uiState, prop),
+                            onCheckedChange = { isChecked ->
+                                if (uiState.isDeviceAdminEnabled)
+                                {
+                                    vm.edit {
+                                        writeBool(prop, isChecked)
+                                    }
+                                }
+                                else
                                 {
                                     context.startActivity(
-                                        Intent(
-                                            Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
-                                            Uri.parse("package:${context.packageName}")
-                                        )
+                                        Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN).apply {
+                                            putExtra(
+                                                DevicePolicyManager.EXTRA_DEVICE_ADMIN,
+                                                adminReceiverComponentName
+                                            )
+                                            putExtra(
+                                                DevicePolicyManager.EXTRA_ADD_EXPLANATION,
+                                                "Bridge Launcher needs this permission so projects can request the screen to be locked."
+                                            )
+                                        }
                                     )
                                 }
-                                catch (ex: Exception)
-                                {
-                                    Toast.makeText(context, "Could not navigate to settings to grant access to all files.", Toast.LENGTH_LONG).show()
-                                }
-
-                                return@CurrentProjectCard
                             }
-
-                            Toast.makeText(context, "we are in the beam", Toast.LENGTH_SHORT).show()
-                        }
-
-//                        launcher.launch(File(Environment.getExternalStorageDirectory(), "BridgeLauncherProjects").toUri())
-                    }
-
-                    val prop = SettingsState::allowProjectsToTurnScreenOff
-                    CheckboxField(
-                        label = displayNameFor(prop),
-                        description = if (uiState.isDeviceAdminEnabled) "Bridge has device admin permissions." else "Tap to grant Bridge device admin permissions.",
-                        isChecked = prop.getValue(uiState, prop),
-                        onCheckedChange = { isChecked ->
-                            if (uiState.isDeviceAdminEnabled)
-                            {
-                                vm.edit {
-                                    writeBool(prop, isChecked)
-                                }
-                            }
-                            else
-                            {
-                                context.startActivity(
-                                    Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN).apply {
-                                        putExtra(
-                                            DevicePolicyManager.EXTRA_DEVICE_ADMIN,
-                                            adminReceiverComponentName
-                                        )
-                                        putExtra(
-                                            DevicePolicyManager.EXTRA_ADD_EXPLANATION,
-                                            "Bridge Launcher needs this permission so projects can request the screen to be locked."
-                                        )
-                                    }
-                                )
-                            }
-                        }
-                    )
+                        )
 
 //                    Btn(text = "Lock the screen")
 //                    {
@@ -234,197 +283,223 @@ fun SettingsScreen(vm: SettingsVM = viewModel())
 //                                .show()
 //                        }
 //                    }
-                }
+                    }
 
-                Divider()
+                    Divider()
 
-                SettingsSection(label = "System wallpaper", iconResId = R.drawable.ic_image)
-                {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    )
+                    SettingsSection(label = "System wallpaper", iconResId = R.drawable.ic_image)
                     {
-                        Btn(
-                            text = "Set system wallpaper",
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            outlined = true,
-                            onClick = { context.startActivity(Intent(Intent.ACTION_SET_WALLPAPER)) },
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        )
+                        {
+                            Btn(
+                                text = "Set system wallpaper",
+                                modifier = Modifier
+                                    .fillMaxWidth(),
+                                outlined = true,
+                                onClick = { context.startActivity(Intent(Intent.ACTION_SET_WALLPAPER)) },
+                            )
+
+                            checkboxFieldFor(SettingsState::drawSystemWallpaperBehindWebView)
+                        }
+                    }
+
+                    Divider()
+
+                    SettingsSection(label = "Overlays", iconResId = R.drawable.ic_overlays)
+                    {
+                        systemBarOptionsFieldFor(SettingsState::statusBarAppearance)
+                        systemBarOptionsFieldFor(SettingsState::navigationBarAppearance)
+                        checkboxFieldFor(SettingsState::drawWebViewOverscrollEffects)
+                    }
+
+                    Divider()
+
+                    SettingsSection(label = "Bridge", iconResId = R.drawable.ic_bridge)
+                    {
+                        OptionsRow(
+                            label = "Theme",
+                            options = mapOf(
+                                ThemeOptions.System to "System",
+                                ThemeOptions.Light to "Light",
+                                ThemeOptions.Dark to "Dark",
+                            ),
+                            selectedOption = uiState.theme,
+                            onChange = { theme ->
+                                vm.edit {
+                                    writeEnum(SettingsState::theme, theme)
+                                }
+                            },
                         )
 
-                        checkboxFieldFor(SettingsState::drawSystemWallpaperBehindWebView)
-                    }
-                }
-
-                Divider()
-
-                SettingsSection(label = "Overlays", iconResId = R.drawable.ic_overlays)
-                {
-                    systemBarOptionsFieldFor(SettingsState::statusBarAppearance)
-                    systemBarOptionsFieldFor(SettingsState::navigationBarAppearance)
-                    checkboxFieldFor(SettingsState::drawWebViewOverscrollEffects)
-                }
-
-                Divider()
-
-                SettingsSection(label = "Bridge", iconResId = R.drawable.ic_bridge)
-                {
-                    OptionsRow(
-                        label = "Theme",
-                        options = mapOf(
-                            ThemeOptions.System to "System",
-                            ThemeOptions.Light to "Light",
-                            ThemeOptions.Dark to "Dark",
-                        ),
-                        selectedOption = uiState.theme,
-                        onChange = { theme ->
-                            vm.edit {
-                                writeEnum(SettingsState::theme, theme)
-                            }
-                        },
-                    )
-
-                    checkboxFieldFor(SettingsState::showBridgeButton)
+                        checkboxFieldFor(SettingsState::showBridgeButton)
 
 //                    ProvideTextStyle(value = MaterialTheme.typography.body2.copy(color = MaterialTheme.colors.textSec))
 //                    {
 //                        Tip("Tap and hold the button to move it.")
 //                    }
 
-                    checkboxFieldFor(SettingsState::showLaunchAppsWhenBridgeButtonCollapsed)
+                        checkboxFieldFor(SettingsState::showLaunchAppsWhenBridgeButtonCollapsed)
 
-                    if (!uiState.isQSTileAdded)
-                    {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+                        if (!uiState.isQSTileAdded)
                         {
-                            ActionCard(
-                                title = "Quick settings tile",
-                                description = "You can add a quick settings tile to unobtrusively toggle the Bridge button. Long-pressing the tile opens this settings screen."
-                            )
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
                             {
-                                val sbm = context.getSystemService(StatusBarManager::class.java)
-                                val compName = ComponentName(context, BridgeButtonQSTileService::class.java)
+                                ActionCard(
+                                    title = "Quick settings tile",
+                                    description = "You can add a quick settings tile to unobtrusively toggle the Bridge button. Long-pressing the tile opens this settings screen."
+                                )
+                                {
+                                    val sbm = context.getSystemService(StatusBarManager::class.java)
+                                    val compName = ComponentName(context, BridgeButtonQSTileService::class.java)
 
-                                Btn(text = "Add tile", suffixIcon = R.drawable.ic_plus, onClick = {
-                                    sbm.requestAddTileService(
-                                        compName,
-                                        "Bridge button",
-                                        Icon.createWithResource(context, R.drawable.ic_bridge_white),
-                                        {},
-                                        {}
-                                    )
-                                })
+                                    Btn(text = "Add tile", suffixIcon = R.drawable.ic_plus, onClick = {
+                                        sbm.requestAddTileService(
+                                            compName,
+                                            "Bridge button",
+                                            Icon.createWithResource(context, R.drawable.ic_bridge_white),
+                                            {},
+                                            {}
+                                        )
+                                    })
+                                }
+                            }
+                            else
+                            {
+                                ActionCard(
+                                    title = "Quick settings tile",
+                                    description = "You can add a quick settings tile to unobtrusively toggle the Bridge button. Long-pressing the tile opens this settings screen.\n"
+                                            + "\n"
+                                            + "Quick settings are the toggles in your notifications area that you use to toggle for example WiFi or Bluetooth. "
+                                            + "To add the Bridge button tile, expand the quick settings panel and look for an edit button."
+                                )
                             }
                         }
                         else
                         {
-                            ActionCard(
-                                title = "Quick settings tile",
-                                description = "You can add a quick settings tile to unobtrusively toggle the Bridge button. Long-pressing the tile opens this settings screen.\n"
-                                        + "\n"
-                                        + "Quick settings are the toggles in your notifications area that you use to toggle for example WiFi or Bluetooth. "
-                                        + "To add the Bridge button tile, expand the quick settings panel and look for an edit button."
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .wrapContentHeight()
+                                    .border(MaterialTheme.borders.soft, MaterialTheme.shapes.medium)
+                                    .padding(start = 12.dp, top = 16.dp, bottom = 16.dp, end = 16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
                             )
+                            {
+                                ResIcon(R.drawable.ic_check, color = MaterialTheme.colors.primary)
+                                Text("Quick settings tile added.")
+                            }
                         }
                     }
-                    else
+
+                    Divider()
+
+                    SettingsSection(label = "Development", iconResId = R.drawable.ic_tools)
                     {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .wrapContentHeight()
-                                .border(MaterialTheme.borders.soft, MaterialTheme.shapes.medium)
-                                .padding(start = 12.dp, top = 16.dp, bottom = 16.dp, end = 16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
+                        ActionCard(
+                            title = "Bridge developer hub",
+                            description = "Documentation and tools to help you develop Bridge Launcher projects."
                         )
                         {
-                            ResIcon(R.drawable.ic_check, color = MaterialTheme.colors.primary)
-                            Text("Quick settings tile added.")
+                            Btn(text = "Open in browser", suffixIcon = R.drawable.ic_open_in_new, onClick = { /* TODO */ })
+                        }
+
+                        ActionCard(
+                            title = "Export installed apps",
+                            description = "Create a folder with information about apps installed on this phone, including icons. You can use this folder to work on projects from your PC."
+                        )
+                        {
+                            Btn(text = "Export", suffixIcon = R.drawable.ic_save_to_device, onClick = { /* TODO */ })
+                        }
+                    }
+
+                    Divider()
+
+                    SettingsSection(label = "About & Contact", iconResId = R.drawable.ic_about)
+                    {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                            horizontalAlignment = Alignment.End,
+                        )
+                        {
+                            Btn(text = "GitHub repository", suffixIcon = R.drawable.ic_open_in_new, onClick = { /* TODO */ })
+                            Btn(text = "Discord server", suffixIcon = R.drawable.ic_open_in_new, onClick = { /* TODO */ })
+                            Btn(text = "Send me an email", suffixIcon = R.drawable.ic_arrow_right, onClick = { /* TODO */ })
+                            Btn(text = "Copy my email address", suffixIcon = R.drawable.ic_copy, onClick = { /* TODO */ })
                         }
                     }
                 }
 
-                Divider()
+                SettingsBotBar()
 
-                SettingsSection(label = "Development", iconResId = R.drawable.ic_tools)
-                {
-                    ActionCard(
-                        title = "Bridge developer hub",
-                        description = "Documentation and tools to help you develop Bridge Launcher projects."
-                    )
-                    {
-                        Btn(text = "Open in browser", suffixIcon = R.drawable.ic_open_in_new, onClick = { /* TODO */ })
-                    }
-
-                    ActionCard(
-                        title = "Export installed apps",
-                        description = "Create a folder with information about apps installed on this phone, including icons. You can use this folder to work on projects from your PC."
-                    )
-                    {
-                        Btn(text = "Export", suffixIcon = R.drawable.ic_save_to_device, onClick = { /* TODO */ })
-                    }
-                }
-
-                Divider()
-
-                SettingsSection(label = "About & Contact", iconResId = R.drawable.ic_about)
-                {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                        horizontalAlignment = Alignment.End,
-                    )
-                    {
-                        Btn(text = "GitHub repository", suffixIcon = R.drawable.ic_open_in_new, onClick = { /* TODO */ })
-                        Btn(text = "Discord server", suffixIcon = R.drawable.ic_open_in_new, onClick = { /* TODO */ })
-                        Btn(text = "Send me an email", suffixIcon = R.drawable.ic_arrow_right, onClick = { /* TODO */ })
-                        Btn(text = "Copy my email address", suffixIcon = R.drawable.ic_copy, onClick = { /* TODO */ })
-                    }
-                }
             }
-
-            SettingsBotBar()
-
         }
-    }
 
-//    var dirPickerIsOpen by remember { mutableStateOf(true) }
-//    var dirPickerUIState by remember { mutableStateOf(DirectoryPickerUIState.NoPermission()) }
-//    DirectoryPickerDialogStateless(
-//        isOpen = dirPickerIsOpen,
-//        uiState = dirPickerUIState,
-//        onGrantPermissionRequest = {
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-//            {
-//                if (!Environment.isExternalStorageManager())
-//                {
-//                    try
-//                    {
-//                        context.startActivity(
-//                            Intent(
-//                                Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
-//                                Uri.parse("package:${context.packageName}")
-//                            )
-//                        )
-//                    }
-//                    catch (ex: Exception)
-//                    {
-//                        Toast.makeText(context, "Could not navigate to settings to grant access to all files.", Toast.LENGTH_LONG).show()
-//                    }
-//                }
-//            }
-//        },
-//        onCancelRequest = {
-//            dirPickerIsOpen = false
-//        },
-//        onConfirmRequest = {
-//            vm.edit {
-////                writeString(it.canonicalPath)
-//            }
-//        }
-//    )
+        Surface(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .height(with(LocalDensity.current) {
+                    WindowInsets.navigationBars
+                        .getBottom(this)
+                        .toDp()
+                }),
+            color = MaterialTheme.colors.surface,
+        ) { }
+
+        DirectoryPickerDialogStateless(
+            modifier = Modifier
+                .fillMaxSize(),
+            uiState = if (dirPickerIsOpen)
+            {
+                if (isExtStorageManager)
+                    DirectoryPickerUIState.HasPermission(dirPickerCurrentDir)
+                else
+                    DirectoryPickerUIState.NoPermission
+            }
+            else
+            {
+                null
+            },
+            onGrantPermissionRequest = {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+                {
+                    if (!Environment.isExternalStorageManager())
+                    {
+                        try
+                        {
+                            context.startActivity(
+                                Intent(
+                                    Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+                                    Uri.parse("package:${context.packageName}")
+                                )
+                            )
+                        }
+                        catch (ex: Exception)
+                        {
+                            Toast.makeText(context, "Could not navigate to settings to grant access to all files.", Toast.LENGTH_LONG).show()
+                        }
+                    }
+                }
+            },
+            onNavigateRequest = { dir ->
+                dirPickerCurrentDir = dir
+            },
+            onCancelRequest = {
+                dirPickerIsOpen = false
+            },
+            onConfirmRequest = { dir ->
+                vm.edit {
+                    writeDir(SettingsState::currentProjDir, dir)
+                }
+                dirPickerIsOpen = false
+            }
+        )
+    }
 }
 
 @Composable
@@ -516,7 +591,7 @@ fun SettingsSectionHeader(label: String, iconResId: Int)
 }
 
 @Composable
-fun CurrentProjectCard(currentProjName: String?, onChangeClick: () -> Unit)
+fun CurrentProjectCard(currentProjDir: Directory?, onChangeClick: () -> Unit)
 {
     Surface(
         modifier = Modifier
@@ -538,10 +613,22 @@ fun CurrentProjectCard(currentProjName: String?, onChangeClick: () -> Unit)
                 modifier = Modifier.weight(1f)
             )
             {
-                Text("Current project", style = MaterialTheme.typography.body2, color = MaterialTheme.colors.textSec)
-                Text(currentProjName ?: "-", style = MaterialTheme.typography.body1)
+                Text(
+                    text = "Current project",
+                    style = MaterialTheme.typography.body2,
+                    color = MaterialTheme.colors.textSec
+                )
+                Text(
+                    text = currentProjDir?.name ?: "-",
+                    style = MaterialTheme.typography.body1,
+                    color = MaterialTheme.colors.primary,
+                )
             }
-            Btn(text = "Change", onClick = onChangeClick)
+            Btn(
+                text = "Change",
+                color = MaterialTheme.colors.onSurface,
+                onClick = onChangeClick
+            )
         }
     }
 }
@@ -611,6 +698,10 @@ fun SystemBarAppearanceOptionsField(label: String, selectedOption: SystemBarAppe
 fun SettingsPreview()
 {
     BridgeLauncherTheme {
-        SystemBarAppearanceOptionsField("Status bar", SystemBarAppearanceOptions.Hide, { })
+        SystemBarAppearanceOptionsField(
+            "Status bar",
+            SystemBarAppearanceOptions.Hide,
+            onChange = { }
+        )
     }
 }

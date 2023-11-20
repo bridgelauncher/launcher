@@ -3,10 +3,12 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
+    <uses-permission
+        android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+    <uses-permission
+        android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
         tools:ignore="ScopedStorage" />
 
     <application
@@ -23,33 +25,38 @@
 
         <activity
             android:name=".MainActivity"
+            android:clearTaskOnLaunch="true"
             android:exported="true"
-            android:theme="@style/Theme.BridgeLauncher.Wallpaper"
             android:launchMode="singleTask"
-            android:clearTaskOnLaunch="true">
+            android:theme="@style/Theme.BridgeLauncher.Wallpaper">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.HOME"/>
-                <category android:name="android.intent.category.DEFAULT"/>
+
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
 
         <activity
-            android:name=".SettingsActivity"
+            android:name=".OldSettingsActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
             </intent-filter>
         </activity>
 
-        <activity android:name=".AppDrawerActivity"
+        <activity
+            android:name=".AppDrawerActivity"
             android:exported="true"
-            android:windowSoftInputMode="adjustResize">
-        </activity>
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name="com.tored.bridgelauncher.SettingsActivity"
+            android:exported="true" />
 
         <service
             android:name=".services.BridgeButtonQSTileService"
@@ -65,7 +72,8 @@
             </intent-filter>
         </service>
 
-        <service android:name=".httpserver.BridgeHttpServerService"
+        <service
+            android:name=".httpserver.BridgeHttpServerService"
             android:label="Bridge HTTP Server" />
 
         <receiver

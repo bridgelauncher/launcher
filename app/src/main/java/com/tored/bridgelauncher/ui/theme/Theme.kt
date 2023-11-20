@@ -96,3 +96,6 @@ val Colors.textPlaceholder: Color
 
 val Colors.checkedItemBg: Color
     get() = if (isLight) Color(0x26000000) else Color(0x26FFFFFF)
+
+val Colors.scrim: Color
+    get() = if (isLight) Color(0x26000000) else Color(0x80000000)

@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
@@ -83,7 +84,6 @@ fun HomeScreen(settingsVM: SettingsVM = viewModel())
     {
         webViewState.webView?.settings?.javaScriptEnabled = true
     }
-
 
     val currentView = LocalView.current
     if (!currentView.isInEditMode)
@@ -153,6 +153,7 @@ fun HomeScreen(settingsVM: SettingsVM = viewModel())
             {
                 Box(
                     modifier = Modifier
+                        .systemBarsPadding()
                         .padding(16.dp),
                 )
                 {

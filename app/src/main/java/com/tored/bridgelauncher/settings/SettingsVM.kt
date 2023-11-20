@@ -15,6 +15,7 @@ import androidx.lifecycle.viewModelScope
 import com.tored.bridgelauncher.SystemBarAppearanceOptions
 import com.tored.bridgelauncher.ThemeOptions
 import com.tored.bridgelauncher.annotations.Display
+import com.tored.bridgelauncher.ui.directorypicker.Directory
 import com.tored.bridgelauncher.utils.RawRepresentable
 import com.tored.bridgelauncher.utils.intToEnumOrDefault
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,9 +32,10 @@ val Context.settingsDataStore by preferencesDataStore("settings")
 
 data class SettingsState(
 
-    val currentProjUri: Uri? = null,
+    val currentProjDir: Directory? = null,
     val isQSTileAdded: Boolean = false,
     val isDeviceAdminEnabled: Boolean = false,
+    val isExternalStorageManager: Boolean = false,
 
     val theme: ThemeOptions = ThemeOptions.System,
 
@@ -103,7 +105,7 @@ inline fun <reified TParent> Preferences.readUri(
     val key = stringPreferencesKey(getPrefKeyName(prop))
     val uriStr = get(key)
     return if (uriStr == null)
-        null;
+        null
     else
         Uri.parse(uriStr).also { Log.d("PREFS", "readUri: $it") }
 }
@@ -120,6 +122,30 @@ inline fun <reified TParent> MutablePreferences.writeUri(
 }
 
 
+inline fun <reified TParent> Preferences.readDir(
+    prop: KProperty1<TParent, Directory?>
+): Directory?
+{
+    val key = stringPreferencesKey(getPrefKeyName(prop))
+    val pathStr = get(key)
+    return if (pathStr == null)
+        null
+    else
+        Directory(pathStr)
+}
+
+inline fun <reified TParent> MutablePreferences.writeDir(
+    prop: KProperty1<TParent, Directory?>, value: Directory?
+)
+{
+    val key = stringPreferencesKey(getPrefKeyName(prop))
+    if (value == null)
+        remove(key)
+    else
+        set(key, value.canonicalPath)
+}
+
+
 @HiltViewModel
 class SettingsVM @Inject constructor(@ApplicationContext appContext: Context) : ViewModel()
 {
@@ -131,9 +157,10 @@ class SettingsVM @Inject constructor(@ApplicationContext appContext: Context) : 
             _ds.data.collectLatest { prefs ->
                 _settingsUIState.update {
                     it.copy(
-                        currentProjUri = prefs.readUri(SettingsState::currentProjUri),
+                        currentProjDir = prefs.readDir(SettingsState::currentProjDir),
                         isQSTileAdded = prefs.readBool(SettingsState::isQSTileAdded, false),
                         isDeviceAdminEnabled = prefs.readBool(SettingsState::isDeviceAdminEnabled, false),
+                        isExternalStorageManager = prefs.readBool(SettingsState::isExternalStorageManager, false),
 
                         theme = prefs.readEnum(SettingsState::theme, ThemeOptions.System),
 

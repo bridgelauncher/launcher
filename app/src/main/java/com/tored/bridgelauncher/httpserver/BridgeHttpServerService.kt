@@ -6,7 +6,7 @@ import android.os.IBinder
 import android.util.Log
 import com.sun.net.httpserver.HttpServer
 import com.tored.bridgelauncher.settings.SettingsState
-import com.tored.bridgelauncher.settings.readUri
+import com.tored.bridgelauncher.settings.readDir
 import com.tored.bridgelauncher.settings.settingsDataStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -31,8 +31,8 @@ class BridgeHttpServerService : Service()
         _handler = BridgeHttpServerHandler(applicationContext)
 
         _scope.launch {
-            settingsDataStore.data.collectLatest {
-                _handler.projectRoot = it.readUri(SettingsState::currentProjUri)
+            settingsDataStore.data.collectLatest { prefs ->
+                _handler.projectRoot = prefs.readDir(SettingsState::currentProjDir)
             }
         }
     }
