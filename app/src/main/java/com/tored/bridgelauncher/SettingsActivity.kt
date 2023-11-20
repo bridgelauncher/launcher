@@ -15,6 +15,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -111,7 +112,30 @@ class SettingsActivity : ComponentActivity()
         setContent {
             BridgeLauncherTheme()
             {
-                SettingsScreen(_isExtStorageManager)
+                SettingsScreen(
+                    _isExtStorageManager,
+                    onGrantPermissionRequest = {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+                        {
+                            if (!Environment.isExternalStorageManager())
+                            {
+                                try
+                                {
+                                    startActivity(
+                                        Intent(
+                                            Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+                                            Uri.parse("package:${packageName}")
+                                        )
+                                    )
+                                }
+                                catch (ex: Exception)
+                                {
+                                    Toast.makeText(this, "Could not navigate to settings to grant access to all files.", Toast.LENGTH_LONG).show()
+                                }
+                            }
+                        }
+                    }
+                )
             }
         }
     }
@@ -140,6 +164,7 @@ fun <TProp> displayNameFor(prop: KProperty1<SettingsState, TProp>): String
 @Composable
 fun SettingsScreen(
     isExtStorageManager: Boolean,
+    onGrantPermissionRequest: () -> Unit,
     vm: SettingsVM = viewModel(),
 )
 {
@@ -229,11 +254,16 @@ fun SettingsScreen(
                 {
                     SettingsSection(label = "Project", iconResId = R.drawable.ic_folder_open)
                     {
-                        CurrentProjectCard(uiState.currentProjDir)
-                        {
-                            dirPickerCurrentDir = uiState.currentProjDir
-                            dirPickerIsOpen = true
-                        }
+                        CurrentProjectCard(
+                            uiState.currentProjDir,
+                            onChangeClick =
+                            {
+                                dirPickerCurrentDir = uiState.currentProjDir
+                                dirPickerIsOpen = true
+                            },
+                            isExtStorageManager = isExtStorageManager,
+                            onGrantPermissionRequest = onGrantPermissionRequest
+                        )
 
                         val prop = SettingsState::allowProjectsToTurnScreenOff
                         CheckboxField(
@@ -465,27 +495,7 @@ fun SettingsScreen(
             {
                 null
             },
-            onGrantPermissionRequest = {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-                {
-                    if (!Environment.isExternalStorageManager())
-                    {
-                        try
-                        {
-                            context.startActivity(
-                                Intent(
-                                    Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
-                                    Uri.parse("package:${context.packageName}")
-                                )
-                            )
-                        }
-                        catch (ex: Exception)
-                        {
-                            Toast.makeText(context, "Could not navigate to settings to grant access to all files.", Toast.LENGTH_LONG).show()
-                        }
-                    }
-                }
-            },
+            onGrantPermissionRequest = onGrantPermissionRequest,
             onNavigateRequest = { dir ->
                 dirPickerCurrentDir = dir
             },
@@ -591,43 +601,93 @@ fun SettingsSectionHeader(label: String, iconResId: Int)
 }
 
 @Composable
-fun CurrentProjectCard(currentProjDir: Directory?, onChangeClick: () -> Unit)
+fun CurrentProjectCard(
+    currentProjDir: Directory?,
+    onChangeClick: () -> Unit,
+    isExtStorageManager: Boolean,
+    onGrantPermissionRequest: () -> Unit,
+)
 {
     Surface(
         modifier = Modifier
             .border(border = MaterialTheme.borders.soft, shape = MaterialTheme.shapes.medium)
+            .padding(MaterialTheme.borders.soft.width)
             .fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
     )
     {
-        Row(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
-                .padding(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                .fillMaxWidth(),
         )
         {
-            Column(
-                modifier = Modifier.weight(1f)
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .padding(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             )
             {
-                Text(
-                    text = "Current project",
-                    style = MaterialTheme.typography.body2,
-                    color = MaterialTheme.colors.textSec
+                Column(
+                    modifier = Modifier.weight(1f)
                 )
-                Text(
-                    text = currentProjDir?.name ?: "-",
-                    style = MaterialTheme.typography.body1,
-                    color = MaterialTheme.colors.primary,
+                {
+                    Text(
+                        text = "Current project",
+                        style = MaterialTheme.typography.body2,
+                        color = MaterialTheme.colors.textSec
+                    )
+                    Text(
+                        text = currentProjDir?.name ?: "-",
+                        style = MaterialTheme.typography.body1,
+                    )
+                }
+
+                Btn(
+                    text = "Change",
+                    onClick = onChangeClick
                 )
             }
-            Btn(
-                text = "Change",
-                color = MaterialTheme.colors.onSurface,
-                onClick = onChangeClick
+
+            if (currentProjDir != null && !isExtStorageManager)
+            {
+                Divider()
+                CurrentProjectCardAlert(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onGrantPermissionRequest() }
+                        .padding(16.dp),
+                    onGrantPermissionRequest = onGrantPermissionRequest
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun CurrentProjectCardAlert(onGrantPermissionRequest: () -> Unit, modifier: Modifier = Modifier)
+{
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    )
+    {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        )
+        {
+            ResIcon(iconResId = R.drawable.ic_warning, color = MaterialTheme.colors.error)
+            Text("Project cannot be loaded", color = MaterialTheme.colors.error)
+            Text(
+                text = "Bridge does not have permission to access files. " +
+                        "Click this warning to grant the permission.",
+                style = MaterialTheme.typography.body2,
+                textAlign = TextAlign.Center,
             )
         }
     }
