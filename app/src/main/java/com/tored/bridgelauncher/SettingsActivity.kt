@@ -82,8 +82,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotation
 
-private val TAG = "SETTINGS";
-
 enum class SystemBarAppearanceOptions(override val rawValue: Int) : RawRepresentable<Int>
 {
     Hide(0),
@@ -152,7 +150,7 @@ class SettingsActivity : ComponentActivity()
 
 fun getIsExtStorageManager(): Boolean
 {
-    return Build.VERSION.SDK_INT < Build.VERSION_CODES.R || Environment.isExternalStorageManager();
+    return Build.VERSION.SDK_INT < Build.VERSION_CODES.R || Environment.isExternalStorageManager()
 }
 
 fun <TProp> displayNameFor(prop: KProperty1<SettingsState, TProp>): String
@@ -659,8 +657,7 @@ fun CurrentProjectCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { onGrantPermissionRequest() }
-                        .padding(16.dp),
-                    onGrantPermissionRequest = onGrantPermissionRequest
+                        .padding(16.dp)
                 )
             }
         }
@@ -668,7 +665,7 @@ fun CurrentProjectCard(
 }
 
 @Composable
-fun CurrentProjectCardAlert(onGrantPermissionRequest: () -> Unit, modifier: Modifier = Modifier)
+fun CurrentProjectCardAlert(modifier: Modifier = Modifier)
 {
     Column(
         modifier = modifier,

@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.view.WindowManager.LayoutParams
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -56,10 +57,14 @@ import com.tored.bridgelauncher.settings.SettingsVM
 import com.tored.bridgelauncher.settings.writeBool
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
 import com.tored.bridgelauncher.webview.BridgeWebChromeClient
+import com.tored.bridgelauncher.webview.BridgeWebViewAssetLoader
+import com.tored.bridgelauncher.webview.BridgeWebViewClient
 import com.tored.bridgelauncher.webview.WebView
 import com.tored.bridgelauncher.webview.rememberWebViewState
 import dagger.hilt.android.AndroidEntryPoint
 
+private const val TAG = "HOMESCREEN"
+private const val BRIDGE_PROJECT_URL = "https://bridge.project/"
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity()
@@ -78,12 +83,14 @@ class MainActivity : ComponentActivity()
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
-fun HomeScreen(settingsVM: SettingsVM = viewModel())
+fun HomeScreen(
+    settingsVM: SettingsVM = viewModel(),
+)
 {
     val settingsState by settingsVM.settingsUIState.collectAsStateWithLifecycle()
     LaunchedEffect(settingsVM) { settingsVM.request() }
 
-    val webViewState = rememberWebViewState(url = "http://localhost:5000")
+    val webViewState = rememberWebViewState(url = BRIDGE_PROJECT_URL)
 
     val currentView = LocalView.current
     if (!currentView.isInEditMode)
@@ -144,17 +151,39 @@ fun HomeScreen(settingsVM: SettingsVM = viewModel())
         )
         {
             val context = LocalContext.current
+            val assetLoader = remember {
+                Log.d(TAG, "HomeScreen: creating assetLoader with dir = ${settingsState.currentProjDir}")
+                BridgeWebViewAssetLoader(context, settingsState.currentProjDir)
+            }
+            val webViewClient = remember {
+                BridgeWebViewClient(
+                    assetLoader = assetLoader
+                )
+            }
+            val chromeClient = remember {
+                BridgeWebChromeClient(
+                    onConsoleMessage = {
+                        true
+                    }
+                )
+            }
+
+            LaunchedEffect(settingsState)
+            {
+                if (assetLoader.projectRoot != settingsState.currentProjDir)
+                {
+                    Log.d(TAG, "LaunchedEffect: assetLoader.projectRoot = ${assetLoader.projectRoot} -> ${settingsState.currentProjDir}")
+                    assetLoader.projectRoot = settingsState.currentProjDir
+                    webViewState.webView?.loadUrl(BRIDGE_PROJECT_URL)
+                    webViewState.webView?.reload()
+                }
+            }
 
             WebView(
                 state = webViewState,
                 modifier = Modifier.fillMaxSize(),
-                chromeClient = remember {
-                    BridgeWebChromeClient(
-                        onConsoleMessage = {
-                            true
-                        }
-                    )
-                },
+                client = webViewClient,
+                chromeClient = chromeClient,
                 onCreated = { webView ->
                     with(webView.settings)
                     {

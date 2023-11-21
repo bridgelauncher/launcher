@@ -15,6 +15,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 
+private const val TAG = "HTTPSERVER"
 
 enum class HTTPStatusCode(override val rawValue: Int) : RawRepresentable<Int>
 {
@@ -28,6 +29,7 @@ enum class HTTPStatusCode(override val rawValue: Int) : RawRepresentable<Int>
     NotImplemented(501),
 }
 
+
 // implemented with help from
 // https://stackoverflow.com/a/42404471/6796433
 class BridgeHttpServerHandler(
@@ -35,7 +37,6 @@ class BridgeHttpServerHandler(
     var projectRoot: Directory? = null
 ) : HttpHandler
 {
-    private val TAG = "HTTPSERVER"
 
     override fun handle(exchange: HttpExchange)
     {
@@ -43,7 +44,7 @@ class BridgeHttpServerHandler(
         {
             Log.i(TAG, "handle: request received")
 
-            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager())
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager())
             {
                 exchange.sendError(HTTPStatusCode.ServiceUnavailable, "Bridge does not have the \"Manage All Files\" permission.")
                 return
