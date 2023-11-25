@@ -73,7 +73,7 @@
         </service>
 
         <service
-            android:name=".httpserver.BridgeHttpServerService"
+            android:name=".webview.serve.BridgeHttpServerService"
             android:label="Bridge HTTP Server" />
 
         <receiver

@@ -1,5 +1,6 @@
 package com.tored.bridgelauncher.ui.theme
 
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.Colors
@@ -10,8 +11,10 @@ import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -48,7 +51,37 @@ fun BridgeLauncherTheme(settingsVM: SettingsVM = viewModel(), content: Composabl
 {
     val state by settingsVM.settingsUIState.collectAsStateWithLifecycle()
     LaunchedEffect(settingsVM) { settingsVM.request() }
-    val useDarkTheme = state.theme == ThemeOptions.Dark || isSystemInDarkTheme()
+
+    val useDarkTheme = state.theme == ThemeOptions.Dark || (state.theme == ThemeOptions.System && isSystemInDarkTheme())
+
+    val context = LocalContext.current
+    SideEffect()
+    {
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+//        {
+//            val uiman = context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
+//            uiman.nightmode(
+//                when (state.theme)
+//                {
+//                    ThemeOptions.System -> UiModeManager.MODE_NIGHT_AUTO
+//                    ThemeOptions.Dark -> UiModeManager.MODE_NIGHT_YES
+//                    ThemeOptions.Light -> UiModeManager.MODE_NIGHT_NO
+//                }
+//            )
+//        }
+//        else
+//        {
+//        }
+        AppCompatDelegate.setDefaultNightMode(
+            when (state.theme)
+            {
+                ThemeOptions.System -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+                ThemeOptions.Dark -> AppCompatDelegate.MODE_NIGHT_YES
+                ThemeOptions.Light -> AppCompatDelegate.MODE_NIGHT_NO
+            }
+        )
+    }
+
     BridgeLauncherThemeStateless(
         useDarkTheme = useDarkTheme,
         content = content,

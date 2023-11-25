@@ -1,4 +1,4 @@
-package com.tored.bridgelauncher.webview
+package com.tored.bridgelauncher.webview.serve
 
 import android.content.Context
 import android.os.Build
@@ -7,7 +7,6 @@ import android.util.Log
 import android.webkit.MimeTypeMap
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
-import com.tored.bridgelauncher.httpserver.HTTPStatusCode
 import com.tored.bridgelauncher.ui.directorypicker.Directory
 import java.io.File
 import java.io.FileInputStream

@@ -51,16 +51,16 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tored.bridgelauncher.composables.ResIcon
-import com.tored.bridgelauncher.jsapi.JSToBridgeAPI
 import com.tored.bridgelauncher.settings.SettingsState
 import com.tored.bridgelauncher.settings.SettingsVM
 import com.tored.bridgelauncher.settings.writeBool
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
 import com.tored.bridgelauncher.webview.BridgeWebChromeClient
-import com.tored.bridgelauncher.webview.BridgeWebViewAssetLoader
 import com.tored.bridgelauncher.webview.BridgeWebViewClient
 import com.tored.bridgelauncher.webview.WebView
+import com.tored.bridgelauncher.webview.jsapi.JSToBridgeAPI
 import com.tored.bridgelauncher.webview.rememberWebViewState
+import com.tored.bridgelauncher.webview.serve.BridgeWebViewAssetLoader
 import dagger.hilt.android.AndroidEntryPoint
 
 private const val TAG = "HOMESCREEN"
@@ -185,6 +185,10 @@ fun HomeScreen(
                 client = webViewClient,
                 chromeClient = chromeClient,
                 onCreated = { webView ->
+
+                    Log.d(TAG, "HomeScreen: WebView onCreated")
+                    webView.clearCache(true)
+
                     with(webView.settings)
                     {
                         javaScriptEnabled = true
@@ -201,7 +205,6 @@ fun HomeScreen(
                     }
 
                     webView.setBackgroundColor(Color.Transparent.toArgb())
-
                     webView.addJavascriptInterface(JSToBridgeAPI(context), "Bridge")
                 }
             )

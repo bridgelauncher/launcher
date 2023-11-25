@@ -1,4 +1,4 @@
-package com.tored.bridgelauncher.httpserver
+package com.tored.bridgelauncher.webview.serve
 
 import android.app.Service
 import android.content.Intent
