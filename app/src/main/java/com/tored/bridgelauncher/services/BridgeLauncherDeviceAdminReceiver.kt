@@ -6,7 +6,7 @@ import android.content.Intent
 import androidx.datastore.preferences.core.edit
 import com.tored.bridgelauncher.settings.SettingsState
 import com.tored.bridgelauncher.settings.settingsDataStore
-import com.tored.bridgelauncher.settings.writeBool
+import com.tored.bridgelauncher.utils.writeBool
 import kotlinx.coroutines.runBlocking
 
 class BridgeLauncherDeviceAdminReceiver : DeviceAdminReceiver()

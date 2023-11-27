@@ -6,9 +6,9 @@ import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import androidx.datastore.preferences.core.edit
 import com.tored.bridgelauncher.settings.SettingsState
-import com.tored.bridgelauncher.settings.readBool
+import com.tored.bridgelauncher.utils.readBool
 import com.tored.bridgelauncher.settings.settingsDataStore
-import com.tored.bridgelauncher.settings.writeBool
+import com.tored.bridgelauncher.utils.writeBool
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

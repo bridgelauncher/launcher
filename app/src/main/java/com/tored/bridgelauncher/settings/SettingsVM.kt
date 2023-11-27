@@ -1,23 +1,14 @@
 package com.tored.bridgelauncher.settings
 
 import android.content.Context
-import android.net.Uri
-import android.util.Log
 import androidx.datastore.preferences.core.MutablePreferences
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.intPreferencesKey
-import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.tored.bridgelauncher.SystemBarAppearanceOptions
-import com.tored.bridgelauncher.ThemeOptions
-import com.tored.bridgelauncher.annotations.Display
-import com.tored.bridgelauncher.ui.directorypicker.Directory
-import com.tored.bridgelauncher.utils.RawRepresentable
-import com.tored.bridgelauncher.utils.intToEnumOrDefault
+import com.tored.bridgelauncher.utils.readBool
+import com.tored.bridgelauncher.utils.readDir
+import com.tored.bridgelauncher.utils.readEnum
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,128 +17,13 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlin.reflect.KProperty1
 
 val Context.settingsDataStore by preferencesDataStore("settings")
 
-data class SettingsState(
-
-    val currentProjDir: Directory? = null,
-    val isQSTileAdded: Boolean = false,
-    val isDeviceAdminEnabled: Boolean = false,
-    val isExternalStorageManager: Boolean = false,
-
-    val theme: ThemeOptions = ThemeOptions.System,
-
-    @Display("Allow projects to turn the screen off")
-    val allowProjectsToTurnScreenOff: Boolean = false,
-
-    @Display("Draw system wallpaper behind WebView")
-    val drawSystemWallpaperBehindWebView: Boolean = true,
-
-    @Display("Status bar")
-    val statusBarAppearance: SystemBarAppearanceOptions = SystemBarAppearanceOptions.DarkIcons,
-
-    @Display("Navigation bar")
-    val navigationBarAppearance: SystemBarAppearanceOptions = SystemBarAppearanceOptions.DarkIcons,
-
-    @Display("Draw WebView overscroll effects")
-    val drawWebViewOverscrollEffects: Boolean = false,
-
-    @Display("Show Bridge button")
-    val showBridgeButton: Boolean = true,
-
-    @Display("Show Launch apps button when the Bridge menu is collapsed")
-    val showLaunchAppsWhenBridgeButtonCollapsed: Boolean = false,
-)
-
-inline fun <reified TParent, TProp> getPrefKeyName(prop: KProperty1<TParent, TProp>) = getPrefKeyName(TParent::class.simpleName ?: "", prop.name)
-
-fun getPrefKeyName(className: String, propName: String) = "${className}.${propName}"
-
-
-inline fun <reified TParent, reified TEnum> Preferences.readEnum(prop: KProperty1<TParent, TEnum>, default: TEnum): TEnum
-        where TEnum : Enum<TEnum>, TEnum : RawRepresentable<Int>
-{
-    val key = intPreferencesKey(getPrefKeyName(prop))
-    return intToEnumOrDefault(this[key], default)
-}
-
-inline fun <reified TParent, reified TEnum> MutablePreferences.writeEnum(prop: KProperty1<TParent, TEnum>, value: TEnum)
-        where TEnum : Enum<TEnum>, TEnum : RawRepresentable<Int>
-{
-    val key = intPreferencesKey(getPrefKeyName(prop))
-    this[key] = value.rawValue
-}
-
-
-inline fun <reified TParent> Preferences.readBool(
-    prop: KProperty1<TParent, Boolean>, default: Boolean
-): Boolean
-{
-    val key = booleanPreferencesKey(getPrefKeyName(prop))
-    return this[key] ?: default
-}
-
-inline fun <reified TParent> MutablePreferences.writeBool(
-    prop: KProperty1<TParent, Boolean>, value: Boolean
-)
-{
-    val key = booleanPreferencesKey(getPrefKeyName(prop))
-    this[key] = value
-}
-
-
-inline fun <reified TParent> Preferences.readUri(
-    prop: KProperty1<TParent, Uri?>
-): Uri?
-{
-    val key = stringPreferencesKey(getPrefKeyName(prop))
-    val uriStr = get(key)
-    return if (uriStr == null)
-        null
-    else
-        Uri.parse(uriStr).also { Log.d("PREFS", "readUri: $it") }
-}
-
-inline fun <reified TParent> MutablePreferences.writeUri(
-    prop: KProperty1<TParent, Uri?>, value: Uri?
-)
-{
-    val key = stringPreferencesKey(getPrefKeyName(prop))
-    if (value == null)
-        remove(key)
-    else
-        set(key, value.toString().also { Log.d("PREFS", "writeUri: $it") })
-}
-
-
-inline fun <reified TParent> Preferences.readDir(
-    prop: KProperty1<TParent, Directory?>
-): Directory?
-{
-    val key = stringPreferencesKey(getPrefKeyName(prop))
-    val pathStr = get(key)
-    return if (pathStr == null)
-        null
-    else
-        Directory(pathStr)
-}
-
-inline fun <reified TParent> MutablePreferences.writeDir(
-    prop: KProperty1<TParent, Directory?>, value: Directory?
-)
-{
-    val key = stringPreferencesKey(getPrefKeyName(prop))
-    if (value == null)
-        remove(key)
-    else
-        set(key, value.canonicalPath)
-}
-
-
 @HiltViewModel
-class SettingsVM @Inject constructor(@ApplicationContext appContext: Context) : ViewModel()
+class SettingsVM @Inject constructor(
+    @ApplicationContext appContext: Context
+) : ViewModel()
 {
     private val _ds = appContext.settingsDataStore
 
@@ -189,3 +65,4 @@ class SettingsVM @Inject constructor(@ApplicationContext appContext: Context) : 
     private val _settingsUIState = MutableStateFlow(SettingsState())
     val settingsUIState = _settingsUIState.asStateFlow()
 }
+

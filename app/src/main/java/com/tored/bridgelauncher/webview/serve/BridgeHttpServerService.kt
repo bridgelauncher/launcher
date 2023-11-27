@@ -6,7 +6,7 @@ import android.os.IBinder
 import android.util.Log
 import com.sun.net.httpserver.HttpServer
 import com.tored.bridgelauncher.settings.SettingsState
-import com.tored.bridgelauncher.settings.readDir
+import com.tored.bridgelauncher.utils.readDir
 import com.tored.bridgelauncher.settings.settingsDataStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
