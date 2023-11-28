@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tored.bridgelauncher.AppDrawerActivity
+import com.tored.bridgelauncher.DevConsoleActivity
 import com.tored.bridgelauncher.R
 import com.tored.bridgelauncher.SettingsActivity
 import com.tored.bridgelauncher.composables.ResIcon
@@ -104,10 +105,15 @@ fun BridgeButtonStateless(
             {
                 if (isExpanded)
                 {
-                    TouchTarget(iconResId = R.drawable.ic_refresh) {
+                    TouchTarget(iconResId = R.drawable.ic_refresh)
+                    {
                         onWebViewRefreshRequest()
                     }
-                    TouchTarget(iconResId = R.drawable.ic_dev_console) { }
+
+                    TouchTarget(iconResId = R.drawable.ic_dev_console)
+                    {
+                        context.startActivity(Intent(context, DevConsoleActivity::class.java))
+                    }
 
                     Divider()
 

@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.tored.bridgelauncher.BridgeLauncherApp
 import com.tored.bridgelauncher.settings.SettingsVM
 import com.tored.bridgelauncher.webview.BridgeWebChromeClient
 import com.tored.bridgelauncher.webview.BridgeWebViewClient
@@ -26,6 +27,7 @@ private const val TAG = "HOMEWEBVIEW"
 
 const val BRIDGE_PROJECT_URL = "https://bridge.project/"
 
+@Suppress("DEPRECATION")
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun HomeScreenWebView(
@@ -36,6 +38,7 @@ fun HomeScreenWebView(
 {
     val settingsState by settingsVM.settingsUIState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val appContext = context.applicationContext as BridgeLauncherApp
 
     val assetLoader = remember { BridgeWebViewAssetLoader(context, settingsState.currentProjDir) }
     val webViewClient = remember {
@@ -45,8 +48,9 @@ fun HomeScreenWebView(
     }
     val chromeClient = remember {
         BridgeWebChromeClient(
-            onConsoleMessage = {
-                true
+            consoleMessageCallback = {
+                appContext.consoleMessagesHolder.messages.add(it)
+                return@BridgeWebChromeClient true
             }
         )
     }

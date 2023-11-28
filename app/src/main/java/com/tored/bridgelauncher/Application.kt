@@ -7,6 +7,7 @@ import dagger.hilt.android.HiltAndroidApp
 class BridgeLauncherApp : Application()
 {
     lateinit var installedAppsHolder: InstalledAppsStateHolder
+    lateinit var consoleMessagesHolder: ConsoleMessagesHolder
 
     override fun onCreate()
     {
@@ -17,7 +18,6 @@ class BridgeLauncherApp : Application()
             loadInstalledApps()
         }
 
-        // start HTTP server
-//        startService(Intent(this, BridgeHttpServerService::class.java))
+        consoleMessagesHolder = ConsoleMessagesHolder()
     }
 }
