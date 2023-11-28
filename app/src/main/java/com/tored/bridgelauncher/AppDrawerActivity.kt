@@ -1,11 +1,7 @@
 package com.tored.bridgelauncher
 
 import android.app.Activity
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
-import android.provider.Settings
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -76,6 +72,9 @@ import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
 import com.tored.bridgelauncher.ui.theme.botBar
 import com.tored.bridgelauncher.ui.theme.textPlaceholder
 import com.tored.bridgelauncher.ui.theme.textSec
+import com.tored.bridgelauncher.utils.requestAppUninstall
+import com.tored.bridgelauncher.utils.tryLaunchApp
+import com.tored.bridgelauncher.utils.tryOpenAppInfo
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -229,7 +228,7 @@ fun AppDrawerScreen()
                                             },
 
                                             onTap = {
-                                                context.launch(app)
+                                                context.tryLaunchApp(app)
                                             },
 
                                             onLongPress = { offset ->
@@ -289,7 +288,7 @@ fun AppDrawerScreen()
                 onSearchStringChange = { searchString = it },
                 onGoPressed = {
                     if (filteredApps.any())
-                        context.launch(filteredApps.first())
+                        context.tryLaunchApp(filteredApps.first())
                 },
             )
         }
@@ -321,40 +320,23 @@ fun AppContextMenu(
     val items = remember {
         arrayOf(
             Action(R.drawable.ic_copy, "Copy label")
-            { clipman.setText(AnnotatedString(label)) },
+            {
+                clipman.setText(AnnotatedString(label))
+            },
 
             Action(R.drawable.ic_copy, "Copy package name")
-            { clipman.setText(AnnotatedString(packageName)) },
+            {
+                clipman.setText(AnnotatedString(packageName))
+            },
 
             Action(R.drawable.ic_info, "App info")
             {
-                try
-                {
-                    context.startActivity(
-                        Intent(
-                            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                            Uri.parse("package:${packageName}")
-                        )
-                    )
-                }
-                catch (_: Exception)
-                {
-                    Toast.makeText(context, "Could not open app info.", Toast.LENGTH_SHORT).show()
-                }
+                context.tryOpenAppInfo(packageName)
             },
 
             Action(R.drawable.ic_delete, "Uninstall")
             {
-                try
-                {
-                    val packageURI = Uri.parse("package:${packageName}")
-                    val uninstallIntent = Intent(Intent.ACTION_DELETE, packageURI)
-                    context.startActivity(uninstallIntent)
-                }
-                catch (_: Exception)
-                {
-                    Toast.makeText(context, "Could not request app uninstall.", Toast.LENGTH_SHORT).show()
-                }
+                context.requestAppUninstall(packageName)
             },
         )
     }
@@ -367,7 +349,8 @@ fun AppContextMenu(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable {
+                    .clickable()
+                    {
                         item.onClick(app)
                         onDismissRequest()
                     }
@@ -429,7 +412,8 @@ fun SearchBotBar(searchString: String, onSearchStringChange: (String) -> Unit, o
     val focusRequester = FocusRequester()
     var searchbarHasFocus by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(Unit)
+    {
         coroutineContext.job.invokeOnCompletion {
             focusRequester.requestFocus()
         }
@@ -456,6 +440,7 @@ fun SearchBotBar(searchString: String, onSearchStringChange: (String) -> Unit, o
             {
                 ResIcon(R.drawable.ic_arrow_left)
             }
+
             BasicTextField(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -497,10 +482,11 @@ fun SearchBotBar(searchString: String, onSearchStringChange: (String) -> Unit, o
                 onClick = { onSearchStringChange("") })
             {
                 ResIcon(
-                    R.drawable.ic_close, if (clearIsEnabled)
-                        MaterialTheme.colors.textPlaceholder
-                    else
+                    R.drawable.ic_close,
+                    if (clearIsEnabled)
                         MaterialTheme.colors.onSurface
+                    else
+                        MaterialTheme.colors.textPlaceholder
                 )
             }
         }

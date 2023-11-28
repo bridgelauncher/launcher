@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,7 +38,11 @@ fun HomeScreen(
 
     val context = LocalContext.current
     val webViewState = rememberWebViewState(url = BRIDGE_PROJECT_URL)
-    val jsToBridgeAPI = remember { JSToBridgeAPI(context) }
+    val jsToBridgeAPI = remember { JSToBridgeAPI(context, webViewState, settingsState) }
+
+    SideEffect {
+        jsToBridgeAPI.settingsState = settingsState
+    }
 
     HomeScreenSetSystemUI(settingsState = settingsState)
 

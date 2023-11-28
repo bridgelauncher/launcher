@@ -1,6 +1,5 @@
 package com.tored.bridgelauncher.ui.screens.settings.sections
 
-import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,6 +12,7 @@ import com.tored.bridgelauncher.composables.Btn
 import com.tored.bridgelauncher.settings.SettingsState
 import com.tored.bridgelauncher.ui.screens.settings.SettingsCheckboxFieldFor
 import com.tored.bridgelauncher.ui.screens.settings.SettingsSection
+import com.tored.bridgelauncher.utils.startWallpaperPickerActivity
 
 @Composable
 fun SettingsSystemWallpaperSection()
@@ -30,7 +30,7 @@ fun SettingsSystemWallpaperSection()
                 modifier = Modifier
                     .fillMaxWidth(),
                 outlined = true,
-                onClick = { context.startActivity(Intent(Intent.ACTION_SET_WALLPAPER)) },
+                onClick = { context.startWallpaperPickerActivity() },
             )
 
             SettingsCheckboxFieldFor(SettingsState::drawSystemWallpaperBehindWebView)

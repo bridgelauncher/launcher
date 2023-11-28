@@ -28,13 +28,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.tored.bridgelauncher.AppDrawerActivity
-import com.tored.bridgelauncher.DevConsoleActivity
 import com.tored.bridgelauncher.R
-import com.tored.bridgelauncher.SettingsActivity
 import com.tored.bridgelauncher.composables.ResIcon
 import com.tored.bridgelauncher.settings.SettingsState
 import com.tored.bridgelauncher.settings.SettingsVM
+import com.tored.bridgelauncher.utils.startAppDrawerActivity
+import com.tored.bridgelauncher.utils.startBridgeSettingsActivity
+import com.tored.bridgelauncher.utils.startDevConsoleActivity
 import com.tored.bridgelauncher.utils.writeBool
 
 @Composable
@@ -112,7 +112,7 @@ fun BridgeButtonStateless(
 
                     TouchTarget(iconResId = R.drawable.ic_dev_console)
                     {
-                        context.startActivity(Intent(context, DevConsoleActivity::class.java))
+                        context.startDevConsoleActivity()
                     }
 
                     Divider()
@@ -129,7 +129,7 @@ fun BridgeButtonStateless(
 
                     TouchTarget(iconResId = R.drawable.ic_settings)
                     {
-                        context.startActivity(Intent(context, SettingsActivity::class.java))
+                        context.startBridgeSettingsActivity()
                     }
 
                     TouchTarget(iconResId = R.drawable.ic_hide)
@@ -144,7 +144,7 @@ fun BridgeButtonStateless(
                 {
                     TouchTarget(iconResId = R.drawable.ic_apps)
                     {
-                        context.startActivity(Intent(context, AppDrawerActivity::class.java))
+                        context.startAppDrawerActivity()
                     }
 
                     Divider()

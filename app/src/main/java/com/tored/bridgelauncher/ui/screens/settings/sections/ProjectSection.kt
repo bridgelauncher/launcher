@@ -68,24 +68,5 @@ fun SettingsProjectSection(
                 }
             }
         )
-
-//                    Btn(text = "Lock the screen")
-//                    {
-//                        val dpm = context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
-//                        if (dpm.isAdminActive(adminReceiverComponentName))
-//                        {
-//                            dpm.lockNow()
-//                        }
-//                        else
-//                        {
-//                            Toast
-//                                .makeText(
-//                                    context,
-//                                    "Bridge is not a device admin. Visit Bridge settings to resolve this issue.",
-//                                    Toast.LENGTH_LONG
-//                                )
-//                                .show()
-//                        }
-//                    }
     }
 }

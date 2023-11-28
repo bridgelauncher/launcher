@@ -2,8 +2,10 @@ package com.tored.bridgelauncher.utils
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Build
 import android.os.Environment
+import android.widget.Toast
 import androidx.compose.runtime.Composable
 import com.tored.bridgelauncher.annotations.Display
 import kotlin.reflect.KProperty1
@@ -42,4 +44,32 @@ fun <TClass, TProp> displayNameFor(prop: KProperty1<TClass, TProp>): String
 {
     val ann = prop.findAnnotation<Display>()
     return ann?.name ?: prop.name
+}
+
+
+fun Exception.messageOrDefault(): String
+{
+    return message.defaultIfNullOrEmpty(this.javaClass.name)
+}
+
+fun String?.defaultIfNullOrEmpty(default: String): String
+{
+    return if (isNullOrEmpty()) default else this
+}
+
+fun Context.showErrorToast(message: String?)
+{
+    Toast.makeText(this, message ?: "Exception with no message.", Toast.LENGTH_LONG).show()
+}
+
+fun Context.getIsSystemInNightMode(): Boolean
+{
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+    {
+        resources.configuration.isNightModeActive
+    }
+    else
+    {
+        resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
+    }
 }

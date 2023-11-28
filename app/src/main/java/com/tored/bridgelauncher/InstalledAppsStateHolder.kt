@@ -1,6 +1,5 @@
 package com.tored.bridgelauncher
 
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
@@ -26,11 +25,6 @@ data class InstalledApp(
                 .replace(Regex("[^a-z0-9]"), "")
         }
     }
-}
-
-fun Context.launch(app: InstalledApp)
-{
-    startActivity(app.launchIntent)
 }
 
 class InstalledAppsStateHolder(

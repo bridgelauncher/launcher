@@ -25,7 +25,7 @@ import com.tored.bridgelauncher.webview.serve.BridgeWebViewAssetLoader
 
 private const val TAG = "HOMEWEBVIEW"
 
-const val BRIDGE_PROJECT_URL = "https://bridge.project/"
+const val BRIDGE_PROJECT_URL = "https://project.bridge/"
 
 @Suppress("DEPRECATION")
 @SuppressLint("SetJavaScriptEnabled")
