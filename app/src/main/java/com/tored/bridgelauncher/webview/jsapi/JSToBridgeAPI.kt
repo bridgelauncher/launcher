@@ -51,15 +51,7 @@ class JSToBridgeAPI(
     private val _dpman = _context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
     private val _adminReceiverComponentName = ComponentName(_context, BridgeLauncherDeviceAdminReceiver::class.java)
 
-
     // region apps
-
-    @JavascriptInterface
-    fun getInstalledApps(): Array<InstalledAppInfo>
-    {
-        // TODO
-        return arrayOf<InstalledAppInfo>()
-    }
 
     @JavascriptInterface
     fun requestAppUninstall(packageName: String, showToastIfFailed: Boolean = true): Boolean
@@ -315,18 +307,6 @@ class JSToBridgeAPI(
             "dark-fg" -> SystemBarAppearanceOptions.DarkIcons
             else -> throw Exception("Appearance must be one of ${q("hide")}, ${q("light-fg")} or ${"dark-fg"} (got ${q(appearance)}).")
         }
-    }
-
-    // endregion
-
-
-    // region insets
-
-    @JavascriptInterface
-    fun getWindowInsets(): Array<Float>
-    {
-        // TODO
-        return arrayOf(0f, 0f, 0f, 0f)
     }
 
     // endregion

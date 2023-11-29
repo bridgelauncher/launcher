@@ -21,7 +21,7 @@ import com.tored.bridgelauncher.webview.BridgeWebViewClient
 import com.tored.bridgelauncher.webview.WebView
 import com.tored.bridgelauncher.webview.WebViewState
 import com.tored.bridgelauncher.webview.jsapi.JSToBridgeAPI
-import com.tored.bridgelauncher.webview.serve.BridgeWebViewAssetLoader
+import com.tored.bridgelauncher.webview.serve.BridgeWebViewRequestHandler
 
 private const val TAG = "HOMEWEBVIEW"
 
@@ -39,8 +39,8 @@ fun HomeScreenWebView(
     val settingsState by settingsVM.settingsUIState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val appContext = context.applicationContext as BridgeLauncherApp
-
-    val assetLoader = remember { BridgeWebViewAssetLoader(context, settingsState.currentProjDir) }
+        
+    val assetLoader = remember { BridgeWebViewRequestHandler(context, settingsState.currentProjDir) }
     val webViewClient = remember {
         BridgeWebViewClient(
             assetLoader = assetLoader

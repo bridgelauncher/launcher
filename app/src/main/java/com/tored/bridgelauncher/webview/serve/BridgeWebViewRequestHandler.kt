@@ -14,11 +14,11 @@ import java.io.IOException
 
 private const val TAG = "ASSETLOADER"
 
-class BridgeWebViewAssetLoader(val context: Context, var projectRoot: Directory?)
+class BridgeWebViewRequestHandler(val context: Context, var projectRoot: Directory?)
 {
     fun handle(request: WebResourceRequest): WebResourceResponse?
     {
-        if (request.url.host?.lowercase() != "bridge.project")
+        if (request.url.host?.lowercase()?.endsWith("bridge.launcher") != true)
             return null
 
         try
@@ -126,7 +126,7 @@ class BridgeWebViewAssetLoader(val context: Context, var projectRoot: Directory?
             EncodingStrings.UTF8,
             code.rawValue,
             code.name,
-            mutableMapOf<String, String>("A" to "B"),
+            mutableMapOf<String, String>(),
             msg.byteInputStream(Charsets.UTF_8),
         )
     }

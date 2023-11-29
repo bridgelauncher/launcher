@@ -3,10 +3,10 @@ package com.tored.bridgelauncher.webview
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
-import com.tored.bridgelauncher.webview.serve.BridgeWebViewAssetLoader
+import com.tored.bridgelauncher.webview.serve.BridgeWebViewRequestHandler
 
 class BridgeWebViewClient(
-    val assetLoader: BridgeWebViewAssetLoader,
+    val assetLoader: BridgeWebViewRequestHandler,
 ) : AccompanistWebViewClient()
 {
     override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?): WebResourceResponse?
