@@ -39,13 +39,15 @@ fun HomeScreenWebView(
     val settingsState by settingsVM.settingsUIState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val appContext = context.applicationContext as BridgeLauncherApp
-        
+
     val assetLoader = remember { BridgeWebViewRequestHandler(context, settingsState.currentProjDir) }
+
     val webViewClient = remember {
         BridgeWebViewClient(
             assetLoader = assetLoader
         )
     }
+
     val chromeClient = remember {
         BridgeWebChromeClient(
             consoleMessageCallback = {

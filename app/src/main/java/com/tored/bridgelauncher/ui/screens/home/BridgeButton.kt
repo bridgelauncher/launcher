@@ -32,7 +32,7 @@ import com.tored.bridgelauncher.R
 import com.tored.bridgelauncher.composables.ResIcon
 import com.tored.bridgelauncher.settings.SettingsState
 import com.tored.bridgelauncher.settings.SettingsVM
-import com.tored.bridgelauncher.utils.startAppDrawerActivity
+import com.tored.bridgelauncher.utils.startBridgeAppDrawerActivity
 import com.tored.bridgelauncher.utils.startBridgeSettingsActivity
 import com.tored.bridgelauncher.utils.startDevConsoleActivity
 import com.tored.bridgelauncher.utils.writeBool
@@ -144,7 +144,7 @@ fun BridgeButtonStateless(
                 {
                     TouchTarget(iconResId = R.drawable.ic_apps)
                     {
-                        context.startAppDrawerActivity()
+                        context.startBridgeAppDrawerActivity()
                     }
 
                     Divider()

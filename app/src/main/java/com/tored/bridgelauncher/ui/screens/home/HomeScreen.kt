@@ -1,5 +1,7 @@
 package com.tored.bridgelauncher.ui.screens.home
 
+import android.app.Activity
+import android.os.Build
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -17,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -24,6 +27,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tored.bridgelauncher.settings.SettingsVM
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
 import com.tored.bridgelauncher.webview.jsapi.JSToBridgeAPI
+import com.tored.bridgelauncher.webview.jsapi.WindowInsetsSnapshot
 import com.tored.bridgelauncher.webview.rememberWebViewState
 
 private const val TAG = "HOMESCREEN"
@@ -45,6 +49,10 @@ fun HomeScreen(
     }
 
     HomeScreenSetSystemUI(settingsState = settingsState)
+
+    val density = LocalDensity.current
+
+    UpdateJSAPIWindowInsets(jsToBridgeAPI)
 
     Surface(modifier = Modifier.fillMaxSize(), color = Color.Transparent)
     {
@@ -78,6 +86,18 @@ fun HomeScreen(
             }
         }
     }
+}
+
+@Composable
+fun UpdateJSAPIWindowInsets(jsToBridgeAPI: JSToBridgeAPI)
+{
+    val context = LocalContext.current
+    val insets = (context as Activity).window.decorView.rootWindowInsets
+
+    jsToBridgeAPI.windowInsetsSnapshot = WindowInsetsSnapshot.compose()
+
+    jsToBridgeAPI.displayShapePath = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) insets.displayShape?.path.toString() else null
+    jsToBridgeAPI.displayCutoutPath = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) insets.displayCutout?.cutoutPath.toString() else null
 }
 
 @Composable

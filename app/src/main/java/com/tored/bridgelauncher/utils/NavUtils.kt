@@ -11,7 +11,7 @@ fun Context.startBridgeSettingsActivity(): Unit
     startActivity(Intent(this, SettingsActivity::class.java))
 }
 
-fun Context.startAppDrawerActivity(): Unit
+fun Context.startBridgeAppDrawerActivity(): Unit
 {
     startActivity(Intent(this, AppDrawerActivity::class.java))
 }
@@ -19,9 +19,4 @@ fun Context.startAppDrawerActivity(): Unit
 fun Context.startDevConsoleActivity(): Unit
 {
     startActivity(Intent(this, DevConsoleActivity::class.java))
-}
-
-fun Context.startWallpaperPickerActivity(): Unit
-{
-    startActivity(Intent(Intent.ACTION_SET_WALLPAPER))
 }

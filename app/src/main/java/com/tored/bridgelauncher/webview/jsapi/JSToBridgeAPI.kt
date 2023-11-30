@@ -8,8 +8,32 @@ import android.content.ComponentName
 import android.content.Context
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.webkit.JavascriptInterface
 import android.widget.Toast
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.captionBar
+import androidx.compose.foundation.layout.captionBarIgnoringVisibility
+import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.imeAnimationSource
+import androidx.compose.foundation.layout.imeAnimationTarget
+import androidx.compose.foundation.layout.mandatorySystemGestures
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsIgnoringVisibility
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.statusBarsIgnoringVisibility
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.systemBarsIgnoringVisibility
+import androidx.compose.foundation.layout.systemGestures
+import androidx.compose.foundation.layout.tappableElement
+import androidx.compose.foundation.layout.tappableElementIgnoringVisibility
+import androidx.compose.foundation.layout.waterfall
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.edit
 import com.tored.bridgelauncher.services.BridgeLauncherDeviceAdminReceiver
@@ -18,20 +42,21 @@ import com.tored.bridgelauncher.settings.SystemBarAppearanceOptions
 import com.tored.bridgelauncher.settings.ThemeOptions
 import com.tored.bridgelauncher.settings.settingsDataStore
 import com.tored.bridgelauncher.utils.getIsSystemInNightMode
+import com.tored.bridgelauncher.utils.launchApp
 import com.tored.bridgelauncher.utils.messageOrDefault
+import com.tored.bridgelauncher.utils.openAppInfo
+import com.tored.bridgelauncher.utils.requestAppUninstall
 import com.tored.bridgelauncher.utils.showErrorToast
-import com.tored.bridgelauncher.utils.startAppDrawerActivity
+import com.tored.bridgelauncher.utils.startBridgeAppDrawerActivity
 import com.tored.bridgelauncher.utils.startBridgeSettingsActivity
 import com.tored.bridgelauncher.utils.startDevConsoleActivity
 import com.tored.bridgelauncher.utils.startWallpaperPickerActivity
-import com.tored.bridgelauncher.utils.tryLaunchApp
-import com.tored.bridgelauncher.utils.tryOpenAppInfo
-import com.tored.bridgelauncher.utils.tryRequestAppUninstall
 import com.tored.bridgelauncher.utils.writeBool
 import com.tored.bridgelauncher.utils.writeEnum
 import com.tored.bridgelauncher.webview.WebViewState
 import kotlinx.coroutines.runBlocking
 
+private const val TAG = "JSToBridgeAPI"
 
 data class InstalledAppInfo(
     val uid: Int,
@@ -39,6 +64,86 @@ data class InstalledAppInfo(
     val label: String,
     val labelNormalized: String,
 )
+
+typealias WindowInsetsForJS = Array<Int>
+
+fun Density.snapshot(insets: WindowInsets): WindowInsetsForJS
+{
+    return arrayOf(
+        insets.getLeft(this, LayoutDirection.Ltr),
+        insets.getTop(this),
+        insets.getRight(this, LayoutDirection.Ltr),
+        insets.getBottom(this),
+    )
+}
+
+fun defaultInsets() = arrayOf(0, 0, 0, 0)
+
+class WindowInsetsSnapshot(
+    val statusBars: WindowInsetsForJS = defaultInsets(),
+    val statusBarsIgnoringVisibility: WindowInsetsForJS = defaultInsets(),
+
+    val navigationBars: WindowInsetsForJS = defaultInsets(),
+    val navigationBarsIgnoringVisibility: WindowInsetsForJS = defaultInsets(),
+
+    val captionBar: WindowInsetsForJS = defaultInsets(),
+    val captionBarIgnoringVisibility: WindowInsetsForJS = defaultInsets(),
+
+    val systemBars: WindowInsetsForJS = defaultInsets(),
+    val systemBarsIgnoringVisibility: WindowInsetsForJS = defaultInsets(),
+
+    val ime: WindowInsetsForJS = defaultInsets(),
+    val imeAnimationSource: WindowInsetsForJS = defaultInsets(),
+    val imeAnimationTarget: WindowInsetsForJS = defaultInsets(),
+
+    val tappableElement: WindowInsetsForJS = defaultInsets(),
+    val tappableElementIgnoringVisibility: WindowInsetsForJS = defaultInsets(),
+
+    val systemGestures: WindowInsetsForJS = defaultInsets(),
+    val mandatorySystemGestures: WindowInsetsForJS = defaultInsets(),
+
+    val displayCutout: WindowInsetsForJS = defaultInsets(),
+    val waterfall: WindowInsetsForJS = defaultInsets(),
+)
+{
+    companion object
+    {
+        @OptIn(ExperimentalLayoutApi::class)
+        @Composable
+        fun compose(): WindowInsetsSnapshot
+        {
+            with(LocalDensity.current)
+            {
+                return WindowInsetsSnapshot(
+                    statusBars = snapshot(WindowInsets.statusBars),
+                    statusBarsIgnoringVisibility = snapshot(WindowInsets.statusBarsIgnoringVisibility),
+
+                    navigationBars = snapshot(WindowInsets.navigationBars),
+                    navigationBarsIgnoringVisibility = snapshot(WindowInsets.navigationBarsIgnoringVisibility),
+
+                    captionBar = snapshot(WindowInsets.captionBar),
+                    captionBarIgnoringVisibility = snapshot(WindowInsets.captionBarIgnoringVisibility),
+
+                    systemBars = snapshot(WindowInsets.systemBars),
+                    systemBarsIgnoringVisibility = snapshot(WindowInsets.systemBarsIgnoringVisibility),
+
+                    ime = snapshot(WindowInsets.ime),
+                    imeAnimationSource = snapshot(WindowInsets.imeAnimationSource),
+                    imeAnimationTarget = snapshot(WindowInsets.imeAnimationTarget),
+
+                    tappableElement = snapshot(WindowInsets.tappableElement),
+                    tappableElementIgnoringVisibility = snapshot(WindowInsets.tappableElementIgnoringVisibility),
+
+                    systemGestures = snapshot(WindowInsets.systemGestures),
+                    mandatorySystemGestures = snapshot(WindowInsets.mandatorySystemGestures),
+
+                    displayCutout = snapshot(WindowInsets.displayCutout),
+                    waterfall = snapshot(WindowInsets.waterfall),
+                )
+            }
+        }
+    }
+}
 
 class JSToBridgeAPI(
     private val _context: Context,
@@ -51,24 +156,46 @@ class JSToBridgeAPI(
     private val _dpman = _context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
     private val _adminReceiverComponentName = ComponentName(_context, BridgeLauncherDeviceAdminReceiver::class.java)
 
+    var windowInsetsSnapshot = WindowInsetsSnapshot()
+    var displayCutoutPath: String? = null
+    var displayShapePath: String? = null
+
+    private var _lastException: Exception? = null
+        set(value)
+        {
+            field = value.also { Log.e(TAG, "Caught exception", value) }
+        }
+
+
+    // region system info
+
+    @JavascriptInterface
+    fun getAndroidAPILevel() = Build.VERSION.SDK_INT
+
+    @JavascriptInterface
+    fun getLastErrorMessage() = _lastException?.messageOrDefault()
+
+    // endregion
+
+
     // region apps
 
     @JavascriptInterface
     fun requestAppUninstall(packageName: String, showToastIfFailed: Boolean = true): Boolean
     {
-        return _context.tryRequestAppUninstall(packageName, showToastIfFailed)
+        return _context.tryRun(showToastIfFailed) { requestAppUninstall(packageName) }
     }
 
     @JavascriptInterface
-    fun openAppInfo(packageName: String, showToastIfFailed: Boolean = true): Boolean
+    fun requestOpenAppInfo(packageName: String, showToastIfFailed: Boolean = true): Boolean
     {
-        return _context.tryOpenAppInfo(packageName, showToastIfFailed)
+        return _context.tryRun(showToastIfFailed) { openAppInfo(packageName) }
     }
 
     @JavascriptInterface
-    fun launchApp(packageName: String, showToastIfFailed: Boolean = true): Boolean
+    fun requestLaunchApp(packageName: String, showToastIfFailed: Boolean = true): Boolean
     {
-        return _context.tryLaunchApp(packageName, showToastIfFailed)
+        return _context.tryRun(showToastIfFailed) { launchApp(packageName) }
     }
 
     // endregion
@@ -100,9 +227,9 @@ class JSToBridgeAPI(
     }
 
     @JavascriptInterface
-    fun requestChangeSystemWallpaper()
+    fun requestChangeSystemWallpaper(showToastIfFailed: Boolean = true): Boolean
     {
-        _context.startWallpaperPickerActivity()
+        return _context.tryRun(showToastIfFailed) { startWallpaperPickerActivity() }
     }
 
     // endregion
@@ -121,7 +248,7 @@ class JSToBridgeAPI(
     }
 
     @JavascriptInterface
-    fun setBridgeButtonVisibility(state: String, showToastIfFailed: Boolean = true): String
+    fun setBridgeButtonVisibility(state: String, showToastIfFailed: Boolean = true): Boolean
     {
         return _context.tryEditPrefs(showToastIfFailed)
         {
@@ -149,7 +276,7 @@ class JSToBridgeAPI(
     }
 
     @JavascriptInterface
-    fun setDrawSystemWallpaperBehindWebViewEnabled(enable: Boolean, showToastIfFailed: Boolean = true): String
+    fun setDrawSystemWallpaperBehindWebViewEnabled(enable: Boolean, showToastIfFailed: Boolean = true): Boolean
     {
         return _context.tryEditPrefs(showToastIfFailed)
         {
@@ -183,7 +310,7 @@ class JSToBridgeAPI(
     }
 
     @JavascriptInterface
-    fun setSystemNightMode(mode: String, showToastIfFailed: Boolean = true): String
+    fun setSystemNightMode(mode: String, showToastIfFailed: Boolean = true): Boolean
     {
         try
         {
@@ -201,14 +328,16 @@ class JSToBridgeAPI(
                 else -> throw Exception("Mode must be one of ${q("no")}, ${q("yes")}, ${q("auto")} or, from API level 30, ${q("custom")} (got ${q(mode)}).")
             }
 
-            return ""
+            return true
         }
         catch (ex: Exception)
         {
-            return ex.messageOrDefault().also {
-                if (showToastIfFailed)
-                    _context.showErrorToast(it)
-            }
+            _lastException = ex
+
+            if (showToastIfFailed)
+                _context.showErrorToast(ex.messageOrDefault())
+
+            return false
         }
     }
 
@@ -229,7 +358,7 @@ class JSToBridgeAPI(
     }
 
     @JavascriptInterface
-    fun setBridgeTheme(theme: String, showToastIfFailed: Boolean = true): String
+    fun setBridgeTheme(theme: String, showToastIfFailed: Boolean = true): Boolean
     {
         return _context.tryEditPrefs(showToastIfFailed)
         {
@@ -258,7 +387,7 @@ class JSToBridgeAPI(
     }
 
     @JavascriptInterface
-    fun setStatusBarAppearance(appearance: String, showToastIfFailed: Boolean = true): String
+    fun setStatusBarAppearance(appearance: String, showToastIfFailed: Boolean = true): Boolean
     {
         return _context.tryEditPrefs(showToastIfFailed)
         {
@@ -277,7 +406,7 @@ class JSToBridgeAPI(
     }
 
     @JavascriptInterface
-    fun setNavigationBarAppearance(appearance: String, showToastIfFailed: Boolean = true): String
+    fun setNavigationBarAppearance(appearance: String, showToastIfFailed: Boolean = true): Boolean
     {
         return _context.tryEditPrefs(showToastIfFailed)
         {
@@ -287,6 +416,7 @@ class JSToBridgeAPI(
             )
         }
     }
+
 
     private fun appearanceToString(appearance: SystemBarAppearanceOptions): String
     {
@@ -321,24 +451,26 @@ class JSToBridgeAPI(
     }
 
     @JavascriptInterface
-    fun requestLockScreen(showToastIfFailed: Boolean = true): String
+    fun requestLockScreen(showToastIfFailed: Boolean = true): Boolean
     {
         try
         {
             if (_dpman.isAdminActive(_adminReceiverComponentName))
             {
                 _dpman.lockNow()
-                return ""
+                return true
             }
             else
                 throw Exception("Bridge is not a device admin. Visit Bridge settings to resolve this issue.")
         }
         catch (ex: Exception)
         {
-            return ex.messageOrDefault().also {
-                if (showToastIfFailed)
-                    _context.showErrorToast(it)
-            }
+            _lastException = ex
+
+            if (showToastIfFailed)
+                _context.showErrorToast(ex.messageOrDefault())
+
+            return false
         }
     }
 
@@ -348,43 +480,45 @@ class JSToBridgeAPI(
     // region misc actions
 
     @JavascriptInterface
-    fun requestOpenBridgeSettings()
+    fun requestOpenBridgeSettings(showToastIfFailed: Boolean = true): Boolean
     {
-        _context.startBridgeSettingsActivity()
+        return _context.tryRun(showToastIfFailed) { startBridgeSettingsActivity() }
     }
 
     @JavascriptInterface
-    fun requestOpenAppDrawer()
+    fun requestOpenBridgeAppDrawer(showToastIfFailed: Boolean = true): Boolean
     {
-        _context.startAppDrawerActivity()
+        return _context.tryRun(showToastIfFailed) { startBridgeAppDrawerActivity() }
     }
 
     @JavascriptInterface
-    fun requestOpenDeveloperConsole()
+    fun requestOpenDeveloperConsole(showToastIfFailed: Boolean = true): Boolean
     {
-        _context.startDevConsoleActivity()
+        return _context.tryRun(showToastIfFailed) { startDevConsoleActivity() }
     }
 
     // https://stackoverflow.com/a/15582509/6796433
     @SuppressLint("WrongConstant")
     @JavascriptInterface
-    fun requestExpandNotificationShade(showToastIfFailed: Boolean = true): String
+    fun requestExpandNotificationShade(showToastIfFailed: Boolean = true): Boolean
     {
-        return try
+        try
         {
             val sbservice: Any = _context.getSystemService("statusbar")
             val statusbarManager = Class.forName("android.app.StatusBarManager")
             val showsb = statusbarManager.getMethod("expandNotificationsPanel")
             showsb.invoke(sbservice)
 
-            ""
+            return true
         }
         catch (ex: Exception)
         {
-            return ex.messageOrDefault().also {
-                if (showToastIfFailed)
-                    _context.showErrorToast(it)
-            }
+            _lastException = ex
+
+            if (showToastIfFailed)
+                _context.showErrorToast(ex.messageOrDefault())
+
+            return false
         }
     }
 
@@ -402,23 +536,102 @@ class JSToBridgeAPI(
     // endregion
 
 
+    // region window insets & cutouts
+
+    @JavascriptInterface
+    fun getStatusBarsWindowInsets() = windowInsetsSnapshot.statusBars
+
+    @JavascriptInterface
+    fun getStatusBarsIgnoringVisibilityWindowInsets() = windowInsetsSnapshot.statusBarsIgnoringVisibility
+
+
+    @JavascriptInterface
+    fun getNavigationBarsWindowInsets() = windowInsetsSnapshot.navigationBars
+
+    @JavascriptInterface
+    fun getNavigationBarsIgnoringVisibilityWindowInsets() = windowInsetsSnapshot.navigationBarsIgnoringVisibility
+
+
+    @JavascriptInterface
+    fun getCaptionBarWindowInsets() = windowInsetsSnapshot.captionBar
+
+    @JavascriptInterface
+    fun getCaptionBarIgnoringVisibilityWindowInsets() = windowInsetsSnapshot.captionBarIgnoringVisibility
+
+
+    @JavascriptInterface
+    fun getSystemBarsWindowInsets() = windowInsetsSnapshot.systemBars
+
+    @JavascriptInterface
+    fun getSystemBarsIgnoringVisibilityWindowInsets() = windowInsetsSnapshot.systemBarsIgnoringVisibility
+
+
+    @JavascriptInterface
+    fun getImeWindowInsets() = windowInsetsSnapshot.ime
+
+    @JavascriptInterface
+    fun getImeAnimationSourceWindowInsets() = windowInsetsSnapshot.imeAnimationSource
+
+    @JavascriptInterface
+    fun getImeAnimationTargetWindowInsets() = windowInsetsSnapshot.imeAnimationTarget
+
+
+    @JavascriptInterface
+    fun getTappableElementWindowInsets() = windowInsetsSnapshot.tappableElement
+
+    @JavascriptInterface
+    fun getTappableElementIgnoringVisibilityWindowInsets() = windowInsetsSnapshot.tappableElementIgnoringVisibility
+
+
+    @JavascriptInterface
+    fun getSystemGesturesWindowInsets() = windowInsetsSnapshot.systemGestures
+
+    @JavascriptInterface
+    fun getMandatorySystemGesturesWindowInsets() = windowInsetsSnapshot.mandatorySystemGestures
+
+
+    @JavascriptInterface
+    fun getDisplayCutoutWindowInsets() = windowInsetsSnapshot.displayCutout
+
+    @JavascriptInterface
+    fun getWaterfallWindowInsets() = windowInsetsSnapshot.waterfall
+
+
+    @JavascriptInterface
+    fun getDisplayCutoutPath() = displayCutoutPath
+
+    @JavascriptInterface
+    fun getDisplayShapePath() = displayCutoutPath
+
+    // endregion
+
+
     // region helpers
 
-    private fun Context.tryEditPrefs(showToastIfFailed: Boolean, f: (MutablePreferences) -> Unit): String
+    private fun Context.tryRun(showToastIfFailed: Boolean, f: Context.() -> Unit): Boolean
     {
         return try
         {
-            runBlocking {
-                settingsDataStore.edit(f)
-            }
-
-            ""
+            f()
+            true
         }
         catch (ex: Exception)
         {
-            ex.messageOrDefault().also {
-                if (showToastIfFailed)
-                    showErrorToast(it)
+            if (showToastIfFailed)
+                showErrorToast(ex.messageOrDefault())
+
+            _lastException = ex
+
+            false
+        }
+    }
+
+    private fun Context.tryEditPrefs(showToastIfFailed: Boolean, f: (MutablePreferences) -> Unit): Boolean
+    {
+        return tryRun(showToastIfFailed)
+        {
+            runBlocking {
+                settingsDataStore.edit(f)
             }
         }
     }
