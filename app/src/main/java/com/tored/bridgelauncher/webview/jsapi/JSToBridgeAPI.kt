@@ -58,6 +58,8 @@ import kotlinx.coroutines.runBlocking
 
 private const val TAG = "JSToBridgeAPI"
 
+private const val WINDOW_INSETS_SEPARATOR = ";"
+
 data class InstalledAppInfo(
     val uid: Int,
     val packageName: String,
@@ -65,19 +67,19 @@ data class InstalledAppInfo(
     val labelNormalized: String,
 )
 
-typealias WindowInsetsForJS = Array<Int>
+typealias WindowInsetsForJS = String
 
-fun Density.snapshot(insets: WindowInsets): WindowInsetsForJS
+fun Density.snapshot(insets: WindowInsets): String
 {
     return arrayOf(
-        insets.getLeft(this, LayoutDirection.Ltr),
-        insets.getTop(this),
-        insets.getRight(this, LayoutDirection.Ltr),
-        insets.getBottom(this),
-    )
+        insets.getLeft(this, LayoutDirection.Ltr) / this.density,
+        insets.getTop(this) / this.density,
+        insets.getRight(this, LayoutDirection.Ltr) / this.density,
+        insets.getBottom(this) / this.density,
+    ).joinToString(WINDOW_INSETS_SEPARATOR)
 }
 
-fun defaultInsets() = arrayOf(0, 0, 0, 0)
+fun defaultInsets() = arrayOf(0f, 0f, 0f, 0f).joinToString(WINDOW_INSETS_SEPARATOR)
 
 class WindowInsetsSnapshot(
     val statusBars: WindowInsetsForJS = defaultInsets(),
@@ -157,8 +159,8 @@ class JSToBridgeAPI(
     private val _adminReceiverComponentName = ComponentName(_context, BridgeLauncherDeviceAdminReceiver::class.java)
 
     var windowInsetsSnapshot = WindowInsetsSnapshot()
-    var displayCutoutPath: String? = null
-    var displayShapePath: String? = null
+    var displayCutoutPathSnapshot: String? = null
+    var displayShapePathSnapshot: String? = null
 
     private var _lastException: Exception? = null
         set(value)
@@ -180,18 +182,21 @@ class JSToBridgeAPI(
 
     // region apps
 
+    @JvmOverloads
     @JavascriptInterface
     fun requestAppUninstall(packageName: String, showToastIfFailed: Boolean = true): Boolean
     {
         return _context.tryRun(showToastIfFailed) { requestAppUninstall(packageName) }
     }
 
+    @JvmOverloads
     @JavascriptInterface
     fun requestOpenAppInfo(packageName: String, showToastIfFailed: Boolean = true): Boolean
     {
         return _context.tryRun(showToastIfFailed) { openAppInfo(packageName) }
     }
 
+    @JvmOverloads
     @JavascriptInterface
     fun requestLaunchApp(packageName: String, showToastIfFailed: Boolean = true): Boolean
     {
@@ -226,6 +231,7 @@ class JSToBridgeAPI(
             _wallman.sendWallpaperCommand(token, WallpaperManager.COMMAND_TAP, x, y, 0, Bundle.EMPTY)
     }
 
+    @JvmOverloads
     @JavascriptInterface
     fun requestChangeSystemWallpaper(showToastIfFailed: Boolean = true): Boolean
     {
@@ -247,6 +253,7 @@ class JSToBridgeAPI(
         }
     }
 
+    @JvmOverloads
     @JavascriptInterface
     fun setBridgeButtonVisibility(state: String, showToastIfFailed: Boolean = true): Boolean
     {
@@ -275,6 +282,7 @@ class JSToBridgeAPI(
         return settingsState.drawSystemWallpaperBehindWebView
     }
 
+    @JvmOverloads
     @JavascriptInterface
     fun setDrawSystemWallpaperBehindWebViewEnabled(enable: Boolean, showToastIfFailed: Boolean = true): Boolean
     {
@@ -309,6 +317,7 @@ class JSToBridgeAPI(
         return _context.getIsSystemInNightMode()
     }
 
+    @JvmOverloads
     @JavascriptInterface
     fun setSystemNightMode(mode: String, showToastIfFailed: Boolean = true): Boolean
     {
@@ -357,6 +366,7 @@ class JSToBridgeAPI(
         }
     }
 
+    @JvmOverloads
     @JavascriptInterface
     fun setBridgeTheme(theme: String, showToastIfFailed: Boolean = true): Boolean
     {
@@ -386,6 +396,7 @@ class JSToBridgeAPI(
         return appearanceToString(settingsState.statusBarAppearance)
     }
 
+    @JvmOverloads
     @JavascriptInterface
     fun setStatusBarAppearance(appearance: String, showToastIfFailed: Boolean = true): Boolean
     {
@@ -405,6 +416,7 @@ class JSToBridgeAPI(
         return appearanceToString(settingsState.navigationBarAppearance)
     }
 
+    @JvmOverloads
     @JavascriptInterface
     fun setNavigationBarAppearance(appearance: String, showToastIfFailed: Boolean = true): Boolean
     {
@@ -450,6 +462,7 @@ class JSToBridgeAPI(
         return _dpman.isAdminActive(_adminReceiverComponentName)
     }
 
+    @JvmOverloads
     @JavascriptInterface
     fun requestLockScreen(showToastIfFailed: Boolean = true): Boolean
     {
@@ -479,18 +492,21 @@ class JSToBridgeAPI(
 
     // region misc actions
 
+    @JvmOverloads
     @JavascriptInterface
     fun requestOpenBridgeSettings(showToastIfFailed: Boolean = true): Boolean
     {
         return _context.tryRun(showToastIfFailed) { startBridgeSettingsActivity() }
     }
 
+    @JvmOverloads
     @JavascriptInterface
     fun requestOpenBridgeAppDrawer(showToastIfFailed: Boolean = true): Boolean
     {
         return _context.tryRun(showToastIfFailed) { startBridgeAppDrawerActivity() }
     }
 
+    @JvmOverloads
     @JavascriptInterface
     fun requestOpenDeveloperConsole(showToastIfFailed: Boolean = true): Boolean
     {
@@ -498,6 +514,7 @@ class JSToBridgeAPI(
     }
 
     // https://stackoverflow.com/a/15582509/6796433
+    @JvmOverloads
     @SuppressLint("WrongConstant")
     @JavascriptInterface
     fun requestExpandNotificationShade(showToastIfFailed: Boolean = true): Boolean
@@ -527,6 +544,7 @@ class JSToBridgeAPI(
 
     // region toast
 
+    @JvmOverloads
     @JavascriptInterface
     fun showToast(message: String, long: Boolean = false)
     {
@@ -537,6 +555,9 @@ class JSToBridgeAPI(
 
 
     // region window insets & cutouts
+
+    @JavascriptInterface
+    fun getWindowInsetsSeparator() = WINDOW_INSETS_SEPARATOR
 
     @JavascriptInterface
     fun getStatusBarsWindowInsets() = windowInsetsSnapshot.statusBars
@@ -598,10 +619,10 @@ class JSToBridgeAPI(
 
 
     @JavascriptInterface
-    fun getDisplayCutoutPath() = displayCutoutPath
+    fun getDisplayCutoutPath() = displayCutoutPathSnapshot
 
     @JavascriptInterface
-    fun getDisplayShapePath() = displayCutoutPath
+    fun getDisplayShapePath() = displayCutoutPathSnapshot
 
     // endregion
 

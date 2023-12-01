@@ -72,9 +72,11 @@ import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
 import com.tored.bridgelauncher.ui.theme.botBar
 import com.tored.bridgelauncher.ui.theme.textPlaceholder
 import com.tored.bridgelauncher.ui.theme.textSec
+import com.tored.bridgelauncher.utils.launchApp
+import com.tored.bridgelauncher.utils.messageOrDefault
+import com.tored.bridgelauncher.utils.openAppInfo
 import com.tored.bridgelauncher.utils.requestAppUninstall
-import com.tored.bridgelauncher.utils.tryLaunchApp
-import com.tored.bridgelauncher.utils.tryOpenAppInfo
+import com.tored.bridgelauncher.utils.showErrorToast
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -228,7 +230,14 @@ fun AppDrawerScreen()
                                             },
 
                                             onTap = {
-                                                context.tryLaunchApp(app)
+                                                try
+                                                {
+                                                    context.launchApp(app)
+                                                }
+                                                catch (ex: Exception)
+                                                {
+                                                    context.showErrorToast(ex.messageOrDefault())
+                                                }
                                             },
 
                                             onLongPress = { offset ->
@@ -288,7 +297,16 @@ fun AppDrawerScreen()
                 onSearchStringChange = { searchString = it },
                 onGoPressed = {
                     if (filteredApps.any())
-                        context.tryLaunchApp(filteredApps.first())
+                    {
+                        try
+                        {
+                            context.launchApp(filteredApps.first())
+                        }
+                        catch (ex: Exception)
+                        {
+                            context.showErrorToast(ex.messageOrDefault())
+                        }
+                    }
                 },
             )
         }
@@ -331,7 +349,14 @@ fun AppContextMenu(
 
             Action(R.drawable.ic_info, "App info")
             {
-                context.tryOpenAppInfo(packageName)
+                try
+                {
+                    context.openAppInfo(packageName)
+                }
+                catch (ex: Exception)
+                {
+                    context.showErrorToast(ex.messageOrDefault())
+                }
             },
 
             Action(R.drawable.ic_delete, "Uninstall")

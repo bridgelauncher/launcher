@@ -96,8 +96,8 @@ fun UpdateJSAPIWindowInsets(jsToBridgeAPI: JSToBridgeAPI)
 
     jsToBridgeAPI.windowInsetsSnapshot = WindowInsetsSnapshot.compose()
 
-    jsToBridgeAPI.displayShapePath = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) insets.displayShape?.path.toString() else null
-    jsToBridgeAPI.displayCutoutPath = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) insets.displayCutout?.cutoutPath.toString() else null
+    jsToBridgeAPI.displayShapePathSnapshot = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) insets.displayShape?.path.toString() else null
+    jsToBridgeAPI.displayCutoutPathSnapshot = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) insets.displayCutout?.cutoutPath.toString() else null
 }
 
 @Composable

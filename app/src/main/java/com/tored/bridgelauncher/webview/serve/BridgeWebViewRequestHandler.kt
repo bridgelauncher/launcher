@@ -18,7 +18,7 @@ class BridgeWebViewRequestHandler(val context: Context, var projectRoot: Directo
 {
     fun handle(request: WebResourceRequest): WebResourceResponse?
     {
-        if (request.url.host?.lowercase()?.endsWith("bridge.launcher") != true)
+        if (request.url.host?.lowercase()?.endsWith("project.bridge") != true)
             return null
 
         try
