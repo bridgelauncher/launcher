@@ -255,7 +255,7 @@ class JSToBridgeAPI(
 
     @JvmOverloads
     @JavascriptInterface
-    fun setBridgeButtonVisibility(state: String, showToastIfFailed: Boolean = true): Boolean
+    fun requestSetBridgeButtonVisibility(state: String, showToastIfFailed: Boolean = true): Boolean
     {
         return _context.tryEditPrefs(showToastIfFailed)
         {
@@ -284,7 +284,7 @@ class JSToBridgeAPI(
 
     @JvmOverloads
     @JavascriptInterface
-    fun setDrawSystemWallpaperBehindWebViewEnabled(enable: Boolean, showToastIfFailed: Boolean = true): Boolean
+    fun requestSetDrawSystemWallpaperBehindWebViewEnabled(enable: Boolean, showToastIfFailed: Boolean = true): Boolean
     {
         return _context.tryEditPrefs(showToastIfFailed)
         {
@@ -319,7 +319,7 @@ class JSToBridgeAPI(
 
     @JvmOverloads
     @JavascriptInterface
-    fun setSystemNightMode(mode: String, showToastIfFailed: Boolean = true): Boolean
+    fun requestSetSystemNightMode(mode: String, showToastIfFailed: Boolean = true): Boolean
     {
         try
         {
@@ -368,7 +368,7 @@ class JSToBridgeAPI(
 
     @JvmOverloads
     @JavascriptInterface
-    fun setBridgeTheme(theme: String, showToastIfFailed: Boolean = true): Boolean
+    fun requestSetBridgeTheme(theme: String, showToastIfFailed: Boolean = true): Boolean
     {
         return _context.tryEditPrefs(showToastIfFailed)
         {
@@ -398,7 +398,7 @@ class JSToBridgeAPI(
 
     @JvmOverloads
     @JavascriptInterface
-    fun setStatusBarAppearance(appearance: String, showToastIfFailed: Boolean = true): Boolean
+    fun requestSetStatusBarAppearance(appearance: String, showToastIfFailed: Boolean = true): Boolean
     {
         return _context.tryEditPrefs(showToastIfFailed)
         {
@@ -418,7 +418,7 @@ class JSToBridgeAPI(
 
     @JvmOverloads
     @JavascriptInterface
-    fun setNavigationBarAppearance(appearance: String, showToastIfFailed: Boolean = true): Boolean
+    fun requestSetNavigationBarAppearance(appearance: String, showToastIfFailed: Boolean = true): Boolean
     {
         return _context.tryEditPrefs(showToastIfFailed)
         {
