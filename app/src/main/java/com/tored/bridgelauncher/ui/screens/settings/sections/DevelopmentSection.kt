@@ -7,12 +7,12 @@ import com.tored.bridgelauncher.ui.screens.settings.SettingsSection
 import com.tored.bridgelauncher.ui.shared.ActionCard
 
 @Composable
-fun SettingsDevelopmentSection()
+fun SettingsDevelopmentSection(onExportAppsRequest: () -> Unit)
 {
     SettingsSection(label = "Development", iconResId = R.drawable.ic_tools)
     {
         ActionCard(
-            title = "Bridge developer hub",
+            title = "Bridge Developer Hub",
             description = "Documentation and tools to help you develop Bridge Launcher projects."
         )
         {
@@ -21,10 +21,20 @@ fun SettingsDevelopmentSection()
 
         ActionCard(
             title = "Export installed apps",
-            description = "Create a folder with information about apps installed on this phone, including icons. You can use this folder to work on projects from your PC."
+            descriptionParagraphs = listOf(
+                "You will be prompted to select a directory. "
+                        + "The export will contain a list of apps installed on this device and their icons.",
+
+                "These files help mock the Bridge JS to Android API for development purposes.\n"
+                        + "For more information, please refer to the Bridge Developer Hub.",
+            )
         )
         {
-            Btn(text = "Export", suffixIcon = R.drawable.ic_save_to_device, onClick = { /* TODO */ })
+            Btn(
+                text = "Export",
+                suffixIcon = R.drawable.ic_save_to_device,
+                onClick = onExportAppsRequest
+            )
         }
     }
 }

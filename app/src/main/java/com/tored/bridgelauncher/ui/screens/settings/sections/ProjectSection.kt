@@ -42,7 +42,10 @@ fun SettingsProjectSection(
         val prop = SettingsState::allowProjectsToTurnScreenOff
         CheckboxField(
             label = displayNameFor(prop),
-            description = if (uiState.isDeviceAdminEnabled) "Bridge has device admin permissions." else "Tap to grant Bridge device admin permissions.",
+            description = if (uiState.isDeviceAdminEnabled)
+                "Bridge has device admin permissions."
+            else
+                "Tap to grant Bridge device admin permissions.",
             isChecked = prop.getValue(uiState, prop),
             onCheckedChange = { isChecked ->
                 if (uiState.isDeviceAdminEnabled)

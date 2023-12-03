@@ -34,6 +34,8 @@ class SettingsVM @Inject constructor(
                 _settingsUIState.update {
                     it.copy(
                         currentProjDir = prefs.readDir(SettingsState::currentProjDir),
+                        lastMockExportDir = prefs.readDir(SettingsState::lastMockExportDir),
+
                         isQSTileAdded = prefs.readBool(SettingsState::isQSTileAdded, false),
                         isDeviceAdminEnabled = prefs.readBool(SettingsState::isDeviceAdminEnabled, false),
                         isExternalStorageManager = prefs.readBool(SettingsState::isExternalStorageManager, false),

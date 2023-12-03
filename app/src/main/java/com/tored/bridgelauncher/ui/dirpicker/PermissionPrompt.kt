@@ -1,4 +1,4 @@
-package com.tored.bridgelauncher.ui.directorypicker
+package com.tored.bridgelauncher.ui.dirpicker
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -16,7 +16,7 @@ import com.tored.bridgelauncher.composables.ResIcon
 import com.tored.bridgelauncher.ui.theme.textSec
 
 @Composable
-fun DirectoryPickerPermissionPrompt(
+fun DirPickerPermissionPrompt(
     onRequestGrantPermission: () -> Unit,
     modifier: Modifier = Modifier,
 )

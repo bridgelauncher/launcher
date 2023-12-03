@@ -57,6 +57,11 @@ fun String?.defaultIfNullOrEmpty(default: String): String
     return if (isNullOrEmpty()) default else this
 }
 
+fun Context.showErrorToast(ex: Exception)
+{
+    showErrorToast(ex.messageOrDefault())
+}
+
 fun Context.showErrorToast(message: String?)
 {
     Toast.makeText(this, message ?: "Exception with no message.", Toast.LENGTH_LONG).show()

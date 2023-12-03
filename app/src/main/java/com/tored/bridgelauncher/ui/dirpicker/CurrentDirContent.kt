@@ -1,4 +1,4 @@
-package com.tored.bridgelauncher.ui.directorypicker
+package com.tored.bridgelauncher.ui.dirpicker
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -16,16 +16,17 @@ import com.tored.bridgelauncher.composables.ResIcon
 import com.tored.bridgelauncher.ui.theme.textSec
 
 @Composable
-fun DirectoryPickerCurrentDirContent(
-    uiState: DirectoryPickerUIState.HasPermission,
+fun DirPickerCurrentDirContent(
+    uiState: DirPickerUIState.HasPermission,
     modifier: Modifier = Modifier,
     onNavigateRequest: (Directory) -> Unit
 )
 {
-    if (uiState.isCurrentDirEmpty)
+    if (uiState.hasNothingtoShow)
     {
-        DirectoryPickerEmptyDirectory(
-            modifier = modifier
+        DirPickerNothingToShow(
+            modifier = modifier,
+            text = if (uiState.isDirEmpty) "This directory is empty." else "Nothing matched the filter."
         )
     }
     else
@@ -36,12 +37,12 @@ fun DirectoryPickerCurrentDirContent(
         {
             items(uiState.startupSubfiles)
             { file ->
-                DirectoryPickerStartupSubfileListItem(file = file)
+                DirPickerStartupSubfileListItem(file = file)
             }
 
             items(uiState.subdirs)
             { dir ->
-                DirectoryPickerSubdirListItem(dir = dir)
+                DirPickerSubdirListItem(dir = dir)
                 {
                     onNavigateRequest(dir)
                 }
@@ -49,14 +50,15 @@ fun DirectoryPickerCurrentDirContent(
 
             items(uiState.regularSubfiles)
             { file ->
-                DirectoryPickerSubfileListItem(file = file)
+                DirPickerSubfileListItem(file = file)
             }
         }
     }
 }
 
 @Composable
-fun DirectoryPickerEmptyDirectory(
+fun DirPickerNothingToShow(
+    text: String,
     modifier: Modifier = Modifier,
 )
 {
@@ -67,6 +69,6 @@ fun DirectoryPickerEmptyDirectory(
     )
     {
         ResIcon(R.drawable.ic_folder_search, color = MaterialTheme.colors.textSec)
-        Text("This directory is empty.", color = MaterialTheme.colors.textSec)
+        Text(text, color = MaterialTheme.colors.textSec)
     }
 }

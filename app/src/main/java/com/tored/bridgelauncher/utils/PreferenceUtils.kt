@@ -6,7 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import com.tored.bridgelauncher.ui.directorypicker.Directory
+import com.tored.bridgelauncher.ui.dirpicker.Directory
 import kotlin.reflect.KProperty1
 
 fun getPrefKeyName(className: String, propName: String) = "${className}.${propName}"

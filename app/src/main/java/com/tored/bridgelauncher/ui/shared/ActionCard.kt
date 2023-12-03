@@ -20,6 +20,20 @@ import com.tored.bridgelauncher.utils.ComposableContent
 @Composable
 fun ActionCard(title: String, description: String, footerContent: ComposableContent? = null)
 {
+    ActionCard(
+        title = title,
+        descriptionParagraphs = listOf(description),
+        footerContent = footerContent
+    )
+}
+
+@Composable
+fun ActionCard(
+    title: String,
+    descriptionParagraphs: Iterable<String>,
+    footerContent: ComposableContent? = null
+)
+{
     val pad = 24.dp
 
     Column(
@@ -41,7 +55,18 @@ fun ActionCard(title: String, description: String, footerContent: ComposableCont
         )
         {
             Text(title)
-            Text(description, style = MaterialTheme.typography.body2, color = MaterialTheme.colors.textSec)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            )
+            {
+                for (paragraph in descriptionParagraphs)
+                {
+                    Text(paragraph, style = MaterialTheme.typography.body2, color = MaterialTheme.colors.textSec)
+                }
+            }
         }
 
         if (footerContent != null)

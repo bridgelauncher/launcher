@@ -351,7 +351,7 @@ class JSToBridgeAPI(
             _lastException = ex
 
             if (showToastIfFailed)
-                _context.showErrorToast(ex.messageOrDefault())
+                _context.showErrorToast(ex)
 
             return false
         }
@@ -488,7 +488,7 @@ class JSToBridgeAPI(
             _lastException = ex
 
             if (showToastIfFailed)
-                _context.showErrorToast(ex.messageOrDefault())
+                _context.showErrorToast(ex)
 
             return false
         }
@@ -540,7 +540,7 @@ class JSToBridgeAPI(
             _lastException = ex
 
             if (showToastIfFailed)
-                _context.showErrorToast(ex.messageOrDefault())
+                _context.showErrorToast(ex)
 
             return false
         }
@@ -646,7 +646,7 @@ class JSToBridgeAPI(
         catch (ex: Exception)
         {
             if (showToastIfFailed)
-                showErrorToast(ex.messageOrDefault())
+                showErrorToast(ex)
 
             _lastException = ex
 

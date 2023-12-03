@@ -1,4 +1,4 @@
-package com.tored.bridgelauncher.ui.directorypicker
+package com.tored.bridgelauncher.ui.dirpicker
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -8,11 +8,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.tored.bridgelauncher.R
 import com.tored.bridgelauncher.composables.Btn
 
 @Composable
-fun DirectoryPickerFooter(
+fun DirPickerFooter(
+    confirmText: String,
+    confirmIcon: Int,
+    cancelText: String,
     isConfirmDisabled: Boolean,
     onCancelRequest: () -> Unit,
     onConfirmRequest: () -> Unit,
@@ -26,14 +28,14 @@ fun DirectoryPickerFooter(
     )
     {
         Btn(
-            text = "Cancel",
+            text = cancelText,
             color = MaterialTheme.colors.onSurface,
             onClick = onCancelRequest,
         )
 
         Btn(
-            text = "Use this directory",
-            suffixIcon = R.drawable.ic_check,
+            text = confirmText,
+            suffixIcon = confirmIcon,
             disabled = isConfirmDisabled,
             onClick = onConfirmRequest
         )

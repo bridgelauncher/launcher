@@ -1,4 +1,4 @@
-package com.tored.bridgelauncher.ui.directorypicker
+package com.tored.bridgelauncher.ui.dirpicker
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.tored.bridgelauncher.ui.theme.textSec
 
 @Composable
-fun DirectoryPickerHeader(
+fun DirPickerHeader(
     currentDir: Directory,
     upDir: Directory?,
     onNavigateRequest: (Directory) -> Unit,
@@ -68,13 +68,13 @@ fun DirectoryPickerHeader(
 
         if (upDir == null)
         {
-            DirectoryPickerUpDisabledListItem(
+            DirPickerUpDisabledListItem(
                 modifier = Modifier.fillMaxWidth(),
             )
         }
         else
         {
-            DirectoryPickerUpListItem(
+            DirPickerUpListItem(
                 modifier = Modifier.fillMaxWidth(),
                 upDir = upDir,
             )

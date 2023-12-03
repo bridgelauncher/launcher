@@ -46,6 +46,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -68,12 +69,12 @@ import androidx.compose.ui.window.Popup
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.tored.bridgelauncher.composables.ResIcon
 import com.tored.bridgelauncher.ui.shared.SetSystemBarsForBotBarActivity
+import com.tored.bridgelauncher.ui.shared.TextFieldPlaceholderDecorationBox
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
 import com.tored.bridgelauncher.ui.theme.botBar
 import com.tored.bridgelauncher.ui.theme.textPlaceholder
 import com.tored.bridgelauncher.ui.theme.textSec
 import com.tored.bridgelauncher.utils.launchApp
-import com.tored.bridgelauncher.utils.messageOrDefault
 import com.tored.bridgelauncher.utils.openAppInfo
 import com.tored.bridgelauncher.utils.requestAppUninstall
 import com.tored.bridgelauncher.utils.showErrorToast
@@ -236,7 +237,7 @@ fun AppDrawerScreen()
                                                 }
                                                 catch (ex: Exception)
                                                 {
-                                                    context.showErrorToast(ex.messageOrDefault())
+                                                    context.showErrorToast(ex)
                                                 }
                                             },
 
@@ -259,7 +260,7 @@ fun AppDrawerScreen()
                                 )
                                 {
                                     Image(
-                                        painter = rememberDrawablePainter(app.icon),
+                                        painter = rememberDrawablePainter(app.defaultIcon),
                                         contentDescription = null,
                                         modifier = Modifier.size(40.dp),
                                         contentScale = ContentScale.FillBounds,
@@ -304,7 +305,7 @@ fun AppDrawerScreen()
                         }
                         catch (ex: Exception)
                         {
-                            context.showErrorToast(ex.messageOrDefault())
+                            context.showErrorToast(ex)
                         }
                     }
                 },
@@ -355,7 +356,7 @@ fun AppContextMenu(
                 }
                 catch (ex: Exception)
                 {
-                    context.showErrorToast(ex.messageOrDefault())
+                    context.showErrorToast(ex)
                 }
             },
 
@@ -480,24 +481,21 @@ fun SearchBotBar(searchString: String, onSearchStringChange: (String) -> Unit, o
                     keyboardType = KeyboardType.Uri,
                     capitalization = KeyboardCapitalization.None,
                 ),
-                textStyle = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = true)),
+                textStyle = TextStyle(
+                    platformStyle = PlatformTextStyle(includeFontPadding = true),
+                    color = MaterialTheme.colors.onSurface,
+                ),
                 keyboardActions = KeyboardActions(
                     onGo = { onGoPressed() }
                 ),
+                cursorBrush = SolidColor(MaterialTheme.colors.primary),
                 singleLine = true,
                 decorationBox = { innerTextField ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 16.dp),
-                        contentAlignment = Alignment.CenterStart,
+                    TextFieldPlaceholderDecorationBox(
+                        text = searchString,
+                        placeholderText = "Type to search...",
+                        innerTextField = innerTextField
                     )
-                    {
-                        if (searchString.isEmpty())
-                            Text("Type to search...", color = MaterialTheme.colors.textPlaceholder)
-
-                        innerTextField()
-                    }
                 }
             )
 

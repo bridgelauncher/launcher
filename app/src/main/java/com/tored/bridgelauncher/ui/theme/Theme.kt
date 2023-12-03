@@ -92,17 +92,11 @@ fun BridgeLauncherThemeStateless(
 
 data class Borders(val soft: BorderStroke)
 
-private val LightBorders: Borders = Borders(
-    soft = BorderStroke(width = 1.dp, color = Color(0x26000000)),
-)
-
-private val DarkBorders = Borders(
-    soft = BorderStroke(width = 1.dp, color = Color(0x26ffffff)),
-)
-
 val MaterialTheme.borders: Borders
     @Composable
-    get() = if (colors.isLight) LightBorders else DarkBorders
+    get() = Borders(
+        soft = BorderStroke(width = 1.dp, color = colors.borderLight)
+    )
 
 val Colors.textSec: Color
     get() = if (isLight) Color(0x8C000000) else Color(0x8CFFFFFF)
@@ -121,3 +115,6 @@ val Colors.info: Color
 
 val Colors.warning: Color
     get() = if (isLight) Color(0xFFC88D1C) else Color(0xFFEFC779)
+
+val Colors.borderLight: Color
+    get() = if(isLight) Color(0x26000000) else Color(0x26ffffff)

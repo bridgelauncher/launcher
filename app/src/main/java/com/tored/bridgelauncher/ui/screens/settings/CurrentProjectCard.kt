@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import com.tored.bridgelauncher.R
 import com.tored.bridgelauncher.composables.Btn
 import com.tored.bridgelauncher.composables.ResIcon
-import com.tored.bridgelauncher.ui.directorypicker.Directory
+import com.tored.bridgelauncher.ui.dirpicker.Directory
 import com.tored.bridgelauncher.ui.theme.borders
 import com.tored.bridgelauncher.ui.theme.textSec
 

@@ -7,7 +7,7 @@ import android.util.Log
 import android.webkit.MimeTypeMap
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpHandler
-import com.tored.bridgelauncher.ui.directorypicker.Directory
+import com.tored.bridgelauncher.ui.dirpicker.Directory
 import com.tored.bridgelauncher.utils.RawRepresentable
 import java.io.File
 import java.io.FileInputStream

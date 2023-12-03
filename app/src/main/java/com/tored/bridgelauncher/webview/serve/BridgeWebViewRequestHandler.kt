@@ -9,7 +9,7 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import com.tored.bridgelauncher.BridgeLauncherApp
 import com.tored.bridgelauncher.SerializableInstalledApp
-import com.tored.bridgelauncher.ui.directorypicker.Directory
+import com.tored.bridgelauncher.ui.dirpicker.Directory
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import java.io.File

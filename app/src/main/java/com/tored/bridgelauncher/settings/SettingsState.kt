@@ -1,7 +1,7 @@
 package com.tored.bridgelauncher.settings
 
 import com.tored.bridgelauncher.annotations.Display
-import com.tored.bridgelauncher.ui.directorypicker.Directory
+import com.tored.bridgelauncher.ui.dirpicker.Directory
 import com.tored.bridgelauncher.utils.RawRepresentable
 
 enum class SystemBarAppearanceOptions(override val rawValue: Int) : RawRepresentable<Int>
@@ -21,6 +21,8 @@ enum class ThemeOptions(override val rawValue: Int) : RawRepresentable<Int>
 data class SettingsState(
 
     val currentProjDir: Directory? = null,
+    val lastMockExportDir: Directory? = null,
+
     val isQSTileAdded: Boolean = false,
     val isDeviceAdminEnabled: Boolean = false,
     val isExternalStorageManager: Boolean = false,

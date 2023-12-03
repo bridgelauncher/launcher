@@ -1,4 +1,4 @@
-package com.tored.bridgelauncher.ui.directorypicker
+package com.tored.bridgelauncher.ui.dirpicker
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,13 +20,13 @@ import com.tored.bridgelauncher.composables.ResIcon
 import java.io.File
 
 @Composable
-fun DirectoryPickerUpListItem(
+fun DirPickerUpListItem(
     modifier: Modifier = Modifier,
     upDir: Directory,
     onClick: () -> Unit,
 )
 {
-    DirectoryPickerListItem(
+    DirPickerListItem(
         modifier = modifier,
         priIconResId = R.drawable.ic_folder_up,
         priText = "Go up",
@@ -36,11 +36,11 @@ fun DirectoryPickerUpListItem(
 }
 
 @Composable
-fun DirectoryPickerUpDisabledListItem(
+fun DirPickerUpDisabledListItem(
     modifier: Modifier = Modifier,
 )
 {
-    DirectoryPickerListItem(
+    DirPickerListItem(
         modifier = modifier,
         priIconResId = R.drawable.ic_folder_up,
         priText = "Can't go up"
@@ -48,13 +48,13 @@ fun DirectoryPickerUpDisabledListItem(
 }
 
 @Composable
-fun DirectoryPickerSubdirListItem(
+fun DirPickerSubdirListItem(
     dir: Directory,
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 )
 {
-    DirectoryPickerListItem(
+    DirPickerListItem(
         modifier = modifier,
         priIconResId = R.drawable.ic_folder_open,
         priText = dir.name,
@@ -65,18 +65,18 @@ fun DirectoryPickerSubdirListItem(
 }
 
 @Composable
-fun DirectoryPickerSubfileListItem(file: File)
+fun DirPickerSubfileListItem(file: File)
 {
-    DirectoryPickerListItem(
+    DirPickerListItem(
         priIconResId = R.drawable.ic_file,
         priText = file.name,
     )
 }
 
 @Composable
-fun DirectoryPickerStartupSubfileListItem(file: File)
+fun DirPickerStartupSubfileListItem(file: File)
 {
-    DirectoryPickerListItem(
+    DirPickerListItem(
         priIconResId = R.drawable.ic_file_star_filled,
         priText = file.name,
         secText = "Startup file",
@@ -86,7 +86,7 @@ fun DirectoryPickerStartupSubfileListItem(file: File)
 }
 
 @Composable
-fun DirectoryPickerListItem(
+fun DirPickerListItem(
     priIconResId: Int,
     priText: String,
     modifier: Modifier = Modifier,
