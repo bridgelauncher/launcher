@@ -29,6 +29,7 @@ import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
 import com.tored.bridgelauncher.webview.jsapi.JSToBridgeAPI
 import com.tored.bridgelauncher.webview.jsapi.WindowInsetsSnapshot
 import com.tored.bridgelauncher.webview.rememberWebViewState
+import com.tored.bridgelauncher.webview.serve.BRIDGE_PROJECT_URL
 
 private const val TAG = "HOMESCREEN"
 

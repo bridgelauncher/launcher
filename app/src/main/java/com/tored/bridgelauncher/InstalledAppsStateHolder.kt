@@ -3,19 +3,37 @@ package com.tored.bridgelauncher
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
+import kotlinx.serialization.Serializable
 import java.text.Normalizer
+
+@Serializable
+data class SerializableInstalledApp(
+    val uid: Int,
+    val packageName: String,
+    var label: String,
+)
 
 data class InstalledApp(
     val uid: Int,
     val packageName: String,
+    val label: String,
     val launchIntent: Intent,
-    var label: String,
     val icon: Drawable,
 )
 {
     val labelSimplified = simplifyLabel(label)
 
-    companion object {
+    fun toSerializable(): SerializableInstalledApp
+    {
+        return SerializableInstalledApp(
+            uid,
+            packageName,
+            label,
+        )
+    }
+
+    companion object
+    {
         fun simplifyLabel(label: String): String
         {
             return Normalizer
@@ -47,8 +65,8 @@ class InstalledAppsStateHolder(
                     InstalledApp(
                         app.uid,
                         app.packageName,
-                        launchIntent,
                         _pm.getApplicationLabel(app).toString(),
+                        launchIntent,
                         _pm.getApplicationIcon(app),
                     )
                 )

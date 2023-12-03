@@ -54,18 +54,14 @@ import com.tored.bridgelauncher.utils.startWallpaperPickerActivity
 import com.tored.bridgelauncher.utils.writeBool
 import com.tored.bridgelauncher.utils.writeEnum
 import com.tored.bridgelauncher.webview.WebViewState
+import com.tored.bridgelauncher.webview.serve.BRIDGE_API_ENDPOINT_APPS
+import com.tored.bridgelauncher.webview.serve.BRIDGE_PROJECT_URL
+import com.tored.bridgelauncher.webview.serve.getBridgeApiEndpointURL
 import kotlinx.coroutines.runBlocking
 
 private const val TAG = "JSToBridgeAPI"
 
 private const val WINDOW_INSETS_SEPARATOR = ";"
-
-data class InstalledAppInfo(
-    val uid: Int,
-    val packageName: String,
-    val label: String,
-    val labelNormalized: String,
-)
 
 typealias WindowInsetsForJS = String
 
@@ -169,13 +165,24 @@ class JSToBridgeAPI(
         }
 
 
-    // region system info
+    // region system
 
     @JavascriptInterface
     fun getAndroidAPILevel() = Build.VERSION.SDK_INT
 
     @JavascriptInterface
     fun getLastErrorMessage() = _lastException?.messageOrDefault()
+
+    // endregion
+
+
+    // region fetch
+
+    @JavascriptInterface
+    fun getProjectURL() = BRIDGE_PROJECT_URL
+
+    @JavascriptInterface
+    fun getAppsURL() = getBridgeApiEndpointURL(BRIDGE_API_ENDPOINT_APPS)
 
     // endregion
 
@@ -295,7 +302,7 @@ class JSToBridgeAPI(
     // endregion
 
 
-    // region system theme
+    // region system night mode
 
     @JavascriptInterface
     fun getSystemNightMode(): String

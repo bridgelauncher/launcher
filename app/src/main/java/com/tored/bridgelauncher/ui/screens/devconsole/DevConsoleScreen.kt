@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.dp
 import com.tored.bridgelauncher.BridgeLauncherApp
 import com.tored.bridgelauncher.R
 import com.tored.bridgelauncher.composables.ResIcon
-import com.tored.bridgelauncher.ui.screens.home.BRIDGE_PROJECT_URL
+import com.tored.bridgelauncher.webview.serve.BRIDGE_PROJECT_URL
 import com.tored.bridgelauncher.ui.shared.SetSystemBarsForBotBarActivity
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherThemeStateless
 import com.tored.bridgelauncher.ui.theme.info

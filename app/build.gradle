@@ -3,6 +3,7 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-kapt'
     id 'com.google.dagger.hilt.android'
+    id 'org.jetbrains.kotlin.plugin.serialization' version "1.8.10"
 }
 
 android {
@@ -70,6 +71,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     implementation 'com.google.dagger:hilt-android:2.48.1'
     implementation "com.google.accompanist:accompanist-drawablepainter:0.32.0"
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2"
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     kapt 'com.google.dagger:hilt-compiler:2.48.1'
