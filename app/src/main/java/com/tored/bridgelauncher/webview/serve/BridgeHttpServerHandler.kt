@@ -15,7 +15,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 
-private const val TAG = "HTTPSERVER"
+private const val TAG = "HTTPServer"
 
 enum class HTTPStatusCode(override val rawValue: Int) : RawRepresentable<Int>
 {

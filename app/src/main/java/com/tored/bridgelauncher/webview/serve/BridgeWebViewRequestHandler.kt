@@ -1,17 +1,20 @@
 package com.tored.bridgelauncher.webview.serve
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.os.Build
 import android.os.Environment
 import android.util.Log
 import android.webkit.MimeTypeMap
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
+import androidx.core.graphics.drawable.toBitmap
 import com.tored.bridgelauncher.BridgeLauncherApp
 import com.tored.bridgelauncher.SerializableInstalledApp
 import com.tored.bridgelauncher.ui.dirpicker.Directory
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
@@ -22,6 +25,7 @@ const val BRIDGE_HOST = "bridge.launcher"
 const val BRIDGE_API_ROOT = ":"
 const val BRIDGE_PROJECT_URL = "https://$BRIDGE_HOST/"
 const val BRIDGE_API_ENDPOINT_APPS = "apps"
+const val BRIDGE_API_ENDPOINT_APP_ICONS = "appicons"
 
 fun getBridgeApiEndpointURL(endpoint: String) = "https://$BRIDGE_HOST/$BRIDGE_API_ROOT/$endpoint"
 
@@ -53,7 +57,7 @@ class BridgeWebViewRequestHandler(private val _context: Context, var projectRoot
                 {
                     BRIDGE_API_ENDPOINT_APPS ->
                     {
-                        val serializableApps = _bridge.installedAppsHolder.installedApps.map { it.toSerializable() }
+                        val serializableApps = _bridge.installedAppsHolder.installedApps.values.map { it.toSerializable() }
                         val json = Json.encodeToString(ListSerializer(SerializableInstalledApp.serializer()), serializableApps)
 
                         return WebResourceResponse(
@@ -63,6 +67,29 @@ class BridgeWebViewRequestHandler(private val _context: Context, var projectRoot
                             HTTPStatusCode.OK.name,
                             null,
                             json.byteInputStream(Charsets.UTF_8),
+                        )
+                    }
+
+                    BRIDGE_API_ENDPOINT_APP_ICONS ->
+                    {
+                        val packageName = request.url.getQueryParameter("packageName")
+                            ?: return errorResponse(HTTPStatusCode.NotFound, "No packageName query parameter.")
+
+                        val app = _bridge.installedAppsHolder.installedApps[packageName]
+                            ?: return errorResponse(HTTPStatusCode.NotFound, "No app with package name \"$packageName\"")
+
+                        val writeStream = ByteArrayOutputStream()
+                        val bmp = app.defaultIcon.toBitmap()
+                        bmp.compress(Bitmap.CompressFormat.PNG, 90, writeStream)
+                        val readStream = writeStream.toByteArray().inputStream()
+
+                        return WebResourceResponse(
+                            "image/png",
+                            EncodingStrings.UTF8,
+                            HTTPStatusCode.OK.rawValue,
+                            HTTPStatusCode.OK.name,
+                            null,
+                            readStream,
                         )
                     }
 

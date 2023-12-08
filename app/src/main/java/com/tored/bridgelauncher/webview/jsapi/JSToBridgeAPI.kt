@@ -11,40 +11,17 @@ import android.os.Bundle
 import android.util.Log
 import android.webkit.JavascriptInterface
 import android.widget.Toast
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.captionBar
-import androidx.compose.foundation.layout.captionBarIgnoringVisibility
-import androidx.compose.foundation.layout.displayCutout
-import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.imeAnimationSource
-import androidx.compose.foundation.layout.imeAnimationTarget
-import androidx.compose.foundation.layout.mandatorySystemGestures
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.navigationBarsIgnoringVisibility
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.statusBarsIgnoringVisibility
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.systemBarsIgnoringVisibility
-import androidx.compose.foundation.layout.systemGestures
-import androidx.compose.foundation.layout.tappableElement
-import androidx.compose.foundation.layout.tappableElementIgnoringVisibility
-import androidx.compose.foundation.layout.waterfall
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.edit
 import com.tored.bridgelauncher.services.BridgeLauncherDeviceAdminReceiver
 import com.tored.bridgelauncher.settings.SettingsState
-import com.tored.bridgelauncher.settings.SystemBarAppearanceOptions
 import com.tored.bridgelauncher.settings.ThemeOptions
 import com.tored.bridgelauncher.settings.settingsDataStore
 import com.tored.bridgelauncher.utils.getIsSystemInNightMode
 import com.tored.bridgelauncher.utils.launchApp
 import com.tored.bridgelauncher.utils.messageOrDefault
 import com.tored.bridgelauncher.utils.openAppInfo
+import com.tored.bridgelauncher.utils.q
 import com.tored.bridgelauncher.utils.requestAppUninstall
 import com.tored.bridgelauncher.utils.showErrorToast
 import com.tored.bridgelauncher.utils.startBridgeAppDrawerActivity
@@ -55,93 +32,13 @@ import com.tored.bridgelauncher.utils.writeBool
 import com.tored.bridgelauncher.utils.writeEnum
 import com.tored.bridgelauncher.webview.WebViewState
 import com.tored.bridgelauncher.webview.serve.BRIDGE_API_ENDPOINT_APPS
+import com.tored.bridgelauncher.webview.serve.BRIDGE_API_ENDPOINT_APP_ICONS
 import com.tored.bridgelauncher.webview.serve.BRIDGE_PROJECT_URL
 import com.tored.bridgelauncher.webview.serve.getBridgeApiEndpointURL
 import kotlinx.coroutines.runBlocking
 
 private const val TAG = "JSToBridgeAPI"
 
-private const val WINDOW_INSETS_SEPARATOR = ";"
-
-typealias WindowInsetsForJS = String
-
-fun Density.snapshot(insets: WindowInsets): String
-{
-    return arrayOf(
-        insets.getLeft(this, LayoutDirection.Ltr) / this.density,
-        insets.getTop(this) / this.density,
-        insets.getRight(this, LayoutDirection.Ltr) / this.density,
-        insets.getBottom(this) / this.density,
-    ).joinToString(WINDOW_INSETS_SEPARATOR)
-}
-
-fun defaultInsets() = arrayOf(0f, 0f, 0f, 0f).joinToString(WINDOW_INSETS_SEPARATOR)
-
-class WindowInsetsSnapshot(
-    val statusBars: WindowInsetsForJS = defaultInsets(),
-    val statusBarsIgnoringVisibility: WindowInsetsForJS = defaultInsets(),
-
-    val navigationBars: WindowInsetsForJS = defaultInsets(),
-    val navigationBarsIgnoringVisibility: WindowInsetsForJS = defaultInsets(),
-
-    val captionBar: WindowInsetsForJS = defaultInsets(),
-    val captionBarIgnoringVisibility: WindowInsetsForJS = defaultInsets(),
-
-    val systemBars: WindowInsetsForJS = defaultInsets(),
-    val systemBarsIgnoringVisibility: WindowInsetsForJS = defaultInsets(),
-
-    val ime: WindowInsetsForJS = defaultInsets(),
-    val imeAnimationSource: WindowInsetsForJS = defaultInsets(),
-    val imeAnimationTarget: WindowInsetsForJS = defaultInsets(),
-
-    val tappableElement: WindowInsetsForJS = defaultInsets(),
-    val tappableElementIgnoringVisibility: WindowInsetsForJS = defaultInsets(),
-
-    val systemGestures: WindowInsetsForJS = defaultInsets(),
-    val mandatorySystemGestures: WindowInsetsForJS = defaultInsets(),
-
-    val displayCutout: WindowInsetsForJS = defaultInsets(),
-    val waterfall: WindowInsetsForJS = defaultInsets(),
-)
-{
-    companion object
-    {
-        @OptIn(ExperimentalLayoutApi::class)
-        @Composable
-        fun compose(): WindowInsetsSnapshot
-        {
-            with(LocalDensity.current)
-            {
-                return WindowInsetsSnapshot(
-                    statusBars = snapshot(WindowInsets.statusBars),
-                    statusBarsIgnoringVisibility = snapshot(WindowInsets.statusBarsIgnoringVisibility),
-
-                    navigationBars = snapshot(WindowInsets.navigationBars),
-                    navigationBarsIgnoringVisibility = snapshot(WindowInsets.navigationBarsIgnoringVisibility),
-
-                    captionBar = snapshot(WindowInsets.captionBar),
-                    captionBarIgnoringVisibility = snapshot(WindowInsets.captionBarIgnoringVisibility),
-
-                    systemBars = snapshot(WindowInsets.systemBars),
-                    systemBarsIgnoringVisibility = snapshot(WindowInsets.systemBarsIgnoringVisibility),
-
-                    ime = snapshot(WindowInsets.ime),
-                    imeAnimationSource = snapshot(WindowInsets.imeAnimationSource),
-                    imeAnimationTarget = snapshot(WindowInsets.imeAnimationTarget),
-
-                    tappableElement = snapshot(WindowInsets.tappableElement),
-                    tappableElementIgnoringVisibility = snapshot(WindowInsets.tappableElementIgnoringVisibility),
-
-                    systemGestures = snapshot(WindowInsets.systemGestures),
-                    mandatorySystemGestures = snapshot(WindowInsets.mandatorySystemGestures),
-
-                    displayCutout = snapshot(WindowInsets.displayCutout),
-                    waterfall = snapshot(WindowInsets.waterfall),
-                )
-            }
-        }
-    }
-}
 
 class JSToBridgeAPI(
     private val _context: Context,
@@ -154,7 +51,7 @@ class JSToBridgeAPI(
     private val _dpman = _context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
     private val _adminReceiverComponentName = ComponentName(_context, BridgeLauncherDeviceAdminReceiver::class.java)
 
-    var windowInsetsSnapshot = WindowInsetsSnapshot()
+    var windowInsetsSnapshot = WindowInsetsSnapshots()
     var displayCutoutPathSnapshot: String? = null
     var displayShapePathSnapshot: String? = null
 
@@ -183,6 +80,10 @@ class JSToBridgeAPI(
 
     @JavascriptInterface
     fun getAppsURL() = getBridgeApiEndpointURL(BRIDGE_API_ENDPOINT_APPS)
+
+    @JavascriptInterface
+    fun getDefaultAppIconURL(packageName: String) = "${getBridgeApiEndpointURL(BRIDGE_API_ENDPOINT_APP_ICONS)}?packageName=$packageName"
+
 
     // endregion
 
@@ -253,11 +154,7 @@ class JSToBridgeAPI(
     @JavascriptInterface
     fun getBridgeButtonVisibility(): String
     {
-        return when (settingsState.showBridgeButton)
-        {
-            true -> BridgeButtonVisibility.Shown.value
-            false -> BridgeButtonVisibility.Hidden.value
-        }
+        return getBridgeButtonVisiblityString(settingsState.showBridgeButton)
     }
 
     @JvmOverloads
@@ -307,15 +204,7 @@ class JSToBridgeAPI(
     @JavascriptInterface
     fun getSystemNightMode(): String
     {
-        return when (_modeman.nightMode)
-        {
-            UiModeManager.MODE_NIGHT_NO -> "no"
-            UiModeManager.MODE_NIGHT_YES -> "yes"
-            UiModeManager.MODE_NIGHT_AUTO -> "auto"
-            UiModeManager.MODE_NIGHT_CUSTOM -> "custom"
-            -1 -> "error"
-            else -> "unknown"
-        }
+        return getSystemNightModeString(_modeman.nightMode)
     }
 
     @JavascriptInterface
@@ -365,12 +254,7 @@ class JSToBridgeAPI(
     @JavascriptInterface
     fun getBridgeTheme(): String
     {
-        return when (settingsState.theme)
-        {
-            ThemeOptions.System -> "system"
-            ThemeOptions.Light -> "light"
-            ThemeOptions.Dark -> "dark"
-        }
+        return getBridgeThemeString(settingsState.theme)
     }
 
     @JvmOverloads
@@ -400,7 +284,7 @@ class JSToBridgeAPI(
     @JavascriptInterface
     fun getStatusBarAppearance(): String
     {
-        return appearanceToString(settingsState.statusBarAppearance)
+        return getSystemBarAppearanceString(settingsState.statusBarAppearance)
     }
 
     @JvmOverloads
@@ -411,7 +295,7 @@ class JSToBridgeAPI(
         {
             it.writeEnum(
                 SettingsState::statusBarAppearance,
-                stringToAppearance(appearance)
+                stringToSystemBarAppearance(appearance)
             )
         }
     }
@@ -420,7 +304,7 @@ class JSToBridgeAPI(
     @JavascriptInterface
     fun getNavigationBarAppearance(): String
     {
-        return appearanceToString(settingsState.navigationBarAppearance)
+        return getSystemBarAppearanceString(settingsState.navigationBarAppearance)
     }
 
     @JvmOverloads
@@ -431,30 +315,8 @@ class JSToBridgeAPI(
         {
             it.writeEnum(
                 SettingsState::navigationBarAppearance,
-                stringToAppearance(appearance)
+                stringToSystemBarAppearance(appearance)
             )
-        }
-    }
-
-
-    private fun appearanceToString(appearance: SystemBarAppearanceOptions): String
-    {
-        return when (appearance)
-        {
-            SystemBarAppearanceOptions.Hide -> "hide"
-            SystemBarAppearanceOptions.LightIcons -> "light-fg"
-            SystemBarAppearanceOptions.DarkIcons -> "dark-fg"
-        }
-    }
-
-    private fun stringToAppearance(appearance: String): SystemBarAppearanceOptions
-    {
-        return when (appearance)
-        {
-            "hide" -> SystemBarAppearanceOptions.Hide
-            "light-fg" -> SystemBarAppearanceOptions.LightIcons
-            "dark-fg" -> SystemBarAppearanceOptions.DarkIcons
-            else -> throw Exception("Appearance must be one of ${q("hide")}, ${q("light-fg")} or ${"dark-fg"} (got ${q(appearance)}).")
         }
     }
 
@@ -564,65 +426,62 @@ class JSToBridgeAPI(
     // region window insets & cutouts
 
     @JavascriptInterface
-    fun getWindowInsetsSeparator() = WINDOW_INSETS_SEPARATOR
+    fun getStatusBarsWindowInsets() = windowInsetsSnapshot.statusBars.toJson()
 
     @JavascriptInterface
-    fun getStatusBarsWindowInsets() = windowInsetsSnapshot.statusBars
-
-    @JavascriptInterface
-    fun getStatusBarsIgnoringVisibilityWindowInsets() = windowInsetsSnapshot.statusBarsIgnoringVisibility
+    fun getStatusBarsIgnoringVisibilityWindowInsets() = windowInsetsSnapshot.statusBarsIgnoringVisibility.toJson()
 
 
     @JavascriptInterface
-    fun getNavigationBarsWindowInsets() = windowInsetsSnapshot.navigationBars
+    fun getNavigationBarsWindowInsets() = windowInsetsSnapshot.navigationBars.toJson()
 
     @JavascriptInterface
-    fun getNavigationBarsIgnoringVisibilityWindowInsets() = windowInsetsSnapshot.navigationBarsIgnoringVisibility
-
-
-    @JavascriptInterface
-    fun getCaptionBarWindowInsets() = windowInsetsSnapshot.captionBar
-
-    @JavascriptInterface
-    fun getCaptionBarIgnoringVisibilityWindowInsets() = windowInsetsSnapshot.captionBarIgnoringVisibility
+    fun getNavigationBarsIgnoringVisibilityWindowInsets() = windowInsetsSnapshot.navigationBarsIgnoringVisibility.toJson()
 
 
     @JavascriptInterface
-    fun getSystemBarsWindowInsets() = windowInsetsSnapshot.systemBars
+    fun getCaptionBarWindowInsets() = windowInsetsSnapshot.captionBar.toJson()
 
     @JavascriptInterface
-    fun getSystemBarsIgnoringVisibilityWindowInsets() = windowInsetsSnapshot.systemBarsIgnoringVisibility
-
-
-    @JavascriptInterface
-    fun getImeWindowInsets() = windowInsetsSnapshot.ime
-
-    @JavascriptInterface
-    fun getImeAnimationSourceWindowInsets() = windowInsetsSnapshot.imeAnimationSource
-
-    @JavascriptInterface
-    fun getImeAnimationTargetWindowInsets() = windowInsetsSnapshot.imeAnimationTarget
+    fun getCaptionBarIgnoringVisibilityWindowInsets() = windowInsetsSnapshot.captionBarIgnoringVisibility.toJson()
 
 
     @JavascriptInterface
-    fun getTappableElementWindowInsets() = windowInsetsSnapshot.tappableElement
+    fun getSystemBarsWindowInsets() = windowInsetsSnapshot.systemBars.toJson()
 
     @JavascriptInterface
-    fun getTappableElementIgnoringVisibilityWindowInsets() = windowInsetsSnapshot.tappableElementIgnoringVisibility
-
-
-    @JavascriptInterface
-    fun getSystemGesturesWindowInsets() = windowInsetsSnapshot.systemGestures
-
-    @JavascriptInterface
-    fun getMandatorySystemGesturesWindowInsets() = windowInsetsSnapshot.mandatorySystemGestures
+    fun getSystemBarsIgnoringVisibilityWindowInsets() = windowInsetsSnapshot.systemBarsIgnoringVisibility.toJson()
 
 
     @JavascriptInterface
-    fun getDisplayCutoutWindowInsets() = windowInsetsSnapshot.displayCutout
+    fun getImeWindowInsets() = windowInsetsSnapshot.ime.toJson()
 
     @JavascriptInterface
-    fun getWaterfallWindowInsets() = windowInsetsSnapshot.waterfall
+    fun getImeAnimationSourceWindowInsets() = windowInsetsSnapshot.imeAnimationSource.toJson()
+
+    @JavascriptInterface
+    fun getImeAnimationTargetWindowInsets() = windowInsetsSnapshot.imeAnimationTarget.toJson()
+
+
+    @JavascriptInterface
+    fun getTappableElementWindowInsets() = windowInsetsSnapshot.tappableElement.toJson()
+
+    @JavascriptInterface
+    fun getTappableElementIgnoringVisibilityWindowInsets() = windowInsetsSnapshot.tappableElementIgnoringVisibility.toJson()
+
+
+    @JavascriptInterface
+    fun getSystemGesturesWindowInsets() = windowInsetsSnapshot.systemGestures.toJson()
+
+    @JavascriptInterface
+    fun getMandatorySystemGesturesWindowInsets() = windowInsetsSnapshot.mandatorySystemGestures.toJson()
+
+
+    @JavascriptInterface
+    fun getDisplayCutoutWindowInsets() = windowInsetsSnapshot.displayCutout.toJson()
+
+    @JavascriptInterface
+    fun getWaterfallWindowInsets() = windowInsetsSnapshot.waterfall.toJson()
 
 
     @JavascriptInterface
@@ -667,12 +526,3 @@ class JSToBridgeAPI(
     // endregion
 
 }
-
-
-enum class BridgeButtonVisibility(val value: String)
-{
-    Shown("shown"),
-    Hidden("hidden"),
-}
-
-private fun q(s: String) = "\"$s\""

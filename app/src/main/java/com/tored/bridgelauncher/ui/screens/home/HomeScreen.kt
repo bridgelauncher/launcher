@@ -24,14 +24,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.tored.bridgelauncher.BridgeLauncherApp
 import com.tored.bridgelauncher.settings.SettingsVM
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
+import com.tored.bridgelauncher.webview.jsapi.BridgeToJSAPI
 import com.tored.bridgelauncher.webview.jsapi.JSToBridgeAPI
-import com.tored.bridgelauncher.webview.jsapi.WindowInsetsSnapshot
+import com.tored.bridgelauncher.webview.jsapi.WindowInsetsSnapshots
 import com.tored.bridgelauncher.webview.rememberWebViewState
 import com.tored.bridgelauncher.webview.serve.BRIDGE_PROJECT_URL
 
-private const val TAG = "HOMESCREEN"
+private const val TAG = "HomeScreen"
 
 @Composable
 fun HomeScreen(
@@ -42,6 +44,7 @@ fun HomeScreen(
     LaunchedEffect(settingsVM) { settingsVM.request() }
 
     val context = LocalContext.current
+    val bridge = context.applicationContext as BridgeLauncherApp
     val webViewState = rememberWebViewState(url = BRIDGE_PROJECT_URL)
     val jsToBridgeAPI = remember { JSToBridgeAPI(context, webViewState, settingsState) }
 
@@ -53,7 +56,10 @@ fun HomeScreen(
 
     val density = LocalDensity.current
 
-    UpdateJSAPIWindowInsets(jsToBridgeAPI)
+    UpdateJSAPIWindowInsets(
+        jsToBridgeAPI,
+        bridge.bridgeToJSAPI
+    )
 
     Surface(modifier = Modifier.fillMaxSize(), color = Color.Transparent)
     {
@@ -66,6 +72,7 @@ fun HomeScreen(
             HomeScreenWebView(
                 webViewState = webViewState,
                 jsToBridgeAPI = jsToBridgeAPI,
+                bridgeToJSAPI = bridge.bridgeToJSAPI,
             )
 
             if (settingsState.showBridgeButton)
@@ -90,12 +97,17 @@ fun HomeScreen(
 }
 
 @Composable
-fun UpdateJSAPIWindowInsets(jsToBridgeAPI: JSToBridgeAPI)
+fun UpdateJSAPIWindowInsets(
+    jsToBridgeAPI: JSToBridgeAPI,
+    bridgeToJSAPI: BridgeToJSAPI,
+)
 {
     val context = LocalContext.current
     val insets = (context as Activity).window.decorView.rootWindowInsets
 
-    jsToBridgeAPI.windowInsetsSnapshot = WindowInsetsSnapshot.compose()
+    val newInsets = WindowInsetsSnapshots.compose()
+    jsToBridgeAPI.windowInsetsSnapshot = newInsets
+    bridgeToJSAPI.windowInsetsSnapshotsChanged(newInsets)
 
     jsToBridgeAPI.displayShapePathSnapshot = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) insets.displayShape?.path.toString() else null
     jsToBridgeAPI.displayCutoutPathSnapshot = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) insets.displayCutout?.cutoutPath.toString() else null

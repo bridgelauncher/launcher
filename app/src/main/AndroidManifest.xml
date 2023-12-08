@@ -30,7 +30,8 @@
             android:clearTaskOnLaunch="true"
             android:exported="true"
             android:launchMode="singleTask"
-            android:theme="@style/Theme.BridgeLauncher.Wallpaper">
+            android:theme="@style/Theme.BridgeLauncher.Wallpaper"
+            android:configChanges="uiMode">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

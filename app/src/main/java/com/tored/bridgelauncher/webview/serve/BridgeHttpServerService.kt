@@ -6,8 +6,8 @@ import android.os.IBinder
 import android.util.Log
 import com.sun.net.httpserver.HttpServer
 import com.tored.bridgelauncher.settings.SettingsState
-import com.tored.bridgelauncher.utils.readDir
 import com.tored.bridgelauncher.settings.settingsDataStore
+import com.tored.bridgelauncher.utils.readDir
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -18,7 +18,7 @@ import java.util.concurrent.Executors
 
 class BridgeHttpServerService : Service()
 {
-    private val TAG = "HTTPSERVER"
+    private val TAG = "HttpServerService"
 
     private var _job = SupervisorJob()
     private var _scope = CoroutineScope(Dispatchers.IO + _job)

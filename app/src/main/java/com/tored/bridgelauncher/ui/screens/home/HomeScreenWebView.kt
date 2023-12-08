@@ -5,26 +5,34 @@ import android.os.Build
 import android.util.Log
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tored.bridgelauncher.BridgeLauncherApp
+import com.tored.bridgelauncher.settings.SettingsState
 import com.tored.bridgelauncher.settings.SettingsVM
 import com.tored.bridgelauncher.webview.BridgeWebChromeClient
 import com.tored.bridgelauncher.webview.BridgeWebViewClient
 import com.tored.bridgelauncher.webview.WebView
 import com.tored.bridgelauncher.webview.WebViewState
+import com.tored.bridgelauncher.webview.jsapi.BridgeToJSAPI
 import com.tored.bridgelauncher.webview.jsapi.JSToBridgeAPI
+import com.tored.bridgelauncher.webview.jsapi.getBridgeButtonVisiblityString
+import com.tored.bridgelauncher.webview.jsapi.getBridgeThemeString
+import com.tored.bridgelauncher.webview.jsapi.getSystemBarAppearanceString
 import com.tored.bridgelauncher.webview.serve.BRIDGE_PROJECT_URL
 import com.tored.bridgelauncher.webview.serve.BridgeWebViewRequestHandler
+import kotlinx.coroutines.flow.collectLatest
 
-private const val TAG = "HOMEWEBVIEW"
+private const val TAG = "HomeWebView"
 
 @Suppress("DEPRECATION")
 @SuppressLint("SetJavaScriptEnabled")
@@ -32,12 +40,44 @@ private const val TAG = "HOMEWEBVIEW"
 fun HomeScreenWebView(
     webViewState: WebViewState,
     jsToBridgeAPI: JSToBridgeAPI,
+    bridgeToJSAPI: BridgeToJSAPI,
     settingsVM: SettingsVM = viewModel(),
 )
 {
-    val settingsState by settingsVM.settingsUIState.collectAsStateWithLifecycle()
+    var settingsState by remember { mutableStateOf(SettingsState()) }
+
+    LaunchedEffect(Unit)
+    {
+        settingsVM.settingsUIState.collectLatest { new ->
+            val old = settingsState
+
+            with(bridgeToJSAPI)
+            {
+                if (new.showBridgeButton != old.showBridgeButton)
+                    bridgeButtonVisibilityChanged(getBridgeButtonVisiblityString(new.showBridgeButton))
+
+                if (new.drawSystemWallpaperBehindWebView != old.drawSystemWallpaperBehindWebView)
+                    drawSystemWallpaperBehindWebViewChanged(new.drawSystemWallpaperBehindWebView)
+
+                if (new.theme != old.theme)
+                    bridgeThemeChanged(getBridgeThemeString(new.theme))
+
+                if (new.statusBarAppearance != old.statusBarAppearance)
+                    statusBarAppearanceChanged(getSystemBarAppearanceString(new.statusBarAppearance))
+
+                if (new.navigationBarAppearance != old.navigationBarAppearance)
+                    navigationBarAppearanceChanged(getSystemBarAppearanceString(new.navigationBarAppearance))
+
+                if (new.isDeviceAdminEnabled != old.isDeviceAdminEnabled)
+                    canLockScreenChanged(new.isDeviceAdminEnabled)
+            }
+
+            settingsState = new
+        }
+    }
+
     val context = LocalContext.current
-    val appContext = context.applicationContext as BridgeLauncherApp
+    val bridge = context.applicationContext as BridgeLauncherApp
 
     val assetLoader = remember { BridgeWebViewRequestHandler(context, settingsState.currentProjDir) }
 
@@ -50,7 +90,7 @@ fun HomeScreenWebView(
     val chromeClient = remember {
         BridgeWebChromeClient(
             consoleMessageCallback = {
-                appContext.consoleMessagesHolder.messages.add(it)
+                bridge.consoleMessagesHolder.messages.add(it)
                 return@BridgeWebChromeClient true
             }
         )
@@ -66,6 +106,10 @@ fun HomeScreenWebView(
             webViewState.webView?.loadUrl(BRIDGE_PROJECT_URL)
             webViewState.webView?.reload()
         }
+    }
+
+    SideEffect {
+        bridge.bridgeToJSAPI.webView = webViewState.webView
     }
 
     WebView(

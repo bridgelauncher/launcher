@@ -114,10 +114,12 @@ fun AppDrawerScreen()
     val searchStringTrimmed = searchString.trim().lowercase()
     val searchStringSimplified = InstalledApp.simplifyLabel(searchString)
 
-    val filteredApps = appContext.installedAppsHolder.installedApps.filter {
-        it.labelSimplified.contains(searchStringSimplified)
-                || it.packageName.lowercase().contains(searchStringTrimmed)
-    }
+    val filteredApps = appContext.installedAppsHolder.installedApps.values
+        .filter {
+            it.labelSimplified.contains(searchStringSimplified)
+                    || it.packageName.lowercase().contains(searchStringTrimmed)
+        }
+        .sortedBy { it.label }
 
     var dropdownOpenFor by remember { mutableStateOf<InstalledApp?>(null) }
     var dropdownItemInLazyColOffset by remember { mutableStateOf(Offset(0f, 0f)) }
