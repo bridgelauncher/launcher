@@ -37,7 +37,7 @@ fun CurrentProjectCard(
             .border(border = MaterialTheme.borders.soft, shape = MaterialTheme.shapes.large)
             .padding(MaterialTheme.borders.soft.width)
             .fillMaxWidth(),
-        shape = MaterialTheme.shapes.medium,
+        shape = MaterialTheme.shapes.large,
     )
     {
         Column(

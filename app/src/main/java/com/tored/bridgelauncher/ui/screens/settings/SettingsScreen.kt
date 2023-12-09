@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Divider
@@ -34,6 +35,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tored.bridgelauncher.BridgeLauncherApp
+import com.tored.bridgelauncher.composables.Btn
 import com.tored.bridgelauncher.settings.SettingsState
 import com.tored.bridgelauncher.settings.SettingsVM
 import com.tored.bridgelauncher.settings.SystemBarAppearanceOptions
@@ -64,7 +66,7 @@ fun SettingsScreen(
     val uiState by vm.settingsUIState.collectAsStateWithLifecycle()
     LaunchedEffect(vm) { vm.request() }
 
-    var dirPickerCurrentDir by remember { mutableStateOf(uiState.currentProjDir ?: Environment.getExternalStorageDirectory()) }
+    var dirPickerCurrentDir by remember { mutableStateOf(uiState.currentProjDir) }
     var dirPickerFilterOrCreateDirText by remember { mutableStateOf("") }
     var dirPickerExportState by remember { mutableStateOf<DirPickerExportState?>(DirPickerExportState.NotExporting) }
     var dirPickerIsOpen by remember { mutableStateOf(false) }
@@ -134,6 +136,22 @@ fun SettingsScreen(
                     Divider()
 
                     SettingsAboutSection()
+
+                    Divider()
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    )
+                    {
+                        Btn(text = "Reset settings") {
+                            vm.edit {
+                                clear()
+                            }
+                        }    
+                    }
                 }
 
                 SettingsBotBar()
@@ -159,7 +177,7 @@ fun SettingsScreen(
             {
                 if (isExtStorageManager)
                     DirPickerUIState.HasPermission(
-                        currentDir = dirPickerCurrentDir,
+                        currentDir = dirPickerCurrentDir ?: Environment.getExternalStorageDirectory(),
                         filterOrCreateDirText = dirPickerFilterOrCreateDirText,
                         exportState = dirPickerExportState,
                     )
@@ -211,7 +229,7 @@ fun SettingsScreen(
 
                         try
                         {
-                            val exportToDir = dirPickerCurrentDir
+                            val exportToDir = dirPickerCurrentDir ?: Environment.getExternalStorageDirectory()
 
                             bridge.installedAppsHolder.exportToDirectoryAsync(
                                 exportToDir,

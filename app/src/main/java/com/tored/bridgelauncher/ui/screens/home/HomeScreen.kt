@@ -2,6 +2,7 @@ package com.tored.bridgelauncher.ui.screens.home
 
 import android.app.Activity
 import android.os.Build
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -30,8 +31,8 @@ import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
 import com.tored.bridgelauncher.webview.jsapi.BridgeToJSAPI
 import com.tored.bridgelauncher.webview.jsapi.JSToBridgeAPI
 import com.tored.bridgelauncher.webview.jsapi.WindowInsetsSnapshots
-import com.tored.bridgelauncher.webview.rememberWebViewState
-import com.tored.bridgelauncher.webview.serve.BRIDGE_PROJECT_URL
+import com.tored.bridgelauncher.webview.rememberSaveableWebViewState
+import com.tored.bridgelauncher.webview.rememberWebViewNavigator
 
 private const val TAG = "HomeScreen"
 
@@ -40,12 +41,15 @@ fun HomeScreen(
     settingsVM: SettingsVM = viewModel(),
 )
 {
+    Log.d(TAG, "HomeScreen")
+
     val settingsState by settingsVM.settingsUIState.collectAsStateWithLifecycle()
     LaunchedEffect(settingsVM) { settingsVM.request() }
 
     val context = LocalContext.current
     val bridge = context.applicationContext as BridgeLauncherApp
-    val webViewState = rememberWebViewState(url = BRIDGE_PROJECT_URL)
+    val webViewState = rememberSaveableWebViewState()
+    val webViewNavigator = rememberWebViewNavigator()
     val jsToBridgeAPI = remember { JSToBridgeAPI(context, webViewState, settingsState) }
 
     SideEffect {
@@ -71,6 +75,7 @@ fun HomeScreen(
         {
             HomeScreenWebView(
                 webViewState = webViewState,
+                webViewNavigator = webViewNavigator,
                 jsToBridgeAPI = jsToBridgeAPI,
                 bridgeToJSAPI = bridge.bridgeToJSAPI,
             )

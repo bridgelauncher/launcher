@@ -3,6 +3,7 @@ package com.tored.bridgelauncher.ui.screens.home
 import android.annotation.SuppressLint
 import android.os.Build
 import android.util.Log
+import android.view.View
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -22,6 +23,7 @@ import com.tored.bridgelauncher.settings.SettingsVM
 import com.tored.bridgelauncher.webview.BridgeWebChromeClient
 import com.tored.bridgelauncher.webview.BridgeWebViewClient
 import com.tored.bridgelauncher.webview.WebView
+import com.tored.bridgelauncher.webview.WebViewNavigator
 import com.tored.bridgelauncher.webview.WebViewState
 import com.tored.bridgelauncher.webview.jsapi.BridgeToJSAPI
 import com.tored.bridgelauncher.webview.jsapi.JSToBridgeAPI
@@ -38,6 +40,7 @@ private const val TAG = "HomeWebView"
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun HomeScreenWebView(
+    webViewNavigator: WebViewNavigator,
     webViewState: WebViewState,
     jsToBridgeAPI: JSToBridgeAPI,
     bridgeToJSAPI: BridgeToJSAPI,
@@ -101,10 +104,9 @@ fun HomeScreenWebView(
     {
         if (assetLoader.projectRoot != settingsState.currentProjDir)
         {
-            Log.d(TAG, "LaunchedEffect: assetLoader.projectRoot = ${assetLoader.projectRoot} -> ${settingsState.currentProjDir}")
+            Log.d(TAG, "assetLoader.projectRoot change: ${assetLoader.projectRoot} -> ${settingsState.currentProjDir}")
             assetLoader.projectRoot = settingsState.currentProjDir
-            webViewState.webView?.loadUrl(BRIDGE_PROJECT_URL)
-            webViewState.webView?.reload()
+            webViewNavigator.loadUrl(BRIDGE_PROJECT_URL)
         }
     }
 
@@ -112,14 +114,23 @@ fun HomeScreenWebView(
         bridge.bridgeToJSAPI.webView = webViewState.webView
     }
 
+    SideEffect {
+        if (settingsState.drawWebViewOverscrollEffects)
+            webViewState.webView?.overScrollMode = View.OVER_SCROLL_IF_CONTENT_SCROLLS
+        else
+            webViewState.webView?.overScrollMode = View.OVER_SCROLL_NEVER
+    }
+
     WebView(
+        modifier = Modifier
+            .fillMaxSize(),
         state = webViewState,
-        modifier = Modifier.fillMaxSize(),
+        navigator = webViewNavigator,
         client = webViewClient,
         chromeClient = chromeClient,
         onCreated = { webView ->
 
-            Log.d(TAG, "HomeScreen: WebView onCreated")
+            Log.d(TAG, "WebView onCreated")
             webView.clearCache(true)
 
             with(webView.settings)
@@ -139,6 +150,8 @@ fun HomeScreenWebView(
 
             webView.setBackgroundColor(Color.Transparent.toArgb())
             webView.addJavascriptInterface(jsToBridgeAPI, "Bridge")
+
+            webView.loadUrl(BRIDGE_PROJECT_URL)
         }
     )
 }

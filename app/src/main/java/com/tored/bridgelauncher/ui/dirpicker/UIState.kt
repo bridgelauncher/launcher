@@ -35,11 +35,13 @@ sealed interface DirPickerUIState
 
             val filterPhrase = filterOrCreateDirText.lowercase()
             var anyFiles = false
-            val entries = currentDir.listFiles { _, filename ->
+            val files = currentDir.listFiles { _, filename ->
                 filename.lowercase().contains(filterPhrase).also {
                     anyFiles = true
                 }
-            }!!.sortedBy { it.name }
+            }
+
+            val entries = files?.sortedBy { it.name } ?: emptyList()
 
             this.isDirEmpty = !anyFiles
             this.subdirs = entries.filter { it.isDirectory }

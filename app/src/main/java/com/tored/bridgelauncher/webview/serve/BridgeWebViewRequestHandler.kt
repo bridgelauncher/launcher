@@ -5,7 +5,6 @@ import android.graphics.Bitmap
 import android.os.Build
 import android.os.Environment
 import android.util.Log
-import android.webkit.MimeTypeMap
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import androidx.core.graphics.drawable.toBitmap
@@ -155,7 +154,7 @@ class BridgeWebViewRequestHandler(private val _context: Context, var projectRoot
                     return errorResponse(HTTPStatusCode.InternalServerError, "Failed to open FileInputStream for file: $ex")
                 }
 
-                val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(file.extension)
+                val mimeType = BetterMimeTypeMap[".${file.extension}"]
 
                 Log.i(TAG, "handle: responding with OK")
 

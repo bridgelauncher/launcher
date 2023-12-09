@@ -219,19 +219,23 @@ class JSToBridgeAPI(
     {
         try
         {
-            _modeman.nightMode = when (mode)
-            {
-                "no" -> UiModeManager.MODE_NIGHT_NO
-                "yes" -> UiModeManager.MODE_NIGHT_YES
-                "auto" -> UiModeManager.MODE_NIGHT_AUTO
+            Log.d(TAG, "requestSetSystemNightMode: $mode")
 
-                "custom" -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-                    UiModeManager.MODE_NIGHT_CUSTOM
-                else
-                    throw Exception("\"custom\" requires API level 30.")
+            Runtime.getRuntime().exec("cmd uimode night $mode")
 
-                else -> throw Exception("Mode must be one of ${q("no")}, ${q("yes")}, ${q("auto")} or, from API level 30, ${q("custom")} (got ${q(mode)}).")
-            }
+//            _modeman.nightMode = when (mode)
+//            {
+//                "no" -> UiModeManager.MODE_NIGHT_NO
+//                "yes" -> UiModeManager.MODE_NIGHT_YES
+//                "auto" -> UiModeManager.MODE_NIGHT_AUTO
+//
+//                "custom" -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+//                    UiModeManager.MODE_NIGHT_CUSTOM
+//                else
+//                    throw Exception("\"custom\" requires API level 30.")
+//
+//                else -> throw Exception("Mode must be one of ${q("no")}, ${q("yes")}, ${q("auto")} or, from API level 30, ${q("custom")} (got ${q(mode)}).")
+//            }
 
             return true
         }

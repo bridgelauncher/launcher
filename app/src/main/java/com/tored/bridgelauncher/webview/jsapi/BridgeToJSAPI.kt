@@ -85,7 +85,7 @@ class BridgeToJSAPI
             || new.bottom != old.bottom
         )
         {
-            raiseBridgeEvent("${name}WindowInsetsChanged", new.toJson())
+            notify("${name}WindowInsetsChanged", new)
         }
     }
 
@@ -104,6 +104,7 @@ class BridgeToJSAPI
 
     private fun notify(name: String, newValue: Boolean) = notify(name, ValueChangeEventArgs(newValue))
     private fun notify(name: String, newValue: String) = notify(name, ValueChangeEventArgs(newValue))
+    private fun notify(name: String, newValue: WindowInsetsSnapshot) = notify(name, ValueChangeEventArgs(newValue))
 
     @JvmName("notifyBoolChanged")
     private fun notify(name: String, args: ValueChangeEventArgs<Boolean>)
@@ -117,18 +118,17 @@ class BridgeToJSAPI
         raiseBridgeEvent(name, Json.encodeToString(ValueChangeEventArgs.serializer(String.serializer()), args))
     }
 
+    @JvmName("notifyWindowInsetsChanged")
+    private fun notify(name: String, args: ValueChangeEventArgs<WindowInsetsSnapshot>)
+    {
+        raiseBridgeEvent(name, Json.encodeToString(ValueChangeEventArgs.serializer(WindowInsetsSnapshot.serializer()), args))
+    }
+
     private fun raiseBridgeEvent(name: String, argsString: String? = null)
     {
         try
         {
-            if (argsString == null)
-            {
-                webView?.evaluateJavascript("onBridgeEvent('$name')") {}
-            }
-            else
-            {
-                webView?.evaluateJavascript("onBridgeEvent('$name', $argsString)") {}
-            }
+            webView?.evaluateJavascript("if (typeof onBridgeEvent === 'function') onBridgeEvent('$name', ${argsString ?: "undefined"})") {}
         }
         catch (ex: Exception)
         {
