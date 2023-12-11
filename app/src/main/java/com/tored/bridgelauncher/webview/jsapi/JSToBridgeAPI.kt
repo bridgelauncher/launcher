@@ -6,11 +6,14 @@ import android.app.WallpaperManager
 import android.app.admin.DevicePolicyManager
 import android.content.ComponentName
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.webkit.JavascriptInterface
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
 import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.edit
 import com.tored.bridgelauncher.services.BridgeLauncherDeviceAdminReceiver
@@ -213,6 +216,7 @@ class JSToBridgeAPI(
         return _context.getIsSystemInNightMode()
     }
 
+    @SuppressLint("WrongConstant")
     @JvmOverloads
     @JavascriptInterface
     fun requestSetSystemNightMode(mode: String, showToastIfFailed: Boolean = true): Boolean
@@ -221,21 +225,33 @@ class JSToBridgeAPI(
         {
             Log.d(TAG, "requestSetSystemNightMode: $mode")
 
-            Runtime.getRuntime().exec("cmd uimode night $mode")
+            val modeInt = when (mode)
+            {
+                "no" -> UiModeManager.MODE_NIGHT_NO
+                "yes" -> UiModeManager.MODE_NIGHT_YES
+                "auto" -> UiModeManager.MODE_NIGHT_AUTO
 
-//            _modeman.nightMode = when (mode)
-//            {
-//                "no" -> UiModeManager.MODE_NIGHT_NO
-//                "yes" -> UiModeManager.MODE_NIGHT_YES
-//                "auto" -> UiModeManager.MODE_NIGHT_AUTO
-//
-//                "custom" -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-//                    UiModeManager.MODE_NIGHT_CUSTOM
-//                else
-//                    throw Exception("\"custom\" requires API level 30.")
-//
-//                else -> throw Exception("Mode must be one of ${q("no")}, ${q("yes")}, ${q("auto")} or, from API level 30, ${q("custom")} (got ${q(mode)}).")
-//            }
+                "custom" -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+                    UiModeManager.MODE_NIGHT_CUSTOM
+                else
+                    throw Exception("\"custom\" requires API level 30.")
+
+                else -> throw Exception("Mode must be one of ${q("no")}, ${q("yes")}, ${q("auto")} or, from API level 30, ${q("custom")} (got ${q(mode)}).")
+            }
+
+            val hasModifyPerm = ActivityCompat.checkSelfPermission(_context, "android.permission.MODIFY_DAY_NIGHT_MODE") == PackageManager.PERMISSION_GRANTED
+
+            if (hasModifyPerm)
+            {
+                _modeman.nightMode = modeInt
+            }
+            else
+            {
+                // shoutouts to joaomgcd (Tasker dev) for this workaround!
+                Settings.Secure.putInt(_context.contentResolver, "ui_night_mode", modeInt)
+                _modeman.enableCarMode(UiModeManager.ENABLE_CAR_MODE_ALLOW_SLEEP)
+                _modeman.disableCarMode(0)
+            }
 
             return true
         }
