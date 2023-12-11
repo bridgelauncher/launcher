@@ -10,7 +10,9 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.util.DisplayMetrics
 import android.util.Log
+import android.util.TypedValue
 import android.webkit.JavascriptInterface
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
@@ -135,11 +137,19 @@ class JSToBridgeAPI(
     }
 
     @JavascriptInterface
-    fun sendWallpaperTap(x: Int, y: Int)
+    fun sendWallpaperTap(x: Float, y: Float)
     {
         val token = _webViewState.webView?.applicationWindowToken
+        val metrics = _context.resources.displayMetrics
         if (token != null)
-            _wallman.sendWallpaperCommand(token, WallpaperManager.COMMAND_TAP, x, y, 0, Bundle.EMPTY)
+            _wallman.sendWallpaperCommand(
+                token,
+                WallpaperManager.COMMAND_TAP,
+                metrics.toPx(x).toInt(),
+                metrics.toPx(y).toInt(),
+                0,
+                Bundle.EMPTY
+            )
     }
 
     @JvmOverloads
@@ -546,3 +556,5 @@ class JSToBridgeAPI(
     // endregion
 
 }
+
+private fun DisplayMetrics.toPx(x: Float) = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, x, this)

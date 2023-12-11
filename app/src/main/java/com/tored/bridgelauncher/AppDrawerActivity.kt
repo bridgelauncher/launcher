@@ -200,7 +200,7 @@ fun AppDrawerScreen()
                                     .onGloballyPositioned {
                                         positionInParent = it.positionInParent()
                                     }
-                                    .pointerInput(Unit)
+                                    .pointerInput(app)
                                     {
                                         detectTapGestures(
                                             onPress = { offset ->
