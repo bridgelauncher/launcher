@@ -15,9 +15,11 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.AlertDialog
 import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -146,11 +148,56 @@ fun SettingsScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     )
                     {
-                        Btn(text = "Reset settings") {
-                            vm.edit {
-                                clear()
-                            }
-                        }    
+
+                        var showDialog by remember { mutableStateOf(false) }
+                        var resetInProgress by remember { mutableStateOf(false) }
+
+                        Btn(
+                            text = "Reset settings",
+                            color = MaterialTheme.colors.error,
+                        ) {
+                            showDialog = true
+                        }
+
+                        if (showDialog)
+                        {
+                            AlertDialog(
+                                onDismissRequest = { showDialog = false },
+                                title = { Text("Confirm action") },
+                                text = { Text("Are you sure you want to reset settings? This action cannot be undone.") },
+                                confirmButton = {
+                                    Btn(
+                                        text = "Reset",
+                                        color = MaterialTheme.colors.error,
+                                        disabled = resetInProgress
+                                    ) {
+                                        resetInProgress = true
+
+                                        try
+                                        {
+                                            vm.edit {
+                                                clear()
+                                                Toast.makeText(context, "Settings reset.", Toast.LENGTH_SHORT).show()
+                                                showDialog = false
+                                            }
+                                        }
+                                        catch (ex: Exception)
+                                        {
+                                            context.showErrorToast(ex)
+                                        }
+                                        finally
+                                        {
+                                            resetInProgress = false
+                                        }
+                                    }
+                                },
+                                dismissButton = {
+                                    Btn(text = "Cancel", color = MaterialTheme.colors.onSurface) {
+                                        showDialog = false
+                                    }
+                                }
+                            )
+                        }
                     }
                 }
 
