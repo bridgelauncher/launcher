@@ -15,7 +15,9 @@ android {
         minSdk 24
         targetSdk 34
         versionCode 1
-        versionName "1.0"
+        versionName "0.0.1"
+        versionNameSuffix "alpha"
+        archivesBaseName = "${applicationId}_v${versionName}${if(versionNameSuffix?.isAllWhitespace() ?: true) "" else "-${versionNameSuffix}"}_${versionCode}"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
