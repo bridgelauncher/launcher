@@ -20,7 +20,7 @@ import com.tored.bridgelauncher.utils.writeBool
 
 @Composable
 fun SettingsProjectSection(
-    isExtStorageManager: Boolean,
+    hasStoragePerms: Boolean,
     onGrantPermissionRequest: () -> Unit,
     onChangeProjectDirRequest: () -> Unit,
     vm: SettingsVM = viewModel(),
@@ -35,7 +35,7 @@ fun SettingsProjectSection(
         CurrentProjectCard(
             uiState.currentProjDir,
             onChangeClick = onChangeProjectDirRequest,
-            isExtStorageManager = isExtStorageManager,
+            hasStoragePerms = hasStoragePerms,
             onGrantPermissionRequest = onGrantPermissionRequest
         )
 

@@ -28,7 +28,7 @@ import com.tored.bridgelauncher.ui.theme.textSec
 fun CurrentProjectCard(
     currentProjDir: Directory?,
     onChangeClick: () -> Unit,
-    isExtStorageManager: Boolean,
+    hasStoragePerms: Boolean,
     onGrantPermissionRequest: () -> Unit,
 )
 {
@@ -76,7 +76,7 @@ fun CurrentProjectCard(
                 )
             }
 
-            if (currentProjDir != null && !isExtStorageManager)
+            if (currentProjDir != null && !hasStoragePerms)
             {
                 Divider()
                 CurrentProjectCardAlert(

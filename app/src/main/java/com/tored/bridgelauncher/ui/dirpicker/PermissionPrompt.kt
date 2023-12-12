@@ -1,5 +1,6 @@
 package com.tored.bridgelauncher.ui.dirpicker
 
+import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -43,19 +44,23 @@ fun DirPickerPermissionPrompt(
             )
         }
 
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        )
+        // scoped storage
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
         {
-            Text("Why not use Scoped Storage?")
-            Text(
-                "Storage Access Framework (SAF) does not have feature parity with direct file system access. "
-                        + "Examples include inability to watch a directory for changes and inability to access a subdirectory/file by path.",
-                style = MaterialTheme.typography.body2,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colors.textSec,
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             )
+            {
+                Text("Why not use Scoped Storage?")
+                Text(
+                    "Storage Access Framework (SAF) does not have feature parity with direct file system access. "
+                            + "Examples include inability to watch a directory for changes and inability to access a subdirectory/file by path.",
+                    style = MaterialTheme.typography.body2,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colors.textSec,
+                )
+            }
         }
 
         Btn(

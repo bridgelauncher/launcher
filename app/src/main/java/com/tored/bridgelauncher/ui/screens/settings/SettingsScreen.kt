@@ -60,7 +60,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun SettingsScreen(
-    isExtStorageManager: Boolean,
+    hasStoragePerms: Boolean,
     onGrantPermissionRequest: () -> Unit,
     vm: SettingsVM = viewModel(),
 )
@@ -104,7 +104,7 @@ fun SettingsScreen(
                 )
                 {
                     SettingsProjectSection(
-                        isExtStorageManager = isExtStorageManager,
+                        hasStoragePerms = hasStoragePerms,
                         onGrantPermissionRequest = onGrantPermissionRequest,
                         onChangeProjectDirRequest = {
                             dirPickerCurrentDir = uiState.currentProjDir
@@ -222,7 +222,7 @@ fun SettingsScreen(
                 .fillMaxSize(),
             uiState = if (dirPickerIsOpen)
             {
-                if (isExtStorageManager)
+                if (hasStoragePerms)
                     DirPickerUIState.HasPermission(
                         currentDir = dirPickerCurrentDir ?: Environment.getExternalStorageDirectory(),
                         filterOrCreateDirText = dirPickerFilterOrCreateDirText,

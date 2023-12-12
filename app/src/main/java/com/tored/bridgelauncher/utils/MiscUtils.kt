@@ -1,21 +1,31 @@
 package com.tored.bridgelauncher.utils
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Environment
 import android.widget.Toast
 import androidx.compose.runtime.Composable
+import androidx.core.app.ActivityCompat
 import com.tored.bridgelauncher.annotations.Display
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotation
 
-fun getIsExtStorageManager(): Boolean
+fun Context.hasStoragePerms(): Boolean
 {
-    return Build.VERSION.SDK_INT < Build.VERSION_CODES.R
-            // we need a special permission on Android 11 and up
-            || Environment.isExternalStorageManager()
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+    {
+        // we need a special permission on Android 11 and up
+        Environment.isExternalStorageManager()
+    }
+    else
+    {
+        ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+    }
 }
 
 fun Context.startExtStorageManagerPermissionActivity(): Unit

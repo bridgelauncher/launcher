@@ -1,5 +1,6 @@
 package com.tored.bridgelauncher.webview.jsapi
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.UiModeManager
 import android.app.WallpaperManager
@@ -257,10 +258,26 @@ class JSToBridgeAPI(
             }
             else
             {
-                // shoutouts to joaomgcd (Tasker dev) for this workaround!
-                Settings.Secure.putInt(_context.contentResolver, "ui_night_mode", modeInt)
-                _modeman.enableCarMode(UiModeManager.ENABLE_CAR_MODE_ALLOW_SLEEP)
-                _modeman.disableCarMode(0)
+                val hasWriteSecureSettingsPerm = ActivityCompat.checkSelfPermission(_context, Manifest.permission.WRITE_SECURE_SETTINGS) == PackageManager.PERMISSION_GRANTED
+
+                if (hasWriteSecureSettingsPerm)
+                {
+                    // shoutouts to joaomgcd (Tasker dev) for this workaround!
+                    Settings.Secure.putInt(_context.contentResolver, "ui_night_mode", modeInt)
+                    _modeman.enableCarMode(UiModeManager.ENABLE_CAR_MODE_ALLOW_SLEEP)
+                    _modeman.disableCarMode(0)
+                }
+                else
+                {
+                    Toast
+                        .makeText(
+                            _context,
+                            "To set system night mode, Bridge needs the WRITE_SECURE_SETTINGS permission, which can be granted via ADB. "
+                                    + "Check the Developer Hub (link in settings) for more information.",
+                            Toast.LENGTH_LONG
+                        )
+                        .show()
+                }
             }
 
             return true
