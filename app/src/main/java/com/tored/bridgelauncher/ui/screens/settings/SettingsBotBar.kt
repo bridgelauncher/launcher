@@ -57,13 +57,6 @@ fun SettingsBotBar(modifier: Modifier = Modifier)
                 textAlign = TextAlign.Center,
             )
             Spacer(modifier = Modifier.size(48.dp))
-//                IconToggleButton(
-//                    checked = MaterialTheme.colors.isLight,
-//                    onCheckedChange = { /* TODO */ }
-//                )
-//                {
-//                    ResIcon(iconResId = R.drawable.ic_dark_mode)
-//                }
         }
     }
 }

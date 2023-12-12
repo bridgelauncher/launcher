@@ -1,6 +1,8 @@
 package com.tored.bridgelauncher.ui.screens.settings.sections
 
+import android.widget.Toast
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import com.tored.bridgelauncher.R
 import com.tored.bridgelauncher.composables.Btn
 import com.tored.bridgelauncher.ui.screens.settings.SettingsSection
@@ -16,7 +18,10 @@ fun SettingsDevelopmentSection(onExportAppsRequest: () -> Unit)
             description = "Documentation and tools to help you develop Bridge Launcher projects."
         )
         {
-            Btn(text = "Open in browser", suffixIcon = R.drawable.ic_open_in_new, onClick = { /* TODO */ })
+            val context = LocalContext.current
+            Btn(text = "Open in browser", suffixIcon = R.drawable.ic_open_in_new, onClick = {
+                Toast.makeText(context, "The Developer Hub does not exist yet. Sorry!", Toast.LENGTH_SHORT).show()
+            })
         }
 
         ActionCard(
