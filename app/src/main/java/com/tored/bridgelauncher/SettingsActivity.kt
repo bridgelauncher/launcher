@@ -8,9 +8,6 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.core.app.ActivityCompat
 import com.tored.bridgelauncher.ui.screens.settings.SettingsScreen
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
@@ -21,13 +18,14 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class SettingsActivity : ComponentActivity()
 {
-    private var _hasStoragePerms by mutableStateOf(false)
+    private lateinit var _bridge: BridgeLauncherApp
+
     private val reqStoragePermsLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     )
     { grantedMap ->
-        _hasStoragePerms = grantedMap.values.all { it }
-        if (!_hasStoragePerms)
+        _bridge.hasStoragePerms = grantedMap.values.all { it }
+        if (!_bridge.hasStoragePerms)
             Toast.makeText(this, "Storage permissions are necessary for Bridge to function.", Toast.LENGTH_SHORT).show()
     }
 
@@ -35,13 +33,14 @@ class SettingsActivity : ComponentActivity()
     {
         super.onCreate(savedInstanceState)
 
-        _hasStoragePerms = hasStoragePerms()
+        _bridge  = applicationContext as BridgeLauncherApp
+        _bridge.hasStoragePerms = hasStoragePerms()
 
         setContent {
             BridgeLauncherTheme()
             {
                 SettingsScreen(
-                    _hasStoragePerms,
+                    _bridge.hasStoragePerms,
                     onGrantPermissionRequest = {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
                         {
@@ -54,7 +53,7 @@ class SettingsActivity : ComponentActivity()
                                 && ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
                             )
                             {
-                                _hasStoragePerms = true
+                                _bridge.hasStoragePerms = true
                             }
                             else
                             {
@@ -75,6 +74,6 @@ class SettingsActivity : ComponentActivity()
     override fun onResume()
     {
         super.onResume()
-        _hasStoragePerms = hasStoragePerms()
+        _bridge.hasStoragePerms = hasStoragePerms()
     }
 }

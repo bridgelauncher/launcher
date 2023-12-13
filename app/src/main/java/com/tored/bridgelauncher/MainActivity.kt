@@ -11,6 +11,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.tored.bridgelauncher.ui.screens.home.HomeScreen
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
+import com.tored.bridgelauncher.utils.hasStoragePerms
 import com.tored.bridgelauncher.webview.jsapi.getSystemNightModeString
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -30,11 +31,14 @@ class MainActivity : ComponentActivity()
         Log.d(TAG, "onCreate: savedInstanceState == null: ${savedInstanceState == null}")
 
         _bridge = applicationContext as BridgeLauncherApp
+        _bridge.hasStoragePerms = hasStoragePerms()
         _modeman = getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
 
         setContent {
             BridgeLauncherTheme {
-                HomeScreen()
+                HomeScreen(
+                    hasStoragePerms = _bridge.hasStoragePerms
+                )
             }
         }
     }
@@ -70,6 +74,7 @@ class MainActivity : ComponentActivity()
     {
         Log.d(TAG, "onResume")
         super.onResume()
+        _bridge.hasStoragePerms = hasStoragePerms()
         _bridge.bridgeToJSAPI.afterResume()
     }
 

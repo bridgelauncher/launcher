@@ -20,7 +20,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -38,6 +37,7 @@ private const val TAG = "HomeScreen"
 
 @Composable
 fun HomeScreen(
+    hasStoragePerms: Boolean,
     settingsVM: SettingsVM = viewModel(),
 )
 {
@@ -58,8 +58,6 @@ fun HomeScreen(
 
     HomeScreenSetSystemUI(settingsState = settingsState)
 
-    val density = LocalDensity.current
-
     UpdateJSAPIWindowInsets(
         jsToBridgeAPI,
         bridge.bridgeToJSAPI
@@ -73,12 +71,27 @@ fun HomeScreen(
                 .fillMaxSize(),
         )
         {
-            HomeScreenWebView(
-                webViewState = webViewState,
-                webViewNavigator = webViewNavigator,
-                jsToBridgeAPI = jsToBridgeAPI,
-                bridgeToJSAPI = bridge.bridgeToJSAPI,
-            )
+            if (settingsState.currentProjDir == null)
+            {
+                HomeScreenNoProjectPrompt(
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+            else if (!hasStoragePerms)
+            {
+                HomeScreenNoStoragePermsPrompt(
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+            else
+            {
+                HomeScreenWebView(
+                    webViewState = webViewState,
+                    webViewNavigator = webViewNavigator,
+                    jsToBridgeAPI = jsToBridgeAPI,
+                    bridgeToJSAPI = bridge.bridgeToJSAPI,
+                )
+            }
 
             if (settingsState.showBridgeButton)
             {
