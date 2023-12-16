@@ -137,8 +137,9 @@ class JSToBridgeAPI(
             _wallman.setWallpaperOffsets(token, x, y)
     }
 
+    @JvmOverloads
     @JavascriptInterface
-    fun sendWallpaperTap(x: Float, y: Float)
+    fun sendWallpaperTap(x: Float, y: Float, z: Float = 0f)
     {
         val token = _webViewState.webView?.applicationWindowToken
         val metrics = _context.resources.displayMetrics
@@ -148,7 +149,7 @@ class JSToBridgeAPI(
                 WallpaperManager.COMMAND_TAP,
                 metrics.toPx(x).toInt(),
                 metrics.toPx(y).toInt(),
-                0,
+                metrics.toPx(z).toInt(),
                 Bundle.EMPTY
             )
     }
@@ -225,6 +226,12 @@ class JSToBridgeAPI(
     fun resolveIsSystemInDarkTheme(): Boolean
     {
         return _context.getIsSystemInNightMode()
+    }
+
+    @JavascriptInterface
+    fun getCanSetSystemNightMode(): Boolean
+    {
+        // TODO
     }
 
     @SuppressLint("WrongConstant")
@@ -375,7 +382,7 @@ class JSToBridgeAPI(
     @JavascriptInterface
     fun getCanLockScreen(): Boolean
     {
-        return _dpman.isAdminActive(_adminReceiverComponentName)
+        return _dpman.isAdminActive(_adminReceiverComponentName) && settingsState.allowProjectsToTurnScreenOff
     }
 
     @JvmOverloads

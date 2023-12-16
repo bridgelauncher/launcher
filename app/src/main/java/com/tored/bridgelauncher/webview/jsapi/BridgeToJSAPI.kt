@@ -37,6 +37,7 @@ class BridgeToJSAPI
     fun bridgeThemeChanged(newValue: String) = notify("bridgeThemeChanged", newValue)
     fun statusBarAppearanceChanged(newValue: String) = notify("statusBarAppearanceChanged", newValue)
     fun navigationBarAppearanceChanged(newValue: String) = notify("navigationBarAppearanceChanged", newValue)
+    fun canSetSystemNightModeChanged(newValue: Boolean) = notify("canSetSystemNightModeChanged", newValue)
     fun canLockScreenChanged(newValue: Boolean) = notify("canLockScreenChanged", newValue)
 
     fun systemNightModeChanged(newValue: String) = notify("systemNightModeChanged", newValue)

@@ -11,7 +11,7 @@ import androidx.core.graphics.drawable.toBitmap
 import com.tored.bridgelauncher.BridgeLauncherApp
 import com.tored.bridgelauncher.SerializableInstalledApp
 import com.tored.bridgelauncher.ui.dirpicker.Directory
-import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -32,6 +32,11 @@ object EncodingStrings
 {
     const val UTF8 = "utf-8"
 }
+
+@Serializable
+data class BridgeAPIEndpointAppsResponse(
+    val apps: List<SerializableInstalledApp>
+)
 
 class BridgeWebViewRequestHandler(private val _context: Context, var projectRoot: Directory?)
 {
@@ -56,8 +61,11 @@ class BridgeWebViewRequestHandler(private val _context: Context, var projectRoot
                 {
                     BRIDGE_API_ENDPOINT_APPS ->
                     {
-                        val serializableApps = _bridge.installedAppsHolder.installedApps.values.map { it.toSerializable() }
-                        val json = Json.encodeToString(ListSerializer(SerializableInstalledApp.serializer()), serializableApps)
+                        val resp = BridgeAPIEndpointAppsResponse(
+                            apps = _bridge.installedAppsHolder.installedApps.values.map { it.toSerializable() },
+                        )
+
+                        val json = Json.encodeToString(BridgeAPIEndpointAppsResponse.serializer(), resp)
 
                         return WebResourceResponse(
                             "application/json",

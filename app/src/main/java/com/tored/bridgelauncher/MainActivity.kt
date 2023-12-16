@@ -2,6 +2,7 @@ package com.tored.bridgelauncher
 
 import android.app.UiModeManager
 import android.content.Context
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Bundle
 import android.os.PersistableBundle
@@ -49,12 +50,19 @@ class MainActivity : ComponentActivity()
         super.onSaveInstanceState(outState, outPersistentState)
     }
 
+    private var _lastNightModeString: String? = null
+
     override fun onConfigurationChanged(newConfig: Configuration)
     {
-        val newNightModeString = getSystemNightModeString(_modeman.nightMode)
-        Log.d(TAG, "onConfigurationChanged: $newNightModeString")
         super.onConfigurationChanged(newConfig)
-        _bridge.bridgeToJSAPI.systemNightModeChanged(newNightModeString)
+
+        val newNightModeString = getSystemNightModeString(_modeman.nightMode)
+        if (newNightModeString != _lastNightModeString)
+        {
+            Log.d(TAG, "onConfigurationChanged: $newNightModeString")
+            _bridge.bridgeToJSAPI.systemNightModeChanged(newNightModeString)
+            _lastNightModeString = newNightModeString
+        }
     }
 
     override fun onStart()
@@ -70,10 +78,20 @@ class MainActivity : ComponentActivity()
         super.onPause()
     }
 
+    private var _lastHasWriteSecureSettingsPerm: Boolean? = null
+
     override fun onResume()
     {
         Log.d(TAG, "onResume")
         super.onResume()
+
+        val newHasWriteSecureSettings = checkSelfPermission(android.Manifest.permission.WRITE_SECURE_SETTINGS) == PackageManager.PERMISSION_GRANTED
+        if (newHasWriteSecureSettings != _lastHasWriteSecureSettingsPerm)
+        {
+            _bridge.bridgeToJSAPI.canSetSystemNightModeChanged(newHasWriteSecureSettings)
+            _lastHasWriteSecureSettingsPerm = newHasWriteSecureSettings
+        }
+
         _bridge.hasStoragePerms = hasStoragePerms()
         _bridge.bridgeToJSAPI.afterResume()
     }

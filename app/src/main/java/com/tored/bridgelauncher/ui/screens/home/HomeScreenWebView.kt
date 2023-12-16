@@ -71,8 +71,8 @@ fun HomeScreenWebView(
                 if (new.navigationBarAppearance != old.navigationBarAppearance)
                     navigationBarAppearanceChanged(getSystemBarAppearanceString(new.navigationBarAppearance))
 
-                if (new.isDeviceAdminEnabled != old.isDeviceAdminEnabled)
-                    canLockScreenChanged(new.isDeviceAdminEnabled)
+                if (new.isDeviceAdminEnabled != old.isDeviceAdminEnabled || new.allowProjectsToTurnScreenOff != old.allowProjectsToTurnScreenOff)
+                    canLockScreenChanged(new.isDeviceAdminEnabled && new.allowProjectsToTurnScreenOff)
             }
 
             settingsState = new
