@@ -20,6 +20,22 @@ fun getBridgeButtonVisiblityString(showBridgeButton: Boolean): String
     }
 }
 
+
+enum class OverscrollEffects(val value: String)
+{
+    Default("default"),
+    None("none"),
+}
+
+fun getOverscrollEffects(draw: Boolean): String
+{
+    return when (draw)
+    {
+        true -> OverscrollEffects.Default.value
+        false -> OverscrollEffects.None.value
+    }
+}
+
 fun getBridgeThemeString(theme: ThemeOptions): String
 {
     return when (theme)

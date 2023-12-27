@@ -18,7 +18,7 @@ import com.tored.bridgelauncher.ui.screens.settings.SettingsSection
 @Composable
 fun SettingsAboutSection()
 {
-    SettingsSection(label = "About & Contact", iconResId = R.drawable.ic_about)
+    SettingsSection(label = "About", iconResId = R.drawable.ic_about)
     {
         Column(
             modifier = Modifier
@@ -27,12 +27,17 @@ fun SettingsAboutSection()
             horizontalAlignment = Alignment.End,
         )
         {
-            Text("Bridge Launcher is an attempt at making launcher development approachable by reducing dealing with Android to using a simple API.\n"
-                    + "Designed & written by Tored.")
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text("Designed & written by Tored.")
+                Text("Bridge Launcher is my attempt at making launcher development approachable by reducing dealing with Android to using a simple API.")
+                Text("Contact information available on the project home page. This is to avoid having to update the app just to change some links.")
+            }
 
-            val context=  LocalContext.current
-            Btn(text = "GitHub repository", suffixIcon = R.drawable.ic_open_in_new, onClick = {
-                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/theothertored/bridgelauncher")))
+            val context = LocalContext.current
+            Btn(text = "Project home", suffixIcon = R.drawable.ic_open_in_new, onClick = {
+                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/bridgelauncher")))
             })
         }
     }

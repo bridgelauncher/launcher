@@ -33,10 +33,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tored.bridgelauncher.BridgeLauncherApp
+import com.tored.bridgelauncher.annotations.DontReset
 import com.tored.bridgelauncher.composables.Btn
 import com.tored.bridgelauncher.settings.SettingsState
 import com.tored.bridgelauncher.settings.SettingsVM
@@ -53,10 +55,13 @@ import com.tored.bridgelauncher.ui.screens.settings.sections.SettingsOverlaysSec
 import com.tored.bridgelauncher.ui.screens.settings.sections.SettingsProjectSection
 import com.tored.bridgelauncher.ui.screens.settings.sections.SettingsSystemWallpaperSection
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
+import com.tored.bridgelauncher.utils.getPrefKeyName
 import com.tored.bridgelauncher.utils.showErrorToast
 import com.tored.bridgelauncher.utils.writeDir
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlin.reflect.full.hasAnnotation
+import kotlin.reflect.full.memberProperties
 
 @Composable
 fun SettingsScreen(
@@ -176,7 +181,14 @@ fun SettingsScreen(
                                         try
                                         {
                                             vm.edit {
-                                                clear()
+
+                                                // only reset properties that aren't tagged with @DontReset
+                                                SettingsState::class.memberProperties
+                                                    .filter { !it.hasAnnotation<DontReset>() }
+                                                    .forEach {
+                                                        this.remove(booleanPreferencesKey(getPrefKeyName(it)))
+                                                    }
+
                                                 Toast.makeText(context, "Settings reset.", Toast.LENGTH_SHORT).show()
                                                 showDialog = false
                                             }

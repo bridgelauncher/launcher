@@ -3,6 +3,7 @@ package com.tored.bridgelauncher.ui.screens.settings.sections
 import android.app.admin.DevicePolicyManager
 import android.content.ComponentName
 import android.content.Intent
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
@@ -17,6 +18,8 @@ import com.tored.bridgelauncher.ui.screens.settings.SettingsSection
 import com.tored.bridgelauncher.ui.shared.CheckboxField
 import com.tored.bridgelauncher.utils.displayNameFor
 import com.tored.bridgelauncher.utils.writeBool
+
+private  const val TAG = "SettProjSect"
 
 @Composable
 fun SettingsProjectSection(
@@ -47,15 +50,17 @@ fun SettingsProjectSection(
             else
                 "Tap to grant Bridge device admin permissions.",
             isChecked = prop.getValue(uiState, prop),
-            onCheckedChange = { isChecked ->
+            onCheckedChange = { newChecked ->
                 if (uiState.isDeviceAdminEnabled)
                 {
+                    Log.d(TAG, "Device admin already enabled. Setting checked to $newChecked")
                     vm.edit {
-                        writeBool(prop, isChecked)
+                        writeBool(prop, newChecked)
                     }
                 }
                 else
                 {
+                    Log.d(TAG, "Device admin is not enabled. Redirecting user to settings.")
                     context.startActivity(
                         Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN).apply {
                             putExtra(

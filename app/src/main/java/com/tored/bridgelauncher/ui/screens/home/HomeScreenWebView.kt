@@ -29,6 +29,7 @@ import com.tored.bridgelauncher.webview.jsapi.BridgeToJSAPI
 import com.tored.bridgelauncher.webview.jsapi.JSToBridgeAPI
 import com.tored.bridgelauncher.webview.jsapi.getBridgeButtonVisiblityString
 import com.tored.bridgelauncher.webview.jsapi.getBridgeThemeString
+import com.tored.bridgelauncher.webview.jsapi.getOverscrollEffects
 import com.tored.bridgelauncher.webview.jsapi.getSystemBarAppearanceString
 import com.tored.bridgelauncher.webview.serve.BRIDGE_PROJECT_URL
 import com.tored.bridgelauncher.webview.serve.BridgeWebViewRequestHandler
@@ -62,6 +63,9 @@ fun HomeScreenWebView(
                 if (new.drawSystemWallpaperBehindWebView != old.drawSystemWallpaperBehindWebView)
                     drawSystemWallpaperBehindWebViewChanged(new.drawSystemWallpaperBehindWebView)
 
+                if (new.drawWebViewOverscrollEffects != old.drawWebViewOverscrollEffects)
+                    overscrollEffectsChanged(getOverscrollEffects(new.drawWebViewOverscrollEffects))
+
                 if (new.theme != old.theme)
                     bridgeThemeChanged(getBridgeThemeString(new.theme))
 
@@ -93,7 +97,13 @@ fun HomeScreenWebView(
     val chromeClient = remember {
         BridgeWebChromeClient(
             consoleMessageCallback = {
+
+                // cap the console message list to 2K entries to avoid expanding forever
+                if (bridge.consoleMessagesHolder.messages.size >= 2000)
+                    bridge.consoleMessagesHolder.messages.removeFirst()
+
                 bridge.consoleMessagesHolder.messages.add(it)
+
                 return@BridgeWebChromeClient true
             }
         )

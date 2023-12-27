@@ -73,6 +73,21 @@ class JSToBridgeAPI(
     @JavascriptInterface
     fun getAndroidAPILevel() = Build.VERSION.SDK_INT
 
+
+    @JavascriptInterface
+    fun getBridgeVersionCode() = _context.packageManager
+        .getPackageInfo(_context.packageName, 0)
+        .run {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+                longVersionCode
+            else
+                versionCode.toLong()
+        }
+
+    @JavascriptInterface
+    fun getBridgeVersionName(): String = _context.packageManager.getPackageInfo(_context.packageName, 0).versionName ?: ""
+
+
     @JavascriptInterface
     fun getLastErrorMessage() = _lastException?.messageOrDefault()
 
@@ -214,6 +229,35 @@ class JSToBridgeAPI(
     // endregion
 
 
+    // region overscroll effects
+
+    @JavascriptInterface
+    fun getOverscrollEffects(): String
+    {
+        return getOverscrollEffects(settingsState.drawWebViewOverscrollEffects)
+    }
+
+    @JvmOverloads
+    @JavascriptInterface
+    fun requestSetOverscrollEffects(effects: String, showToastIfFailed: Boolean = true): Boolean
+    {
+        return _context.tryEditPrefs(showToastIfFailed)
+        {
+            it.writeBool(
+                SettingsState::drawWebViewOverscrollEffects,
+                when (effects)
+                {
+                    OverscrollEffects.Default.value -> true
+                    OverscrollEffects.None.value -> false
+                    else -> throw Exception("Effects must be either \"${OverscrollEffects.Default.value}\" or \"${OverscrollEffects.None.value}\" (got \"$effects\").")
+                }
+            )
+        }
+    }
+
+    // endregion
+
+
     // region system night mode
 
     @JavascriptInterface
@@ -231,7 +275,8 @@ class JSToBridgeAPI(
     @JavascriptInterface
     fun getCanSetSystemNightMode(): Boolean
     {
-        // TODO
+        return ActivityCompat.checkSelfPermission(_context, "android.permission.MODIFY_DAY_NIGHT_MODE") == PackageManager.PERMISSION_GRANTED
+                || ActivityCompat.checkSelfPermission(_context, Manifest.permission.WRITE_SECURE_SETTINGS) == PackageManager.PERMISSION_GRANTED
     }
 
     @SuppressLint("WrongConstant")

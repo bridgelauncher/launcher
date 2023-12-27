@@ -34,6 +34,7 @@ class BridgeToJSAPI
 
     fun bridgeButtonVisibilityChanged(newValue: String) = notify("bridgeButtonVisibilityChanged", newValue)
     fun drawSystemWallpaperBehindWebViewChanged(newValue: Boolean) = notify("drawSystemWallpaperBehindWebViewChanged", newValue)
+    fun overscrollEffectsChanged(newValue: String) = notify("overscrollEffectsChanged", newValue)
     fun bridgeThemeChanged(newValue: String) = notify("bridgeThemeChanged", newValue)
     fun statusBarAppearanceChanged(newValue: String) = notify("statusBarAppearanceChanged", newValue)
     fun navigationBarAppearanceChanged(newValue: String) = notify("navigationBarAppearanceChanged", newValue)
@@ -137,5 +138,3 @@ class BridgeToJSAPI
         }
     }
 }
-
-fun String.escapeSinglequotes() = replace("'", "\\'")

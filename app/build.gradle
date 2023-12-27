@@ -14,10 +14,10 @@ android {
         applicationId "com.tored.bridgelauncher"
         minSdk 24
         targetSdk 34
-        versionCode 1
-        versionName "0.0.1"
+        versionCode 2
+        versionName "0.0.2"
         versionNameSuffix "alpha"
-        archivesBaseName = "${applicationId}_v${versionName}${if(versionNameSuffix?.isAllWhitespace() ?: true) "" else "-${versionNameSuffix}"}_${versionCode}"
+        archivesBaseName = "${applicationId}_${versionCode}_v${versionName}${if(versionNameSuffix?.isAllWhitespace() ?: true) "" else "-${versionNameSuffix}"}"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

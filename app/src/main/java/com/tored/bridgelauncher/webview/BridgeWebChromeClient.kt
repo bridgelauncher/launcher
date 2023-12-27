@@ -16,4 +16,6 @@ class BridgeWebChromeClient(
 
         return super.onConsoleMessage(consoleMessage)
     }
+
+
 }

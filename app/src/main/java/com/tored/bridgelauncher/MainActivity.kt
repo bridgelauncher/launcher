@@ -10,6 +10,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.core.app.ActivityCompat
 import com.tored.bridgelauncher.ui.screens.home.HomeScreen
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
 import com.tored.bridgelauncher.utils.hasStoragePerms
@@ -78,18 +79,20 @@ class MainActivity : ComponentActivity()
         super.onPause()
     }
 
-    private var _lastHasWriteSecureSettingsPerm: Boolean? = null
+    private var _lastCanSetSystemNightMode: Boolean? = null
 
     override fun onResume()
     {
         Log.d(TAG, "onResume")
         super.onResume()
 
-        val newHasWriteSecureSettings = checkSelfPermission(android.Manifest.permission.WRITE_SECURE_SETTINGS) == PackageManager.PERMISSION_GRANTED
-        if (newHasWriteSecureSettings != _lastHasWriteSecureSettingsPerm)
+        val canSetSystemNightMode = ActivityCompat.checkSelfPermission(this, "android.permission.MODIFY_DAY_NIGHT_MODE") == PackageManager.PERMISSION_GRANTED
+                || checkSelfPermission(android.Manifest.permission.WRITE_SECURE_SETTINGS) == PackageManager.PERMISSION_GRANTED
+
+        if (canSetSystemNightMode != _lastCanSetSystemNightMode)
         {
-            _bridge.bridgeToJSAPI.canSetSystemNightModeChanged(newHasWriteSecureSettings)
-            _lastHasWriteSecureSettingsPerm = newHasWriteSecureSettings
+            _bridge.bridgeToJSAPI.canSetSystemNightModeChanged(canSetSystemNightMode)
+            _lastCanSetSystemNightMode = canSetSystemNightMode
         }
 
         _bridge.hasStoragePerms = hasStoragePerms()
