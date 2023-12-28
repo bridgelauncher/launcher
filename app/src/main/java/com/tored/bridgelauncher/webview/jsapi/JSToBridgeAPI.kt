@@ -198,7 +198,7 @@ class JSToBridgeAPI(
                 when (state)
                 {
                     BridgeButtonVisibility.Shown.value -> true
-                    BridgeButtonVisibility.Hidden.value -> true
+                    BridgeButtonVisibility.Hidden.value -> false
                     else -> throw Exception("State must be either \"${BridgeButtonVisibility.Shown.value}\" or \"${BridgeButtonVisibility.Hidden.value}\" (got \"$state\").")
                 }
             )

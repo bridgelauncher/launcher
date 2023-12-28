@@ -10,6 +10,7 @@ import android.util.Log
 import androidx.core.graphics.drawable.toBitmap
 import com.tored.bridgelauncher.ui.dirpicker.Directory
 import com.tored.bridgelauncher.webview.jsapi.BridgeEventArgs
+import com.tored.bridgelauncher.webview.serve.BridgeAPIEndpointAppsResponse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
@@ -157,8 +158,9 @@ class InstalledAppsStateHolder(
             launch {
                 notifyAboutJob {
                     val apps = installedApps.values.map { it.toSerializable() }
+                    val resp = BridgeAPIEndpointAppsResponse(apps)
                     val appsFile = File(dir, "apps.json")
-                    val appsStr = Json.encodeToString(ListSerializer(SerializableInstalledApp.serializer()), apps)
+                    val appsStr = Json.encodeToString(BridgeAPIEndpointAppsResponse.serializer(), resp)
                     appsFile.writeText(appsStr)
                 }
             }
