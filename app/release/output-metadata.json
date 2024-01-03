@@ -11,9 +11,9 @@
       "type": "SINGLE",
       "filters": [],
       "attributes": [],
-      "versionCode": 1,
-      "versionName": "0.0.1alpha",
-      "outputFile": "com.tored.bridgelauncher_v0.0.1_1-release.apk"
+      "versionCode": 3,
+      "versionName": "0.0.3alpha",
+      "outputFile": "com.tored.bridgelauncher_3_v0.0.3-release.apk"
     }
   ],
   "elementType": "File"
