@@ -20,6 +20,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tored.bridgelauncher.BridgeLauncherApp
 import com.tored.bridgelauncher.settings.SettingsState
 import com.tored.bridgelauncher.settings.SettingsVM
+import com.tored.bridgelauncher.settings.getCanLockScreen
 import com.tored.bridgelauncher.webview.BridgeWebChromeClient
 import com.tored.bridgelauncher.webview.BridgeWebViewClient
 import com.tored.bridgelauncher.webview.WebView
@@ -75,8 +76,8 @@ fun HomeScreenWebView(
                 if (new.navigationBarAppearance != old.navigationBarAppearance)
                     navigationBarAppearanceChanged(getSystemBarAppearanceString(new.navigationBarAppearance))
 
-                if (new.isDeviceAdminEnabled != old.isDeviceAdminEnabled || new.allowProjectsToTurnScreenOff != old.allowProjectsToTurnScreenOff)
-                    canLockScreenChanged(new.isDeviceAdminEnabled && new.allowProjectsToTurnScreenOff)
+                if (new.getCanLockScreen() != old.getCanLockScreen())
+                    canLockScreenChanged(new.getCanLockScreen())
             }
 
             settingsState = new

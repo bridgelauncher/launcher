@@ -12,7 +12,7 @@ import com.tored.bridgelauncher.composables.Btn
 import com.tored.bridgelauncher.settings.SettingsState
 import com.tored.bridgelauncher.ui.screens.settings.SettingsCheckboxFieldFor
 import com.tored.bridgelauncher.ui.screens.settings.SettingsSection
-import com.tored.bridgelauncher.utils.startWallpaperPickerActivity
+import com.tored.bridgelauncher.utils.tryStartWallpaperPickerActivity
 
 @Composable
 fun SettingsSystemWallpaperSection()
@@ -30,7 +30,7 @@ fun SettingsSystemWallpaperSection()
                 modifier = Modifier
                     .fillMaxWidth(),
                 outlined = true,
-                onClick = { context.startWallpaperPickerActivity() },
+                onClick = { context.tryStartWallpaperPickerActivity() },
             )
 
             SettingsCheckboxFieldFor(SettingsState::drawSystemWallpaperBehindWebView)

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/accessibility_service_desc"
+    android:settingsActivity="com.tored.bridgelauncher.SettingsActivity"
+    android:accessibilityFlags="flagDefault"
+    android:canRequestFilterKeyEvents="false"
+    android:canRequestEnhancedWebAccessibility="false"
+    android:canRetrieveWindowContent="false"
+    android:notificationTimeout="100"
+    android:canRequestTouchExplorationMode="false"
+    android:packageNames="com.tored.bridgelauncher"    />

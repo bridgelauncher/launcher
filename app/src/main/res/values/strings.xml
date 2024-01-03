@@ -1,4 +1,6 @@
 <resources>
     <string name="app_name">Bridge Launcher</string>
     <string name="device_admin_prompt_desc">Enable to be able to allow projects to lock the screen.</string>
+    <string name="accessibility_service_desc">Enable to allow projects to lock the screen.</string>
+    <string name="accessibility_service_label">Bridge Launcher Accessibility Service</string>
 </resources>

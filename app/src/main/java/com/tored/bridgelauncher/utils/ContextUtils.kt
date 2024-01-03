@@ -37,7 +37,24 @@ fun Context.launchApp(packageName: String)
         throw Exception("Launch intent not found.")
 }
 
+fun Context.tryStartWallpaperPickerActivity()
+{
+    tryStartActivity(Intent(Intent.ACTION_SET_WALLPAPER))
+}
+
 fun Context.startWallpaperPickerActivity()
 {
     startActivity(Intent(Intent.ACTION_SET_WALLPAPER))
+}
+
+fun Context.tryStartActivity(intent: Intent)
+{
+    try
+    {
+        startActivity(intent)
+    }
+    catch (ex: Exception)
+    {
+        showErrorToast(ex)
+    }
 }

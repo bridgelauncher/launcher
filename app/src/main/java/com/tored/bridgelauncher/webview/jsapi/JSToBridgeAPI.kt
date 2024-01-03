@@ -1,14 +1,14 @@
 package com.tored.bridgelauncher.webview.jsapi
 
 import android.Manifest
+import android.accessibilityservice.AccessibilityService
 import android.annotation.SuppressLint
 import android.app.UiModeManager
 import android.app.WallpaperManager
-import android.app.admin.DevicePolicyManager
-import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.Build.VERSION_CODES
 import android.os.Bundle
 import android.provider.Settings
 import android.util.DisplayMetrics
@@ -19,9 +19,10 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.edit
-import com.tored.bridgelauncher.services.BridgeLauncherDeviceAdminReceiver
+import com.tored.bridgelauncher.services.BridgeLauncherAccessibilityService
 import com.tored.bridgelauncher.settings.SettingsState
 import com.tored.bridgelauncher.settings.ThemeOptions
+import com.tored.bridgelauncher.settings.getCanLockScreen
 import com.tored.bridgelauncher.settings.settingsDataStore
 import com.tored.bridgelauncher.utils.getIsSystemInNightMode
 import com.tored.bridgelauncher.utils.launchApp
@@ -54,8 +55,6 @@ class JSToBridgeAPI(
 {
     private val _wallman = _context.getSystemService(Context.WALLPAPER_SERVICE) as WallpaperManager
     private val _modeman = _context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
-    private val _dpman = _context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
-    private val _adminReceiverComponentName = ComponentName(_context, BridgeLauncherDeviceAdminReceiver::class.java)
 
     var windowInsetsSnapshot = WindowInsetsSnapshots()
     var displayCutoutPathSnapshot: String? = null
@@ -78,7 +77,8 @@ class JSToBridgeAPI(
     fun getBridgeVersionCode() = _context.packageManager
         .getPackageInfo(_context.packageName, 0)
         .run {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+            @Suppress("DEPRECATION")
+            if (Build.VERSION.SDK_INT >= VERSION_CODES.P)
                 longVersionCode
             else
                 versionCode.toLong()
@@ -294,12 +294,12 @@ class JSToBridgeAPI(
                 "yes" -> UiModeManager.MODE_NIGHT_YES
                 "auto" -> UiModeManager.MODE_NIGHT_AUTO
 
-                "custom" -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+                "custom" -> if (Build.VERSION.SDK_INT >= VERSION_CODES.R)
                     UiModeManager.MODE_NIGHT_CUSTOM
                 else
-                    throw Exception("\"custom\" requires API level 30.")
+                    throw Exception("\"custom\" requires API level 30 (Android 11).")
 
-                else -> throw Exception("Mode must be one of ${q("no")}, ${q("yes")}, ${q("auto")} or, from API level 30, ${q("custom")} (got ${q(mode)}).")
+                else -> throw Exception("Mode must be one of ${q("no")}, ${q("yes")}, ${q("auto")} or, from API level 30 (Android 11), ${q("custom")} (got ${q(mode)}).")
             }
 
             val hasModifyPerm = ActivityCompat.checkSelfPermission(_context, "android.permission.MODIFY_DAY_NIGHT_MODE") == PackageManager.PERMISSION_GRANTED
@@ -325,7 +325,7 @@ class JSToBridgeAPI(
                         .makeText(
                             _context,
                             "To set system night mode, Bridge needs the WRITE_SECURE_SETTINGS permission, which can be granted via ADB. "
-                                    + "Check the Developer Hub (link in settings) for more information.",
+                                    + "Check documentation for more information.",
                             Toast.LENGTH_LONG
                         )
                         .show()
@@ -427,7 +427,7 @@ class JSToBridgeAPI(
     @JavascriptInterface
     fun getCanLockScreen(): Boolean
     {
-        return _dpman.isAdminActive(_adminReceiverComponentName) && settingsState.allowProjectsToTurnScreenOff
+        return settingsState.getCanLockScreen()
     }
 
     @JvmOverloads
@@ -436,13 +436,27 @@ class JSToBridgeAPI(
     {
         try
         {
-            if (_dpman.isAdminActive(_adminReceiverComponentName))
+            if (Build.VERSION.SDK_INT < VERSION_CODES.P)
             {
-                _dpman.lockNow()
-                return true
+                throw Exception("Locking the screen requires API level 28 (Android 9).")
+            }
+            else if (!settingsState.isAccessibilityServiceEnabled)
+            {
+                throw Exception("Bridge Accessibility Service is not enabled. Visit Bridge Settings to resolve the issue.")
+            }
+            else if (!settingsState.allowProjectsToTurnScreenOff)
+            {
+                throw Exception("Projects are not allowed to lock the screen. Visit Bridge Settings to resolve the issue.")
+            }
+            else if (BridgeLauncherAccessibilityService.instance == null)
+            {
+                throw Exception("Cannot access the Bridge Accessibility Service instance. This is a bug.")
             }
             else
-                throw Exception("Bridge is not a device admin. Visit Bridge settings to resolve this issue.")
+            {
+                BridgeLauncherAccessibilityService.instance?.performGlobalAction(AccessibilityService.GLOBAL_ACTION_LOCK_SCREEN)
+                return true
+            }
         }
         catch (ex: Exception)
         {

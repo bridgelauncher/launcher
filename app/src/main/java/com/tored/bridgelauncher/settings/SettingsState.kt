@@ -1,5 +1,7 @@
 package com.tored.bridgelauncher.settings
 
+import android.os.Build
+import android.os.Build.VERSION_CODES
 import com.tored.bridgelauncher.annotations.Display
 import com.tored.bridgelauncher.annotations.DontReset
 import com.tored.bridgelauncher.ui.dirpicker.Directory
@@ -25,6 +27,8 @@ data class SettingsState(
     val isQSTileAdded: Boolean = false,
     @DontReset
     val isDeviceAdminEnabled: Boolean = false,
+    @DontReset
+    val isAccessibilityServiceEnabled: Boolean = false,
     @DontReset
     val isExternalStorageManager: Boolean = false,
 
@@ -54,3 +58,10 @@ data class SettingsState(
     @Display("Show Launch apps button when the Bridge menu is collapsed")
     val showLaunchAppsWhenBridgeButtonCollapsed: Boolean = false,
 )
+
+fun SettingsState.getCanLockScreen(): Boolean
+{
+    return Build.VERSION.SDK_INT >= VERSION_CODES.P
+            && isAccessibilityServiceEnabled
+            && allowProjectsToTurnScreenOff
+}

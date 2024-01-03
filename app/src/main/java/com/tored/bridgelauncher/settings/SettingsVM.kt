@@ -39,6 +39,7 @@ class SettingsVM @Inject constructor(
                         isQSTileAdded = prefs.readBool(SettingsState::isQSTileAdded, false),
                         isDeviceAdminEnabled = prefs.readBool(SettingsState::isDeviceAdminEnabled, false),
                         isExternalStorageManager = prefs.readBool(SettingsState::isExternalStorageManager, false),
+                        isAccessibilityServiceEnabled = prefs.readBool(SettingsState::isAccessibilityServiceEnabled, false),
 
                         theme = prefs.readEnum(SettingsState::theme, ThemeOptions.System),
 

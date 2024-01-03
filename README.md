@@ -5,7 +5,7 @@ An Android launcher that is a middleman between your HTML, JS and CSS and the An
 ## Getting started
 
 Download and install from the [releases tab](https://github.com/bridgelauncher/launcher/releases).  
-Read more about the Bridge system from the [project home](https://github.com/bridgelauncher)
+Read more about the Bridge system from the [project home](https://github.com/bridgelauncher).
 
 ## Links
 
