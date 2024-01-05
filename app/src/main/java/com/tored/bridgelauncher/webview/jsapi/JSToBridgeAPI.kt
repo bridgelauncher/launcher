@@ -5,6 +5,7 @@ import android.accessibilityservice.AccessibilityService
 import android.annotation.SuppressLint
 import android.app.UiModeManager
 import android.app.WallpaperManager
+import android.app.admin.DevicePolicyManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
@@ -55,6 +56,7 @@ class JSToBridgeAPI(
 {
     private val _wallman = _context.getSystemService(Context.WALLPAPER_SERVICE) as WallpaperManager
     private val _modeman = _context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
+    private val _dpman = _context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
 
     var windowInsetsSnapshot = WindowInsetsSnapshots()
     var displayCutoutPathSnapshot: String? = null
@@ -436,27 +438,37 @@ class JSToBridgeAPI(
     {
         try
         {
-            if (Build.VERSION.SDK_INT < VERSION_CODES.P)
+            if (Build.VERSION.SDK_INT < VERSION_CODES.P && !settingsState.isDeviceAdminEnabled)
             {
-                throw Exception("Locking the screen requires API level 28 (Android 9).")
+                throw Exception("Bridge is not a device admin. Visit Bridge Settings to resolve the issue.")
             }
-            else if (!settingsState.isAccessibilityServiceEnabled)
+            else if (Build.VERSION.SDK_INT >= VERSION_CODES.P && !settingsState.isAccessibilityServiceEnabled)
             {
                 throw Exception("Bridge Accessibility Service is not enabled. Visit Bridge Settings to resolve the issue.")
             }
-            else if (!settingsState.allowProjectsToTurnScreenOff)
+
+            if (!settingsState.allowProjectsToTurnScreenOff)
             {
                 throw Exception("Projects are not allowed to lock the screen. Visit Bridge Settings to resolve the issue.")
             }
-            else if (BridgeLauncherAccessibilityService.instance == null)
+
+            if (Build.VERSION.SDK_INT < VERSION_CODES.P)
             {
-                throw Exception("Cannot access the Bridge Accessibility Service instance. This is a bug.")
+                _dpman.lockNow()
             }
             else
             {
-                BridgeLauncherAccessibilityService.instance?.performGlobalAction(AccessibilityService.GLOBAL_ACTION_LOCK_SCREEN)
-                return true
+                if (BridgeLauncherAccessibilityService.instance == null)
+                {
+                    throw Exception("Cannot access the Bridge Accessibility Service instance. This is a bug.")
+                }
+                else
+                {
+                    BridgeLauncherAccessibilityService.instance?.performGlobalAction(AccessibilityService.GLOBAL_ACTION_LOCK_SCREEN)
+                }
             }
+            
+            return true
         }
         catch (ex: Exception)
         {

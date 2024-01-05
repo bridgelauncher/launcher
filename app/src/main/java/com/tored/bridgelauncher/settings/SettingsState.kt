@@ -61,7 +61,11 @@ data class SettingsState(
 
 fun SettingsState.getCanLockScreen(): Boolean
 {
-    return Build.VERSION.SDK_INT >= VERSION_CODES.P
-            && isAccessibilityServiceEnabled
+    return (
+            if (Build.VERSION.SDK_INT >= VERSION_CODES.P)
+                isAccessibilityServiceEnabled
+            else
+                isDeviceAdminEnabled
+            )
             && allowProjectsToTurnScreenOff
 }
