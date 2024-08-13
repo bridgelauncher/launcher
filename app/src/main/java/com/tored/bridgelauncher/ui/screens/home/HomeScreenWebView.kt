@@ -157,6 +157,8 @@ fun HomeScreenWebView(
                 allowFileAccessFromFileURLs = false
                 allowUniversalAccessFromFileURLs = false
                 allowContentAccess = true
+
+                mediaPlaybackRequiresUserGesture = false
             }
 
             webView.setBackgroundColor(Color.Transparent.toArgb())
