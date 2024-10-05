@@ -254,13 +254,15 @@ fun SettingsScreen(
                 dirPickerFilterOrCreateDirText = ""
             },
             onCreateDirRequest = {
-                val dir = dirPickerCurrentDir
                 val name = dirPickerFilterOrCreateDirText
-                if (dir != null && name.isNotBlank())
+                if (name.isNotBlank())
                 {
                     try
                     {
-                        val newDir = Directory(dirPickerCurrentDir, name)
+                        val newDir = Directory(
+                            dirPickerCurrentDir ?: Environment.getExternalStorageDirectory(),
+                            name
+                        )
                         newDir.mkdir()
                         dirPickerCurrentDir = newDir
                         dirPickerFilterOrCreateDirText = ""

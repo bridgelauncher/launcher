@@ -6,6 +6,7 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
+import android.os.Build
 import android.util.Log
 import androidx.core.graphics.drawable.toBitmap
 import com.tored.bridgelauncher.ui.dirpicker.Directory
@@ -15,7 +16,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.text.Normalizer
@@ -71,8 +71,23 @@ class InstalledAppsStateHolder(
     {
         installedApps.clear()
 
-        _pm.getInstalledApplications(PackageManager.GET_META_DATA)
-            .forEach { setAppFromAppInfo(it) }
+        val queryIntent = Intent(Intent.ACTION_MAIN).also { it.addCategory(Intent.CATEGORY_LAUNCHER) }
+        val activities = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+        {
+            _pm.queryIntentActivities(
+                queryIntent,
+                PackageManager.ResolveInfoFlags.of(PackageManager.MATCH_ALL.toLong())
+            )
+        }
+        else
+        {
+            _pm.queryIntentActivities(
+                queryIntent,
+                PackageManager.MATCH_ALL
+            )
+        }
+
+        activities.forEach { setAppFromAppInfo(it.activityInfo.applicationInfo) }
     }
 
     private fun setAppFromAppInfo(app: ApplicationInfo): InstalledApp?
