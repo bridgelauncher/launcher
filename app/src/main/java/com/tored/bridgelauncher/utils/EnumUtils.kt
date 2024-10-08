@@ -20,3 +20,12 @@ inline fun <reified TEnum> intToEnumOrDefault(int: Int?, default: TEnum): TEnum
     else
         valueOf(int) ?: default
 }
+
+inline fun <reified TEnum> parseAsEnumOrNull(rawValue: String?): TEnum?
+        where TEnum : Enum<TEnum>, TEnum : RawRepresentable<String>
+{
+    return if (rawValue == null)
+        null
+    else
+        valueOf(rawValue)
+}

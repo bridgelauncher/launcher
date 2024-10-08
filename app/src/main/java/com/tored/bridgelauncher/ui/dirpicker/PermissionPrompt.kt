@@ -1,6 +1,5 @@
 package com.tored.bridgelauncher.ui.dirpicker
 
-import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -15,6 +14,7 @@ import com.tored.bridgelauncher.R
 import com.tored.bridgelauncher.composables.Btn
 import com.tored.bridgelauncher.composables.ResIcon
 import com.tored.bridgelauncher.ui.theme.textSec
+import com.tored.bridgelauncher.utils.CurrentAndroidVersion
 
 @Composable
 fun DirPickerPermissionPrompt(
@@ -45,7 +45,7 @@ fun DirPickerPermissionPrompt(
         }
 
         // scoped storage
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+        if (CurrentAndroidVersion.supportsScopedStorage())
         {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,

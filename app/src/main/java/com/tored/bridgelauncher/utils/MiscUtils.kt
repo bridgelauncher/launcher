@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
-import android.os.Build
 import android.os.Environment
 import android.widget.Toast
 import androidx.compose.runtime.Composable
@@ -14,9 +13,14 @@ import com.tored.bridgelauncher.annotations.Display
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotation
 
-fun Context.hasStoragePerms(): Boolean
+fun <E> MutableList<E>.addAll(vararg items: E)
 {
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+    this.addAll(items)
+}
+
+fun Context.checkStoragePerms(): Boolean
+{
+    return if (CurrentAndroidVersion.supportsScopedStorage())
     {
         // we need a special permission on Android 11 and up
         Environment.isExternalStorageManager()
@@ -30,7 +34,7 @@ fun Context.hasStoragePerms(): Boolean
 
 fun Context.startExtStorageManagerPermissionActivity(): Unit
 {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager())
+    if (CurrentAndroidVersion.supportsScopedStorage() && !Environment.isExternalStorageManager())
     {
         try
         {
@@ -43,7 +47,7 @@ fun Context.startExtStorageManagerPermissionActivity(): Unit
         }
         catch (ex: Exception)
         {
-            android.widget.Toast.makeText(this, "Could not navigate to settings to grant access to all files.", android.widget.Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Could not navigate to settings to grant access to all files.", android.widget.Toast.LENGTH_LONG).show()
         }
     }
 }
@@ -79,7 +83,7 @@ fun Context.showErrorToast(message: String?)
 
 fun Context.getIsSystemInNightMode(): Boolean
 {
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+    return if (CurrentAndroidVersion.supportsNightMode())
     {
         resources.configuration.isNightModeActive
     }
@@ -89,4 +93,10 @@ fun Context.getIsSystemInNightMode(): Boolean
     }
 }
 
-fun q(s: String) = "\"$s\""
+/** Quote - wraps the given string in quotation marks. */
+fun q(s: String?) = "\"$s\""
+
+object EncodingStrings
+{
+    const val UTF8 = "utf-8"
+}

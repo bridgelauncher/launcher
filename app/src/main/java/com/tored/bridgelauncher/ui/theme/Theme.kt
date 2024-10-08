@@ -16,8 +16,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.tored.bridgelauncher.settings.SettingsVM
-import com.tored.bridgelauncher.settings.ThemeOptions
+import com.tored.bridgelauncher.services.settings.SettingsVM
+import com.tored.bridgelauncher.services.settings.ThemeOptions
 import com.tored.bridgelauncher.utils.ComposableContent
 
 private val DarkColorPalette = darkColors(
@@ -45,9 +45,9 @@ private val LightColorPalette = lightColors(
 )
 
 @Composable
-fun BridgeLauncherTheme(settingsVM: SettingsVM = viewModel(), content: ComposableContent)
+fun BridgeLauncherTheme(settingsVM: SettingsVM = viewModel(factory = SettingsVM.Factory), content: ComposableContent)
 {
-    val state by settingsVM.settingsUIState.collectAsStateWithLifecycle()
+    val state by settingsVM.settingsState.collectAsStateWithLifecycle()
     LaunchedEffect(settingsVM) { settingsVM.request() }
 
     val useDarkTheme = state.theme == ThemeOptions.Dark || (state.theme == ThemeOptions.System && isSystemInDarkTheme())

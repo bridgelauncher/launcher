@@ -11,19 +11,20 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.app.ActivityCompat
-import com.tored.bridgelauncher.ui.screens.home.HomeScreen
+import com.tored.bridgelauncher.api.jsapi.BridgeToJSAPI
+import com.tored.bridgelauncher.api.jsapi.getSystemNightModeString
+import com.tored.bridgelauncher.ui.home.HomeScreen
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
-import com.tored.bridgelauncher.utils.hasStoragePerms
-import com.tored.bridgelauncher.webview.jsapi.getSystemNightModeString
-import dagger.hilt.android.AndroidEntryPoint
+import com.tored.bridgelauncher.utils.checkStoragePerms
 
 private const val TAG = "MainActivity"
 
-@AndroidEntryPoint
 class MainActivity : ComponentActivity()
 {
-    private lateinit var _bridge: BridgeLauncherApp
+    private lateinit var _bridge: BridgeLauncherApplication
     private lateinit var _modeman: UiModeManager
+
+    private lateinit var _bridgeToJSAPI: BridgeToJSAPI
 
     override fun onCreate(savedInstanceState: Bundle?)
     {
@@ -32,9 +33,11 @@ class MainActivity : ComponentActivity()
 
         Log.d(TAG, "onCreate: savedInstanceState == null: ${savedInstanceState == null}")
 
-        _bridge = applicationContext as BridgeLauncherApp
-        _bridge.hasStoragePerms = hasStoragePerms()
+        _bridge = applicationContext as BridgeLauncherApplication
+        _bridge.hasStoragePerms = checkStoragePerms()
         _modeman = getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
+
+        _bridgeToJSAPI = _bridge.serviceProvider.bridgeToJSAPI
 
         setContent {
             BridgeLauncherTheme {
@@ -61,21 +64,21 @@ class MainActivity : ComponentActivity()
         if (newNightModeString != _lastNightModeString)
         {
             Log.d(TAG, "onConfigurationChanged: $newNightModeString")
-            _bridge.bridgeToJSAPI.systemNightModeChanged(newNightModeString)
+            _bridgeToJSAPI.notifySystemNightModeChanged(newNightModeString)
             _lastNightModeString = newNightModeString
         }
     }
 
     override fun onStart()
     {
-        Log.d(TAG, "onPause")
+        Log.d(TAG, "onStart")
         super.onStart()
     }
 
     override fun onPause()
     {
         Log.d(TAG, "onPause")
-        _bridge.bridgeToJSAPI.beforePause()
+        _bridgeToJSAPI.raiseBeforePause()
         super.onPause()
     }
 
@@ -91,12 +94,12 @@ class MainActivity : ComponentActivity()
 
         if (canSetSystemNightMode != _lastCanSetSystemNightMode)
         {
-            _bridge.bridgeToJSAPI.canSetSystemNightModeChanged(canSetSystemNightMode)
+            _bridgeToJSAPI.raiseCanSetSystemNightModeChanged(canSetSystemNightMode)
             _lastCanSetSystemNightMode = canSetSystemNightMode
         }
 
-        _bridge.hasStoragePerms = hasStoragePerms()
-        _bridge.bridgeToJSAPI.afterResume()
+        _bridge.hasStoragePerms = checkStoragePerms()
+        _bridgeToJSAPI.raiseAfterResume()
     }
 
     override fun onStop()

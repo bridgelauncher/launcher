@@ -1,10 +1,14 @@
 package com.tored.bridgelauncher.utils
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
-import com.tored.bridgelauncher.InstalledApp
+import androidx.core.app.ActivityCompat
+import com.tored.bridgelauncher.BridgeLauncherApplication
+import com.tored.bridgelauncher.services.apps.InstalledApp
 
 fun Context.openAppInfo(packageName: String)
 {
@@ -58,3 +62,13 @@ fun Context.tryStartActivity(intent: Intent)
         showErrorToast(ex)
     }
 }
+
+val Context.bridgeLauncherApplication get() = applicationContext as BridgeLauncherApplication
+
+fun Context.checkCanSetSystemNightMode() = ActivityCompat.checkSelfPermission(this, "android.permission.MODIFY_DAY_NIGHT_MODE") == PackageManager.PERMISSION_GRANTED
+    || checkSelfPermission(Manifest.permission.WRITE_SECURE_SETTINGS) == PackageManager.PERMISSION_GRANTED
+
+//fun Context.checkCanLockScreen() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+//    Context.checkIsAccessibilityServiceEnabled()
+//else
+//    Context.checkIsDeviceAdminEnabled()

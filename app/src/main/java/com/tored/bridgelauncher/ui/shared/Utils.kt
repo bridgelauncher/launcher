@@ -1,13 +1,13 @@
 package com.tored.bridgelauncher.ui.shared
 
 import android.app.Activity
-import android.os.Build
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import com.tored.bridgelauncher.utils.CurrentAndroidVersion
 
 @Composable
 fun SetSystemBarsForBotBarActivity()
@@ -26,7 +26,7 @@ fun SetSystemBarsForBotBarActivity()
         {
             val insetsController = WindowCompat.getInsetsController(currentWindow, currentView)
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+            if (CurrentAndroidVersion.supportsNavBarContrastEnforcement())
             {
                 currentWindow.isNavigationBarContrastEnforced = false
             }

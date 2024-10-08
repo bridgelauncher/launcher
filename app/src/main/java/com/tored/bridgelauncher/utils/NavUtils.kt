@@ -2,6 +2,7 @@ package com.tored.bridgelauncher.utils
 
 import android.content.Context
 import android.content.Intent
+import android.provider.Settings
 import com.tored.bridgelauncher.AppDrawerActivity
 import com.tored.bridgelauncher.DevConsoleActivity
 import com.tored.bridgelauncher.SettingsActivity
@@ -19,4 +20,14 @@ fun Context.startBridgeAppDrawerActivity(): Unit
 fun Context.startDevConsoleActivity(): Unit
 {
     startActivity(Intent(this, DevConsoleActivity::class.java))
+}
+
+/** Switch away from Bridge */
+fun Context.startAndroidHomeSettingsActivity(): Unit
+{
+    startActivity(
+        Intent(Settings.ACTION_HOME_SETTINGS).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+    )
 }

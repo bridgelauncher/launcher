@@ -2,23 +2,21 @@ package com.tored.bridgelauncher
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
-import com.tored.bridgelauncher.ui.screens.settings.SettingsScreen
+import com.tored.bridgelauncher.ui.settings.SettingsScreen
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
-import com.tored.bridgelauncher.utils.hasStoragePerms
+import com.tored.bridgelauncher.utils.CurrentAndroidVersion
+import com.tored.bridgelauncher.utils.checkStoragePerms
 import com.tored.bridgelauncher.utils.startExtStorageManagerPermissionActivity
-import dagger.hilt.android.AndroidEntryPoint
 
-@AndroidEntryPoint
 class SettingsActivity : ComponentActivity()
 {
-    private lateinit var _bridge: BridgeLauncherApp
+    private lateinit var _bridge: BridgeLauncherApplication
 
     private val reqStoragePermsLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -33,8 +31,8 @@ class SettingsActivity : ComponentActivity()
     {
         super.onCreate(savedInstanceState)
 
-        _bridge  = applicationContext as BridgeLauncherApp
-        _bridge.hasStoragePerms = hasStoragePerms()
+        _bridge  = applicationContext as BridgeLauncherApplication
+        _bridge.hasStoragePerms = checkStoragePerms()
 
         setContent {
             BridgeLauncherTheme()
@@ -42,7 +40,7 @@ class SettingsActivity : ComponentActivity()
                 SettingsScreen(
                     _bridge.hasStoragePerms,
                     onGrantPermissionRequest = {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+                        if (CurrentAndroidVersion.supportsScopedStorage())
                         {
                             startExtStorageManagerPermissionActivity()
                         }
@@ -74,6 +72,6 @@ class SettingsActivity : ComponentActivity()
     override fun onResume()
     {
         super.onResume()
-        _bridge.hasStoragePerms = hasStoragePerms()
+        _bridge.hasStoragePerms = checkStoragePerms()
     }
 }

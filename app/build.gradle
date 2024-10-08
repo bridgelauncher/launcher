@@ -2,7 +2,6 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-kapt'
-    id 'com.google.dagger.hilt.android'
     id 'org.jetbrains.kotlin.plugin.serialization' version "1.8.10"
 }
 
@@ -17,7 +16,7 @@ android {
         versionCode 3
         versionName "0.0.3"
         versionNameSuffix "alpha"
-        archivesBaseName = "${applicationId}_${versionCode}_v${versionName}${if(versionNameSuffix?.isAllWhitespace() ?: true) "" else "-${versionNameSuffix}"}"
+        archivesBaseName = "${applicationId}_${versionCode}_v${versionName}${if (versionNameSuffix?.isAllWhitespace() ?: true) "" else "-${versionNameSuffix}"}"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -71,14 +70,12 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-runtime-compose:$lifecycle_version"
     implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
-    implementation 'com.google.dagger:hilt-android:2.48.1'
     implementation "com.google.accompanist:accompanist-drawablepainter:0.32.0"
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2"
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-
-    kapt 'com.google.dagger:hilt-compiler:2.48.1'
+    implementation 'org.jetbrains.kotlin:kotlin-test'
 
     testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.jetbrains.kotlin:kotlin-test'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
     androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_ui_version"

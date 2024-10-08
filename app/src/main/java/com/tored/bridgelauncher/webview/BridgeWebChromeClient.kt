@@ -1,21 +1,21 @@
 package com.tored.bridgelauncher.webview
 
 import android.webkit.ConsoleMessage
+import com.tored.bridgelauncher.ConsoleMessagesHolder
 
 class BridgeWebChromeClient(
-    private val consoleMessageCallback: (ConsoleMessage) -> Boolean
+    private val _consoleMessageHolder: ConsoleMessagesHolder
 ) : AccompanistWebChromeClient()
 {
+
     override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean
     {
-        if (consoleMessage != null)
+        return if (consoleMessage != null)
         {
-            val result = consoleMessageCallback(consoleMessage)
-            if (result) return true
+            _consoleMessageHolder.addMessage(consoleMessage)
+            true
         }
-
-        return super.onConsoleMessage(consoleMessage)
+        else
+            super.onConsoleMessage(consoleMessage)
     }
-
-
 }

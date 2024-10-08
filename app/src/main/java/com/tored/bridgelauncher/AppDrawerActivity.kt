@@ -61,13 +61,14 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.tored.bridgelauncher.composables.ResIcon
+import com.tored.bridgelauncher.services.apps.InstalledApp
+import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
 import com.tored.bridgelauncher.ui.shared.SetSystemBarsForBotBarActivity
 import com.tored.bridgelauncher.ui.shared.TextFieldPlaceholderDecorationBox
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
@@ -78,43 +79,44 @@ import com.tored.bridgelauncher.utils.launchApp
 import com.tored.bridgelauncher.utils.openAppInfo
 import com.tored.bridgelauncher.utils.requestAppUninstall
 import com.tored.bridgelauncher.utils.showErrorToast
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlin.coroutines.coroutineContext
 
-
-@AndroidEntryPoint
 class AppDrawerActivity : ComponentActivity()
 {
     override fun onCreate(savedInstanceState: Bundle?)
     {
         super.onCreate(savedInstanceState)
 
+        val bridge = applicationContext as BridgeLauncherApplication
+        val installedAppsHolder = bridge.serviceProvider.installedAppsHolder
+
         setContent {
             BridgeLauncherTheme {
-                AppDrawerScreen()
+                AppDrawerScreen(installedAppsHolder)
             }
         }
     }
 }
 
 @Composable
-fun AppDrawerScreen()
+fun AppDrawerScreen(
+    installedAppsHolder: InstalledAppsHolder,
+)
 {
     SetSystemBarsForBotBarActivity()
 
     val context = LocalContext.current
-    val appContext = context.applicationContext as BridgeLauncherApp
     val haptics = LocalHapticFeedback.current
 
     var searchString by remember { mutableStateOf("") }
     val searchStringTrimmed = searchString.trim().lowercase()
     val searchStringSimplified = InstalledApp.simplifyLabel(searchString)
 
-    val filteredApps = appContext.installedAppsHolder.installedApps.values
+    val filteredApps = installedAppsHolder.installedApps.values
         .filter {
             it.labelSimplified.contains(searchStringSimplified)
                     || it.packageName.lowercase().contains(searchStringTrimmed)
@@ -518,11 +520,12 @@ fun SearchBotBar(searchString: String, onSearchStringChange: (String) -> Unit, o
     }
 }
 
-@Composable
-@Preview
-fun AppDrawerPreview()
-{
-    BridgeLauncherTheme {
-        AppDrawerScreen()
-    }
-}
+// TODO: make the app list provider mockable and give this preview with a sample list of apps
+//@Composable
+//@Preview
+//fun AppDrawerPreview()
+//{
+//    BridgeLauncherTheme {
+//        AppDrawerScreen(null)
+//    }
+//}
