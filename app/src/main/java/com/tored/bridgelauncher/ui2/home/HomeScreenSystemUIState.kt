@@ -1,4 +1,4 @@
-package com.tored.bridgelauncher.ui2.home.vm
+package com.tored.bridgelauncher.ui2.home
 
 import androidx.compose.runtime.Immutable
 import com.tored.bridgelauncher.services.settings.SystemBarAppearanceOptions

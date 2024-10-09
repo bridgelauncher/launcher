@@ -1,4 +1,4 @@
-package com.tored.bridgelauncher.ui2.home
+package com.tored.bridgelauncher.ui2.home.composables
 
 import android.app.Activity
 import android.view.WindowManager
@@ -9,7 +9,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.tored.bridgelauncher.services.settings.SystemBarAppearanceOptions
-import com.tored.bridgelauncher.ui2.home.vm.HomeScreenSystemUIState
+import com.tored.bridgelauncher.ui2.home.HomeScreenSystemUIState
 import com.tored.bridgelauncher.utils.CurrentAndroidVersion
 
 @Composable

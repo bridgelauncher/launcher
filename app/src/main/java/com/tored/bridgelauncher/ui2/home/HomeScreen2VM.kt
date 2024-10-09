@@ -1,4 +1,4 @@
-package com.tored.bridgelauncher.ui2.home.vm
+package com.tored.bridgelauncher.ui2.home
 
 import android.annotation.SuppressLint
 import android.app.Application
@@ -6,7 +6,7 @@ import android.util.Log
 import android.webkit.WebView
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -22,10 +22,10 @@ import com.tored.bridgelauncher.services.iconpacks.InstalledIconPacksHolder
 import com.tored.bridgelauncher.services.settings.SettingsState
 import com.tored.bridgelauncher.services.settings.SettingsVM
 import com.tored.bridgelauncher.services.settings.settingsDataStore
-import com.tored.bridgelauncher.ui2.home.BridgeWebViewDeps
 import com.tored.bridgelauncher.ui2.home.bridgemenu.BridgeMenuActions
 import com.tored.bridgelauncher.ui2.home.bridgemenu.BridgeMenuState
-import com.tored.bridgelauncher.ui2.home.onBridgeWebViewCreated
+import com.tored.bridgelauncher.ui2.home.composables.BridgeWebViewDeps
+import com.tored.bridgelauncher.ui2.home.composables.onBridgeWebViewCreated
 import com.tored.bridgelauncher.utils.readBool
 import com.tored.bridgelauncher.utils.startAndroidHomeSettingsActivity
 import com.tored.bridgelauncher.utils.startBridgeAppDrawerActivity
@@ -188,7 +188,7 @@ class HomeScreen2VM(
         // https://developer.android.com/topic/libraries/architecture/viewmodel/viewmodel-factories
         val Factory = viewModelFactory {
             initializer {
-                val app = checkNotNull(this[APPLICATION_KEY]) as BridgeLauncherApplication
+                val app = checkNotNull(this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]) as BridgeLauncherApplication
                 from(app, app.serviceProvider)
             }
         }

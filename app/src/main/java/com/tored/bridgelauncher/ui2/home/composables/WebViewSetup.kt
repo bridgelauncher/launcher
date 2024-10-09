@@ -1,4 +1,4 @@
-package com.tored.bridgelauncher.ui2.home
+package com.tored.bridgelauncher.ui2.home.composables
 
 import android.annotation.SuppressLint
 import android.graphics.Color

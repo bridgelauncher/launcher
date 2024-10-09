@@ -1,4 +1,4 @@
-package com.tored.bridgelauncher.ui.home
+package com.tored.bridgelauncher.ui2.home.composables
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

@@ -6,7 +6,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
-import com.tored.bridgelauncher.ui2.home.vm.HomeScreen2VM
+import com.tored.bridgelauncher.ui2.home.composables.HomeScreen2
+import com.tored.bridgelauncher.ui2.home.HomeScreen2VM
 
 private val TAG = HomeScreenActivity::class.simpleName
 

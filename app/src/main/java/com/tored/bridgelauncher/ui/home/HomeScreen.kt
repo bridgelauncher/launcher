@@ -27,6 +27,8 @@ import com.tored.bridgelauncher.api.jsapi.JSToBridgeAPI
 import com.tored.bridgelauncher.api.jsapi.WindowInsetsSnapshots
 import com.tored.bridgelauncher.services.settings.SettingsVM
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
+import com.tored.bridgelauncher.ui2.home.composables.HomeScreenNoProjectPrompt
+import com.tored.bridgelauncher.ui2.home.composables.HomeScreenNoStoragePermsPrompt
 import com.tored.bridgelauncher.utils.CurrentAndroidVersion
 import com.tored.bridgelauncher.webview.WebView
 import com.tored.bridgelauncher.webview.rememberSaveableWebViewState

@@ -1,4 +1,4 @@
-package com.tored.bridgelauncher.ui2.home
+package com.tored.bridgelauncher.ui2.home.composables
 
 import android.webkit.WebView
 import androidx.compose.foundation.background
@@ -18,15 +18,13 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tored.bridgelauncher.services.settings.SystemBarAppearanceOptions
-import com.tored.bridgelauncher.ui.home.HomeScreenNoProjectPrompt
-import com.tored.bridgelauncher.ui.home.HomeScreenNoStoragePermsPrompt
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherThemeStateless
 import com.tored.bridgelauncher.ui2.home.bridgemenu.BridgeMenu
 import com.tored.bridgelauncher.ui2.home.bridgemenu.BridgeMenuActions
 import com.tored.bridgelauncher.ui2.home.bridgemenu.BridgeMenuState
-import com.tored.bridgelauncher.ui2.home.vm.HomeScreen2VM
-import com.tored.bridgelauncher.ui2.home.vm.HomeScreenSystemUIState
-import com.tored.bridgelauncher.ui2.home.vm.IHomeScreenProjectState
+import com.tored.bridgelauncher.ui2.home.HomeScreen2VM
+import com.tored.bridgelauncher.ui2.home.HomeScreenSystemUIState
+import com.tored.bridgelauncher.ui2.home.IHomeScreenProjectState
 import com.tored.bridgelauncher.utils.ComposableContent
 import com.tored.bridgelauncher.webview.BridgeWebChromeClient
 import com.tored.bridgelauncher.webview.BridgeWebViewClient
