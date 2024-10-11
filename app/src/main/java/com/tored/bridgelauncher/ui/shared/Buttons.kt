@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.material.LocalContentColor
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
@@ -21,8 +22,8 @@ import com.tored.bridgelauncher.ui.theme.borders
 @Composable
 fun Btn(
     text: String,
-    color: Color? = null,
     modifier: Modifier = Modifier,
+    contentColor: Color? = null,
     prefixIcon: Int? = null,
     suffixIcon: Int? = null,
     outlined: Boolean = false,
@@ -42,7 +43,7 @@ fun Btn(
             },
         shape = MaterialTheme.shapes.medium,
         color = Color.Transparent,
-        contentColor = color ?: MaterialTheme.colors.primary,
+        contentColor = contentColor ?: MaterialTheme.colors.primary,
     )
     {
         Row(
@@ -61,6 +62,7 @@ fun Btn(
             Text(
                 text,
                 style = MaterialTheme.typography.button,
+                color = LocalContentColor.current,
             )
 
             if (suffixIcon != null)

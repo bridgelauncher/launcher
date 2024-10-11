@@ -12,7 +12,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun ResIcon(iconResId: Int, color: Color? = null, inline: Boolean = false, modifier: Modifier = Modifier)
+fun ResIcon(
+    iconResId: Int,
+    color: Color? = null,
+    inline: Boolean = false,
+    modifier: Modifier = Modifier
+)
 {
     Icon(
         painter = painterResource(id = iconResId),

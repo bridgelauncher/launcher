@@ -55,7 +55,6 @@ import com.tored.bridgelauncher.ui.settings.sections.SettingsOverlaysSection
 import com.tored.bridgelauncher.ui.settings.sections.SettingsProjectSection
 import com.tored.bridgelauncher.ui.settings.sections.SettingsSystemWallpaperSection
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
-import com.tored.bridgelauncher.utils.exportForMockAsync
 import com.tored.bridgelauncher.utils.getPrefKeyName
 import com.tored.bridgelauncher.utils.showErrorToast
 import com.tored.bridgelauncher.utils.writeDir
@@ -160,7 +159,7 @@ fun SettingsScreen(
 
                         Btn(
                             text = "Reset settings",
-                            color = MaterialTheme.colors.error,
+                            contentColor = MaterialTheme.colors.error,
                         ) {
                             showDialog = true
                         }
@@ -174,7 +173,7 @@ fun SettingsScreen(
                                 confirmButton = {
                                     Btn(
                                         text = "Reset",
-                                        color = MaterialTheme.colors.error,
+                                        contentColor = MaterialTheme.colors.error,
                                         disabled = resetInProgress
                                     ) {
                                         resetInProgress = true
@@ -205,7 +204,7 @@ fun SettingsScreen(
                                     }
                                 },
                                 dismissButton = {
-                                    Btn(text = "Cancel", color = MaterialTheme.colors.onSurface) {
+                                    Btn(text = "Cancel", contentColor = MaterialTheme.colors.onSurface) {
                                         showDialog = false
                                     }
                                 }

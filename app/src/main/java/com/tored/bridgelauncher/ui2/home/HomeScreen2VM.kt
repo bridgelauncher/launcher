@@ -45,24 +45,29 @@ class HomeScreen2VM(
     private val _context: Application,
     private val _permsManager: PermsManager,
     private val _settings: SettingsVM,
-    apps: InstalledAppsHolder,
-    iconPacks: InstalledIconPacksHolder,
-    consoleMessages: ConsoleMessagesHolder,
+    private val _apps: InstalledAppsHolder,
+    private val _iconPacks: InstalledIconPacksHolder,
+    private val _consoleMessages: ConsoleMessagesHolder,
     private val _jsToBridgeAPI: JSToBridgeAPI,
     private val _bridgeToJSAPI: BridgeToJSAPI,
 ) : ViewModel()
 {
+    init
+    {
+        startCollectingSettings()
+    }
+
     private val _bridgeServer = BridgeServer(
         _settings,
-        apps,
-        iconPacks,
+        _apps,
+        _iconPacks,
     )
 
     // we store the webview because it needs to be affected by
     @SuppressLint("StaticFieldLeak")
     private var webView: WebView? = null
 
-    val bridgeButtonActions = BridgeMenuActions(
+    val bridgeMenuActions = BridgeMenuActions(
         onWebViewRefreshRequest = { webView?.reload() },
         onOpenDevConsoleRequest = { _context.startDevConsoleActivity() },
         onSwitchLaunchersRequest = { _context.startAndroidHomeSettingsActivity() },
@@ -92,7 +97,7 @@ class HomeScreen2VM(
 
     val webViewDeps = BridgeWebViewDeps(
         webViewClient = BridgeWebViewClient(_bridgeServer),
-        chromeClient = BridgeWebChromeClient(consoleMessages),
+        chromeClient = BridgeWebChromeClient(_consoleMessages),
         onCreated = {
             onBridgeWebViewCreated(it, _jsToBridgeAPI)
             webView = it
@@ -106,15 +111,8 @@ class HomeScreen2VM(
         }
     )
 
-    init
-    {
-        startCollectingSettings()
-    }
-
-    private fun startCollectingSettings() = viewModelScope.launch()
-    {
-        _settings.settingsState.collectLatest()
-        {
+    private fun startCollectingSettings() = viewModelScope.launch {
+        _settings.settingsState.collectLatest {
             Log.d(TAG, "_settings.settingsState.collectLatest(): settingsState changed, updating UI state")
             _systemUIState.value = getSystemUIState(it)
             _projectState.value = getProjectState(it)
@@ -176,9 +174,9 @@ class HomeScreen2VM(
                     _context = context,
                     _permsManager = storagePermsManager,
                     _settings = settingsVM,
-                    apps = installedAppsHolder,
-                    iconPacks = installedIconPacksHolder,
-                    consoleMessages = consoleMessagesHolder,
+                    _apps = installedAppsHolder,
+                    _iconPacks = installedIconPacksHolder,
+                    _consoleMessages = consoleMessagesHolder,
                     _jsToBridgeAPI = jsToBridgeAPI,
                     _bridgeToJSAPI = bridgeToJSAPI,
                 )

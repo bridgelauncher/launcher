@@ -13,18 +13,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tored.bridgelauncher.services.settings.SystemBarAppearanceOptions
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherThemeStateless
-import com.tored.bridgelauncher.ui2.home.bridgemenu.BridgeMenu
-import com.tored.bridgelauncher.ui2.home.bridgemenu.BridgeMenuActions
-import com.tored.bridgelauncher.ui2.home.bridgemenu.BridgeMenuState
 import com.tored.bridgelauncher.ui2.home.HomeScreen2VM
 import com.tored.bridgelauncher.ui2.home.HomeScreenSystemUIState
 import com.tored.bridgelauncher.ui2.home.IHomeScreenProjectState
+import com.tored.bridgelauncher.ui2.home.bridgemenu.BridgeMenu
+import com.tored.bridgelauncher.ui2.home.bridgemenu.BridgeMenuActions
+import com.tored.bridgelauncher.ui2.home.bridgemenu.BridgeMenuState
 import com.tored.bridgelauncher.utils.ComposableContent
 import com.tored.bridgelauncher.webview.BridgeWebChromeClient
 import com.tored.bridgelauncher.webview.BridgeWebViewClient
@@ -51,7 +51,7 @@ fun HomeScreen2(vm: HomeScreen2VM = viewModel())
         systemUIState,
         projectState,
         bridgeMenuState,
-        vm.bridgeButtonActions,
+        vm.bridgeMenuActions,
         webViewDeps,
     )
 }
@@ -145,7 +145,7 @@ fun WebViewPlaceholder(modifier: Modifier = Modifier)
 // PREVIEWS
 
 @Composable
-@Preview
+@PreviewLightDark
 fun HomeScreen2InitializingPreview()
 {
     BridgeLauncherThemeStateless(useDarkTheme = true)
@@ -168,10 +168,10 @@ fun HomeScreen2InitializingPreview()
 }
 
 @Composable
-@Preview
+@PreviewLightDark
 fun HomeScreen2NoStoragePermsPreview()
 {
-    BridgeLauncherThemeStateless(useDarkTheme = false)
+    BridgeLauncherThemeStateless()
     {
         HomeScreen2(
             HomeScreenSystemUIState(
@@ -191,10 +191,10 @@ fun HomeScreen2NoStoragePermsPreview()
 }
 
 @Composable
-@Preview
+@PreviewLightDark
 fun HomeScreen2NoProjectPreviewNoMenu()
 {
-    BridgeLauncherThemeStateless(useDarkTheme = true)
+    BridgeLauncherThemeStateless()
     {
         HomeScreen2(
             HomeScreenSystemUIState(
@@ -214,10 +214,10 @@ fun HomeScreen2NoProjectPreviewNoMenu()
 }
 
 @Composable
-@Preview
+@PreviewLightDark
 fun HomeScreen2NoProjectPreviewMenuCollapsed()
 {
-    BridgeLauncherThemeStateless(useDarkTheme = true)
+    BridgeLauncherThemeStateless()
     {
         HomeScreen2(
             HomeScreenSystemUIState(
@@ -237,10 +237,10 @@ fun HomeScreen2NoProjectPreviewMenuCollapsed()
 }
 
 @Composable
-@Preview
+@PreviewLightDark
 fun HomeScreen2NoProjectPreviewMenuCollapsedWithAppDrawerButton()
 {
-    BridgeLauncherThemeStateless(useDarkTheme = true)
+    BridgeLauncherThemeStateless()
     {
         HomeScreen2(
             HomeScreenSystemUIState(
@@ -260,10 +260,10 @@ fun HomeScreen2NoProjectPreviewMenuCollapsedWithAppDrawerButton()
 }
 
 @Composable
-@Preview
+@PreviewLightDark
 fun HomeScreen2NoProjectPreviewMenuOpen()
 {
-    BridgeLauncherThemeStateless(useDarkTheme = true)
+    BridgeLauncherThemeStateless()
     {
         HomeScreen2(
             HomeScreenSystemUIState(

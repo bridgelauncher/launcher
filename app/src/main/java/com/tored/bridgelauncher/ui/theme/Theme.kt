@@ -73,7 +73,7 @@ fun BridgeLauncherTheme(settingsVM: SettingsVM = viewModel(factory = SettingsVM.
 
 @Composable
 fun BridgeLauncherThemeStateless(
-    useDarkTheme: Boolean,
+    useDarkTheme: Boolean = isSystemInDarkTheme(),
     content: ComposableContent
 )
 {

@@ -29,7 +29,7 @@ fun DirPickerFooter(
     {
         Btn(
             text = cancelText,
-            color = MaterialTheme.colors.onSurface,
+            contentColor = MaterialTheme.colors.onSurface,
             onClick = onCancelRequest,
         )
 
