@@ -4,7 +4,7 @@ data class  SettingsScreenProjectSectionStateProjectInfo(
     val name: String,
 )
 
-data class SettingsScreenProjectSectionState(
+data class SettingsScreen2ProjectSectionState(
     val projectInfo: SettingsScreenProjectSectionStateProjectInfo?,
     val hasStoragePerms: Boolean,
     val allowProjectsToTurnScreenOff: Boolean,

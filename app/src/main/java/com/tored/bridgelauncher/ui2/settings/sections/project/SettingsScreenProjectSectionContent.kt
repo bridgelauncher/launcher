@@ -2,22 +2,20 @@ package com.tored.bridgelauncher.ui2.settings.sections.project
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import com.tored.bridgelauncher.ui.theme.BridgeLauncherThemeStateless
+import com.tored.bridgelauncher.ui2.shared.PreviewWithSurfaceAndPadding
 
 @Composable
-fun SettingsScreenProjectSectionContent(
-    state: SettingsScreenProjectSectionState,
+fun SettingsScreen2ProjectSectionContent(
+    state: SettingsScreen2ProjectSectionState,
     modifier: Modifier = Modifier
 )
 {
     Column(
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
         modifier = modifier,
     )
     {
@@ -43,22 +41,18 @@ fun SettingsScreenProjectSectionContent(
 
 @Composable
 fun SettingsScreenProjectSectionContentPreview(
-    state: SettingsScreenProjectSectionState,
+    state: SettingsScreen2ProjectSectionState,
 )
 {
-    BridgeLauncherThemeStateless {
-        Surface()
-        {
-            SettingsScreenProjectSectionContent(
-                modifier = Modifier.padding(8.dp),
-                state = SettingsScreenProjectSectionState(
-                    projectInfo = null,
-                    hasStoragePerms = false,
-                    allowProjectsToTurnScreenOff = false,
-                    screenLockingMethod = ScreenLockingMethodOptions.DeviceAdmin,
-                )
+    PreviewWithSurfaceAndPadding {
+        SettingsScreen2ProjectSectionContent(
+            state = SettingsScreen2ProjectSectionState(
+                projectInfo = null,
+                hasStoragePerms = false,
+                allowProjectsToTurnScreenOff = false,
+                screenLockingMethod = ScreenLockingMethodOptions.DeviceAdmin,
             )
-        }
+        )
     }
 }
 
@@ -67,7 +61,7 @@ fun SettingsScreenProjectSectionContentPreview(
 private fun SettingsScreenProjectSectionContentPreview01()
 {
     SettingsScreenProjectSectionContentPreview(
-        state = SettingsScreenProjectSectionState(
+        state = SettingsScreen2ProjectSectionState(
             projectInfo = null,
             hasStoragePerms = false,
             allowProjectsToTurnScreenOff = false,

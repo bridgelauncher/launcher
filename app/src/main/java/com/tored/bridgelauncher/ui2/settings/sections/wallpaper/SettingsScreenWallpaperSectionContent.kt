@@ -3,9 +3,7 @@ package com.tored.bridgelauncher.ui2.settings.sections.wallpaper
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -19,18 +17,18 @@ import com.tored.bridgelauncher.composables.Btn
 import com.tored.bridgelauncher.services.settings.SettingsState
 import com.tored.bridgelauncher.ui.shared.CheckboxField
 import com.tored.bridgelauncher.ui.shared.Tip
-import com.tored.bridgelauncher.ui.theme.BridgeLauncherThemeStateless
 import com.tored.bridgelauncher.ui.theme.textSec
+import com.tored.bridgelauncher.ui2.shared.PreviewWithSurfaceAndPadding
 import com.tored.bridgelauncher.utils.displayNameFor
 
 @Composable
-fun SettingsScreenWallpaperSectionContent(
-    state: SettingsScreenWallpaperSectionState,
+fun SettingsScreen2WallpaperSectionContent(
+    state: SettingsScreen2WallpaperSectionState,
     modifier: Modifier = Modifier
 )
 {
     Column(
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
         modifier = modifier,
     )
     {
@@ -77,18 +75,15 @@ fun SettingsScreenWallpaperSectionContent(
 
 @Composable
 fun SettingsScreenWallpaperSectionContentPreview(
-    drawSystemWallpaperBehindWebView: Boolean,
+    drawSystemWallpaperBehindWebView: Boolean = false,
 )
 {
-    BridgeLauncherThemeStateless {
-        Surface {
-            SettingsScreenWallpaperSectionContent(
-                state = SettingsScreenWallpaperSectionState(
-                    drawSystemWallpaperBehindWebView = drawSystemWallpaperBehindWebView,
-                ),
-                modifier = Modifier.padding(8.dp)
+    PreviewWithSurfaceAndPadding {
+        SettingsScreen2WallpaperSectionContent(
+            state = SettingsScreen2WallpaperSectionState(
+                drawSystemWallpaperBehindWebView = drawSystemWallpaperBehindWebView,
             )
-        }
+        )
     }
 }
 
@@ -96,7 +91,7 @@ fun SettingsScreenWallpaperSectionContentPreview(
 @PreviewLightDark
 fun SettingsScreenWallpaperSectionContentPreview01()
 {
-    SettingsScreenWallpaperSectionContentPreview(drawSystemWallpaperBehindWebView = false)
+    SettingsScreenWallpaperSectionContentPreview()
 }
 
 @Composable

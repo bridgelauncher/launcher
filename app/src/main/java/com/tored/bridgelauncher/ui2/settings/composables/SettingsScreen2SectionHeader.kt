@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.dp
 import com.tored.bridgelauncher.composables.ResIcon
 
 @Composable
-fun SettingsSection2Header(label: String, iconResId: Int)
+fun SettingsScreen2SectionHeader(label: String, iconResId: Int)
 {
     Row(
         modifier = Modifier

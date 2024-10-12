@@ -2,6 +2,7 @@ package com.tored.bridgelauncher.utils
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.provider.Settings
 import com.tored.bridgelauncher.AppDrawerActivity
 import com.tored.bridgelauncher.DevConsoleActivity
@@ -31,3 +32,6 @@ fun Context.startAndroidHomeSettingsActivity(): Unit
         }
     )
 }
+
+fun Context.launchViewURIActivity(uriString: String) = launchViewURIActivity(Uri.parse(uriString))
+fun Context.launchViewURIActivity(uri: Uri) = startActivity(Intent(Intent.ACTION_VIEW, uri))

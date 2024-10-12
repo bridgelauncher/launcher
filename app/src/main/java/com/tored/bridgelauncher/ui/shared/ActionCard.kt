@@ -49,7 +49,7 @@ fun ActionCard(
                     top = pad,
                     start = pad,
                     end = pad,
-                    bottom = if (footerContent == null) pad else 0.dp
+                    bottom = if (footerContent == null) pad else 8.dp
                 ),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         )

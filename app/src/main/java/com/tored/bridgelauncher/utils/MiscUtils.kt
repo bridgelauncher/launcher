@@ -61,6 +61,9 @@ fun <TClass, TProp> displayNameFor(prop: KProperty1<TClass, TProp>): String
 }
 
 
+fun <TClass, TProp> KProperty1<TClass, TProp>.getDisplayName(): String = displayNameFor(this)
+
+
 fun Exception.messageOrDefault(): String
 {
     return message.defaultIfNullOrEmpty(this.javaClass.name)
