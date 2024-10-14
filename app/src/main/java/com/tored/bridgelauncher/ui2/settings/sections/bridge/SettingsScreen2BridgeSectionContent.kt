@@ -29,11 +29,13 @@ import com.tored.bridgelauncher.utils.getDisplayName
 @Composable
 fun SettingsScreen2BridgeSectionContent(
     state: SettingsScreen2BridgeSectionState,
+    actions: SettingsScreen2BridgeSectionActions,
     modifier: Modifier = Modifier
 )
 {
     Column(
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = modifier,
     )
     {
         OptionsRow(
@@ -44,7 +46,7 @@ fun SettingsScreen2BridgeSectionContent(
                 ThemeOptions.Dark to "Dark",
             ),
             selectedOption = state.theme,
-            onChange = { TODO() },
+            onChange = { actions.changeTheme(it) },
 //        onChange = { theme ->
 //            vm.edit {
 //                writeEnum(SettingsState::theme, theme)
@@ -55,7 +57,7 @@ fun SettingsScreen2BridgeSectionContent(
         CheckboxField(
             label = SettingsState::showBridgeButton.getDisplayName(),
             isChecked = state.showBridgeButton,
-            onCheckedChange = { TODO() }
+            onCheckedChange = { actions.changeShowBridgeButton(it) }
         )
 
 //                    ProvideTextStyle(value = MaterialTheme.typography.body2.copy(color = MaterialTheme.colors.textSec))
@@ -67,7 +69,7 @@ fun SettingsScreen2BridgeSectionContent(
         CheckboxField(
             label = SettingsState::showLaunchAppsWhenBridgeButtonCollapsed.getDisplayName(),
             isChecked = state.showLaunchAppsWhenBridgeButtonCollapsed,
-            onCheckedChange = { TODO() }
+            onCheckedChange = { actions.changeShowLaunchAppsWhenBridgeButtonCollapsed(it) }
         )
 
         if (!state.isQSTileAdded)
@@ -86,7 +88,7 @@ fun SettingsScreen2BridgeSectionContent(
                     Btn(
                         text = "Add tile",
                         suffixIcon = R.drawable.ic_plus,
-                        onClick = { TODO() },
+                        onClick = { actions.requestQSTilePrompt() },
 //                    onClick = {
 //                    sbm.requestAddTileService(
 //                        compName,
@@ -141,13 +143,14 @@ fun SettingsScreen2BridgeSectionPreview(
 {
     PreviewWithSurfaceAndPadding {
         SettingsScreen2BridgeSectionContent(
-            SettingsScreen2BridgeSectionState(
+            state = SettingsScreen2BridgeSectionState(
                 theme = theme,
                 showBridgeButton = showBridgeButton,
                 showLaunchAppsWhenBridgeButtonCollapsed = showLaunchAppsWhenBridgeButtonCollapsed,
                 isQSTileAdded = isQSTileAdded,
                 isQSTilePromptSupported = isQSTilePromptSupported,
-            )
+            ),
+            actions = SettingsScreen2BridgeSectionActions.empty(),
         )
     }
 }

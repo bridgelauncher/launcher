@@ -11,6 +11,7 @@ import com.tored.bridgelauncher.ui2.shared.PreviewWithSurfaceAndPadding
 @Composable
 fun SettingsScreen2DevelopmentSectionContent(
     state: SettingsScreen2DevelopmentSectionState,
+    actions: SettingsScreen2DevelopmentSectionActions,
     modifier: Modifier = Modifier
 )
 {
@@ -28,7 +29,7 @@ fun SettingsScreen2DevelopmentSectionContent(
             text = "Export",
             suffixIcon = R.drawable.ic_save_to_device,
             disabled = state.isExportDisabled,
-            onClick = { TODO() }
+            onClick = { actions.exportMockFolder }
         )
     }
 }
@@ -43,9 +44,10 @@ fun SettingsScreen2DevelopmentSectionPreview(
 {
     PreviewWithSurfaceAndPadding {
         SettingsScreen2DevelopmentSectionContent(
-            SettingsScreen2DevelopmentSectionState(
-                isExportDisabled = isExportDisabled
-            )
+            state = SettingsScreen2DevelopmentSectionState(
+                isExportDisabled = isExportDisabled,
+            ),
+            actions = SettingsScreen2DevelopmentSectionActions.empty()
         )
     }
 }

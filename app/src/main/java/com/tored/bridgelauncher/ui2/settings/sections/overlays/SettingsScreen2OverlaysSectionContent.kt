@@ -1,4 +1,4 @@
-package com.tored.bridgelauncher.ui2.settings.sections.systembars
+package com.tored.bridgelauncher.ui2.settings.sections.overlays
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -16,6 +16,7 @@ import com.tored.bridgelauncher.utils.getDisplayName
 @Composable
 fun SettingsScreen2OverlaysSectionContent(
     state: SettingsScreen2OverlaysSectionState,
+    actions: SettingsScreen2OverlaysSectionActions,
     modifier: Modifier = Modifier
 )
 {
@@ -27,19 +28,19 @@ fun SettingsScreen2OverlaysSectionContent(
         SystemBarAppearanceOptionsField(
             label = SettingsState::statusBarAppearance.getDisplayName(),
             selectedOption = state.statusBarAppearance,
-            onChange = { TODO() }
+            onChange = { actions.changeStatusBarAppearance(it) }
         )
 
         SystemBarAppearanceOptionsField(
             label = SettingsState::navigationBarAppearance.getDisplayName(),
             selectedOption = state.navigationBarAppearance,
-            onChange = { TODO() }
+            onChange = { actions.changeNavigationBarAppearance(it) }
         )
 
         CheckboxField(
             label = SettingsState::drawWebViewOverscrollEffects.getDisplayName(),
             isChecked = state.drawWebViewOverscrollEffects,
-            onCheckedChange = { TODO() }
+            onCheckedChange = { actions.changeDrawWebViewOverscrollEffects(it) }
         )
     }
 }
@@ -60,7 +61,8 @@ fun SettingsScreen2OverlaysSectionContentPreview(
                 statusBarAppearance = statusBarAppearance,
                 navigationBarAppearance = navigationBarAppearance,
                 drawWebViewOverscrollEffects = drawWebViewOverscrollEffects
-            )
+            ),
+            actions = SettingsScreen2OverlaysSectionActions.empty()
         )
     }
 }

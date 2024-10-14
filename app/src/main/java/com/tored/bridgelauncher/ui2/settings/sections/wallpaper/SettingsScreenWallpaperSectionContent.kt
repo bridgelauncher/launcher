@@ -24,6 +24,7 @@ import com.tored.bridgelauncher.utils.displayNameFor
 @Composable
 fun SettingsScreen2WallpaperSectionContent(
     state: SettingsScreen2WallpaperSectionState,
+    actions: SettingsScreen2WallpaperSectionActions,
     modifier: Modifier = Modifier
 )
 {
@@ -35,7 +36,7 @@ fun SettingsScreen2WallpaperSectionContent(
         Btn(
             text = "Change system wallpaper",
             outlined = true,
-            onClick = { TODO() },
+            onClick = { actions.changeSystemWallpaper() },
             modifier = Modifier.fillMaxWidth(),
         )
 
@@ -43,7 +44,7 @@ fun SettingsScreen2WallpaperSectionContent(
         CheckboxField(
             label = displayNameFor(prop),
             isChecked = state.drawSystemWallpaperBehindWebView,
-            onCheckedChange = { TODO() }
+            onCheckedChange = { actions.changeDrawSystemWallpaperBehindWebView(it) }
         )
 
         Tip(
@@ -82,7 +83,8 @@ fun SettingsScreenWallpaperSectionContentPreview(
         SettingsScreen2WallpaperSectionContent(
             state = SettingsScreen2WallpaperSectionState(
                 drawSystemWallpaperBehindWebView = drawSystemWallpaperBehindWebView,
-            )
+            ),
+            actions = SettingsScreen2WallpaperSectionActions.empty()
         )
     }
 }

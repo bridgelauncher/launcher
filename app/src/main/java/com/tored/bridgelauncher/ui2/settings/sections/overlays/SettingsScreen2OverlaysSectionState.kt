@@ -1,4 +1,4 @@
-package com.tored.bridgelauncher.ui2.settings.sections.systembars
+package com.tored.bridgelauncher.ui2.settings.sections.overlays
 
 import com.tored.bridgelauncher.services.settings.SystemBarAppearanceOptions
 

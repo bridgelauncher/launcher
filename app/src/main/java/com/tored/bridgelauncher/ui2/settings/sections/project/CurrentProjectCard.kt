@@ -25,7 +25,7 @@ import com.tored.bridgelauncher.ui.theme.textSec
 
 @Composable
 fun CurrentProjectCard(
-    projectInfo: SettingsScreenProjectSectionStateProjectInfo?,
+    projectInfo: SettingsScreen2ProjectSectionStateProjectInfo?,
     hasStoragePerms: Boolean,
     onChangeClick: () -> Unit,
     onGrantPermissionRequest: () -> Unit,
@@ -120,7 +120,7 @@ fun CurrentProjectCard(
 
 @Composable
 fun CurrentProjectCardPreview(
-    projectInfo: SettingsScreenProjectSectionStateProjectInfo?,
+    projectInfo: SettingsScreen2ProjectSectionStateProjectInfo?,
     hasStoragePerms: Boolean,
 )
 {
@@ -159,7 +159,7 @@ private fun SettingsScreenProjectSectionPreview_NoProjectWithPerms()
 private fun SettingsScreenProjectSectionPreview_ProjectWithNoPerms()
 {
     CurrentProjectCardPreview(
-        projectInfo = SettingsScreenProjectSectionStateProjectInfo("SampleProjectName"),
+        projectInfo = SettingsScreen2ProjectSectionStateProjectInfo("SampleProjectName"),
         hasStoragePerms = false,
     )
 }
@@ -169,7 +169,7 @@ private fun SettingsScreenProjectSectionPreview_ProjectWithNoPerms()
 private fun SettingsScreenProjectSectionPreview_ProjectWithPerms()
 {
     CurrentProjectCardPreview(
-        projectInfo = SettingsScreenProjectSectionStateProjectInfo("SampleProjectName"),
+        projectInfo = SettingsScreen2ProjectSectionStateProjectInfo("SampleProjectName"),
         hasStoragePerms = true,
     )
 }

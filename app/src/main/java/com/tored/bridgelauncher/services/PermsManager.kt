@@ -16,11 +16,10 @@ class PermsManager(
     private val _canCheckSystemNightModeState = MutableStateFlow(_context.checkCanSetSystemNightMode())
     val canCheckSystemNightModeState = _canCheckSystemNightModeState.asStateFlow()
 
-    private val _canLockScreenState = MutableStateFlow(false)
-
     // intended to be called from onResume() - there is no API to listen for permission changes, so checks in onResume it is
     fun notifyPermsMightHaveChanged()
     {
         _hasStoragePermsState.value = _context.checkStoragePerms()
+        _canCheckSystemNightModeState.value = _context.checkCanSetSystemNightMode()
     }
 }

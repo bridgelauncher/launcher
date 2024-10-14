@@ -11,6 +11,7 @@ import com.tored.bridgelauncher.ui2.shared.PreviewWithSurfaceAndPadding
 @Composable
 fun SettingsScreen2ProjectSectionContent(
     state: SettingsScreen2ProjectSectionState,
+    actions: SettingsScreen2ProjectSectionActions,
     modifier: Modifier = Modifier
 )
 {
@@ -22,16 +23,16 @@ fun SettingsScreen2ProjectSectionContent(
         CurrentProjectCard(
             projectInfo = state.projectInfo,
             hasStoragePerms = state.hasStoragePerms,
-            onChangeClick = { TODO() },
-            onGrantPermissionRequest = { TODO() },
+            onChangeClick = actions.changeProject,
+            onGrantPermissionRequest = actions.requestGrantStoragePerms,
         )
 
         AllowProjectsToTurnScreenOffCheckbox(
             allowProjectsTurnScreenOff = state.allowProjectsToTurnScreenOff,
-            hasNecessaryPermissions = false,
+            hasNecessaryPermissions = state.canBridgeTurnScreenOff,
             screenLockingMethod = state.screenLockingMethod,
-            onAllowProjectsTurnScreenOffChange = { TODO() },
-            onGrantPermissionRequest = { TODO() },
+            onAllowProjectsTurnScreenOffChange = actions.changeAllowProjectsToTurnScreenOff,
+            onGrantPermissionRequest = actions.requestGrantStoragePerms,
         )
     }
 }
@@ -41,17 +42,24 @@ fun SettingsScreen2ProjectSectionContent(
 
 @Composable
 fun SettingsScreenProjectSectionContentPreview(
-    state: SettingsScreen2ProjectSectionState,
-)
+    projectInfo: SettingsScreen2ProjectSectionStateProjectInfo? = null,
+    hasStoragePerms: Boolean = false,
+    allowProjectsToTurnScreenOff: Boolean = false,
+    screenLockingMethod: ScreenLockingMethodOptions = ScreenLockingMethodOptions.AccessibilityService,
+    canBridgeTurnScreenOff: Boolean = false,
+
+    )
 {
     PreviewWithSurfaceAndPadding {
         SettingsScreen2ProjectSectionContent(
             state = SettingsScreen2ProjectSectionState(
-                projectInfo = null,
-                hasStoragePerms = false,
-                allowProjectsToTurnScreenOff = false,
-                screenLockingMethod = ScreenLockingMethodOptions.DeviceAdmin,
-            )
+                projectInfo = projectInfo,
+                hasStoragePerms = hasStoragePerms,
+                allowProjectsToTurnScreenOff = allowProjectsToTurnScreenOff,
+                screenLockingMethod = screenLockingMethod,
+                canBridgeTurnScreenOff = canBridgeTurnScreenOff
+            ),
+            actions = SettingsScreen2ProjectSectionActions({}, {}, {}),
         )
     }
 }
@@ -60,12 +68,5 @@ fun SettingsScreenProjectSectionContentPreview(
 @PreviewLightDark
 private fun SettingsScreenProjectSectionContentPreview01()
 {
-    SettingsScreenProjectSectionContentPreview(
-        state = SettingsScreen2ProjectSectionState(
-            projectInfo = null,
-            hasStoragePerms = false,
-            allowProjectsToTurnScreenOff = false,
-            screenLockingMethod = ScreenLockingMethodOptions.DeviceAdmin,
-        )
-    )
+    SettingsScreenProjectSectionContentPreview()
 }

@@ -20,16 +20,21 @@ import com.tored.bridgelauncher.services.settings.ThemeOptions
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherThemeStateless
 import com.tored.bridgelauncher.ui2.settings.SettingsScreenVM
 import com.tored.bridgelauncher.ui2.settings.sections.about.SettingsScreen2AboutSectionContent
+import com.tored.bridgelauncher.ui2.settings.sections.bridge.SettingsScreen2BridgeSectionActions
 import com.tored.bridgelauncher.ui2.settings.sections.bridge.SettingsScreen2BridgeSectionContent
 import com.tored.bridgelauncher.ui2.settings.sections.bridge.SettingsScreen2BridgeSectionState
+import com.tored.bridgelauncher.ui2.settings.sections.development.SettingsScreen2DevelopmentSectionActions
 import com.tored.bridgelauncher.ui2.settings.sections.development.SettingsScreen2DevelopmentSectionContent
 import com.tored.bridgelauncher.ui2.settings.sections.development.SettingsScreen2DevelopmentSectionState
+import com.tored.bridgelauncher.ui2.settings.sections.overlays.SettingsScreen2OverlaysSectionActions
+import com.tored.bridgelauncher.ui2.settings.sections.overlays.SettingsScreen2OverlaysSectionContent
+import com.tored.bridgelauncher.ui2.settings.sections.overlays.SettingsScreen2OverlaysSectionState
 import com.tored.bridgelauncher.ui2.settings.sections.project.ScreenLockingMethodOptions
+import com.tored.bridgelauncher.ui2.settings.sections.project.SettingsScreen2ProjectSectionActions
 import com.tored.bridgelauncher.ui2.settings.sections.project.SettingsScreen2ProjectSectionContent
 import com.tored.bridgelauncher.ui2.settings.sections.project.SettingsScreen2ProjectSectionState
-import com.tored.bridgelauncher.ui2.settings.sections.project.SettingsScreenProjectSectionStateProjectInfo
-import com.tored.bridgelauncher.ui2.settings.sections.systembars.SettingsScreen2OverlaysSectionContent
-import com.tored.bridgelauncher.ui2.settings.sections.systembars.SettingsScreen2OverlaysSectionState
+import com.tored.bridgelauncher.ui2.settings.sections.project.SettingsScreen2ProjectSectionStateProjectInfo
+import com.tored.bridgelauncher.ui2.settings.sections.wallpaper.SettingsScreen2WallpaperSectionActions
 import com.tored.bridgelauncher.ui2.settings.sections.wallpaper.SettingsScreen2WallpaperSectionContent
 import com.tored.bridgelauncher.ui2.settings.sections.wallpaper.SettingsScreen2WallpaperSectionState
 import com.tored.bridgelauncher.ui2.shared.BotBarScreen
@@ -37,15 +42,40 @@ import com.tored.bridgelauncher.ui2.shared.BotBarScreen
 @Composable
 fun SettingsScreen2(vm: SettingsScreenVM = viewModel())
 {
+    SettingsScreen2(
+        projectSectionState = vm.projectSectionState.value,
+        projectSectionActions = vm.projectSectionActions,
+
+        wallpaperSectionState = vm.wallpaperSectionState.value,
+        wallpaperSectionActions = vm.wallpaperSectionActions,
+
+        overlaysSectionState = vm.overlaysSectionState.value,
+        overlaysSectionActions = vm.overlaysSectionActions,
+
+        bridgeSectionState = vm.bridgeSectionState.value,
+        bridgeSectionActions = vm.bridgeSectionActions,
+
+        developmentSectionState = vm.developmentSectionState.value,
+        developmentSectionActions = vm.developmentSectionActions,
+    )
 }
 
 @Composable
 fun SettingsScreen2(
     projectSectionState: SettingsScreen2ProjectSectionState,
+    projectSectionActions: SettingsScreen2ProjectSectionActions,
+
     wallpaperSectionState: SettingsScreen2WallpaperSectionState,
+    wallpaperSectionActions: SettingsScreen2WallpaperSectionActions,
+
     overlaysSectionState: SettingsScreen2OverlaysSectionState,
+    overlaysSectionActions: SettingsScreen2OverlaysSectionActions,
+
     bridgeSectionState: SettingsScreen2BridgeSectionState,
+    bridgeSectionActions: SettingsScreen2BridgeSectionActions,
+
     developmentSectionState: SettingsScreen2DevelopmentSectionState,
+    developmentSectionActions: SettingsScreen2DevelopmentSectionActions,
 )
 {
     Surface(
@@ -65,7 +95,8 @@ fun SettingsScreen2(
             {
                 SettingsScreen2Section(label = "Project", iconResId = R.drawable.ic_folder_open) {
                     SettingsScreen2ProjectSectionContent(
-                        state = projectSectionState
+                        state = projectSectionState,
+                        actions = projectSectionActions,
                     )
                 }
 
@@ -73,7 +104,8 @@ fun SettingsScreen2(
 
                 SettingsScreen2Section(label = "System wallpaper", iconResId = R.drawable.ic_image) {
                     SettingsScreen2WallpaperSectionContent(
-                        state = wallpaperSectionState
+                        state = wallpaperSectionState,
+                        actions = wallpaperSectionActions,
                     )
                 }
 
@@ -81,7 +113,8 @@ fun SettingsScreen2(
 
                 SettingsScreen2Section(label = "Overlays", iconResId = R.drawable.ic_overlays) {
                     SettingsScreen2OverlaysSectionContent(
-                        state = overlaysSectionState
+                        state = overlaysSectionState,
+                        actions = overlaysSectionActions,
                     )
                 }
 
@@ -89,7 +122,8 @@ fun SettingsScreen2(
 
                 SettingsScreen2Section(label = "Bridge", iconResId = R.drawable.ic_bridge) {
                     SettingsScreen2BridgeSectionContent(
-                        state = bridgeSectionState
+                        state = bridgeSectionState,
+                        actions = bridgeSectionActions,
                     )
                 }
 
@@ -97,7 +131,8 @@ fun SettingsScreen2(
 
                 SettingsScreen2Section(label = "Development", iconResId = R.drawable.ic_tools) {
                     SettingsScreen2DevelopmentSectionContent(
-                        state = developmentSectionState
+                        state = developmentSectionState,
+                        actions = developmentSectionActions,
                     )
                 }
 
@@ -131,19 +166,26 @@ fun SettingsScreen2Preview01()
     BridgeLauncherThemeStateless {
         SettingsScreen2(
             projectSectionState = SettingsScreen2ProjectSectionState(
-                projectInfo = SettingsScreenProjectSectionStateProjectInfo("LOL"),
+                projectInfo = SettingsScreen2ProjectSectionStateProjectInfo("LOL"),
                 hasStoragePerms = true,
                 allowProjectsToTurnScreenOff = true,
                 screenLockingMethod = ScreenLockingMethodOptions.DeviceAdmin,
+                canBridgeTurnScreenOff = true
             ),
+            projectSectionActions = SettingsScreen2ProjectSectionActions.empty(),
+
             wallpaperSectionState = SettingsScreen2WallpaperSectionState(
                 drawSystemWallpaperBehindWebView = true,
             ),
+            wallpaperSectionActions = SettingsScreen2WallpaperSectionActions.empty(),
+
             overlaysSectionState = SettingsScreen2OverlaysSectionState(
                 statusBarAppearance = SystemBarAppearanceOptions.Hide,
                 navigationBarAppearance = SystemBarAppearanceOptions.LightIcons,
                 drawWebViewOverscrollEffects = true,
             ),
+            overlaysSectionActions = SettingsScreen2OverlaysSectionActions.empty(),
+
             bridgeSectionState = SettingsScreen2BridgeSectionState(
                 theme = ThemeOptions.System,
                 isQSTilePromptSupported = true,
@@ -151,9 +193,12 @@ fun SettingsScreen2Preview01()
                 showBridgeButton = true,
                 showLaunchAppsWhenBridgeButtonCollapsed = false,
             ),
+            bridgeSectionActions = SettingsScreen2BridgeSectionActions.empty(),
+
             developmentSectionState = SettingsScreen2DevelopmentSectionState(
                 isExportDisabled = false,
-            )
+            ),
+            developmentSectionActions = SettingsScreen2DevelopmentSectionActions.empty()
         )
     }
 }
