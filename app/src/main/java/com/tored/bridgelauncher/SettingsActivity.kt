@@ -12,7 +12,7 @@ import com.tored.bridgelauncher.ui.settings.SettingsScreen
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
 import com.tored.bridgelauncher.utils.CurrentAndroidVersion
 import com.tored.bridgelauncher.utils.checkStoragePerms
-import com.tored.bridgelauncher.utils.startExtStorageManagerPermissionActivity
+import com.tored.bridgelauncher.utils.tryStartExtStorageManagerPermissionActivity
 
 class SettingsActivity : ComponentActivity()
 {
@@ -42,7 +42,7 @@ class SettingsActivity : ComponentActivity()
                     onGrantPermissionRequest = {
                         if (CurrentAndroidVersion.supportsScopedStorage())
                         {
-                            startExtStorageManagerPermissionActivity()
+                            tryStartExtStorageManagerPermissionActivity()
                         }
                         else
                         {

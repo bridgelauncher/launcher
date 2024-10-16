@@ -5,8 +5,8 @@ import android.util.Log
 import android.webkit.WebView
 import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
 import com.tored.bridgelauncher.services.apps.SerializableInstalledApp
-import com.tored.bridgelauncher.services.settings.ISettingsStateProvider
 import com.tored.bridgelauncher.services.settings.SettingsState
+import com.tored.bridgelauncher.services.settings.SettingsVM
 import com.tored.bridgelauncher.services.settings.getCanLockScreen
 import com.tored.bridgelauncher.utils.checkCanSetSystemNightMode
 import kotlinx.coroutines.CoroutineScope
@@ -31,7 +31,7 @@ data class ValueChangeEventArgs<T>(val newValue: T) : BridgeEventArgs
 class BridgeToJSAPI(
     private val _context: Context,
     private val _coroutineScope: CoroutineScope,
-    private val _settings: ISettingsStateProvider,
+    private val _settings: SettingsVM,
     private val _installedApps: InstalledAppsHolder,
     private var _lastCanSetSystemNightMode: Boolean,
 )

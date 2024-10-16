@@ -17,14 +17,13 @@ import com.tored.bridgelauncher.utils.readEnum
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 private const val TAG = "SettingsVM"
 
 val Context.settingsDataStore by preferencesDataStore("settings")
 
-class SettingsVM(app: BridgeLauncherApplication) : AndroidViewModel(app), ISettingsStateProvider
+class SettingsVM(app: BridgeLauncherApplication) : AndroidViewModel(app)
 {
     private val _ds = app.settingsDataStore
 
@@ -56,7 +55,7 @@ class SettingsVM(app: BridgeLauncherApplication) : AndroidViewModel(app), ISetti
                         showBridgeButton = prefs.readBool(SettingsState::showBridgeButton, true),
                         showLaunchAppsWhenBridgeButtonCollapsed = prefs.readBool(SettingsState::showLaunchAppsWhenBridgeButtonCollapsed, false),
                     )
-                    _settingsState.update { newState }
+                    _settingsState.value = newState
                 }
                 catch (err: Error)
                 {
@@ -76,7 +75,8 @@ class SettingsVM(app: BridgeLauncherApplication) : AndroidViewModel(app), ISetti
     }
 
     private val _settingsState = MutableStateFlow(SettingsState())
-    override val settingsState = _settingsState.asStateFlow()
+    val settingsState = _settingsState.asStateFlow()
+
 
     companion object
     {

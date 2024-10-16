@@ -7,7 +7,7 @@ import android.webkit.WebResourceResponse
 import com.tored.bridgelauncher.api.server.BetterMimeTypeMap
 import com.tored.bridgelauncher.api.server.HTTPStatusCode
 import com.tored.bridgelauncher.api.server.errorResponse
-import com.tored.bridgelauncher.services.settings.ISettingsStateProvider
+import com.tored.bridgelauncher.services.settings.SettingsVM
 import com.tored.bridgelauncher.utils.CurrentAndroidVersion
 import com.tored.bridgelauncher.utils.q
 import kotlinx.coroutines.Dispatchers
@@ -17,7 +17,9 @@ import java.io.IOException
 
 private const val TAG = "BridgeFileServer"
 
-class BridgeFileServer(private val _settings: ISettingsStateProvider)
+class BridgeFileServer(
+    private val _settings: SettingsVM
+)
 {
     suspend fun handle(req: WebResourceRequest): WebResourceResponse
     {

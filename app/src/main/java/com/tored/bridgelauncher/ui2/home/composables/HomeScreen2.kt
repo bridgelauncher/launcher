@@ -9,13 +9,11 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tored.bridgelauncher.services.settings.SystemBarAppearanceOptions
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherThemeStateless
@@ -42,17 +40,12 @@ data class BridgeWebViewDeps(
 @Composable
 fun HomeScreen2(vm: HomeScreen2VM = viewModel())
 {
-    val systemUIState by vm.systemUIState.collectAsStateWithLifecycle()
-    val projectState by vm.projectState.collectAsStateWithLifecycle()
-    val bridgeMenuState by vm.bridgeMenuState.collectAsStateWithLifecycle()
-    val webViewDeps = vm.webViewDeps
-
     HomeScreen2(
-        systemUIState,
-        projectState,
-        bridgeMenuState,
+        vm.systemUIState.value,
+        vm.projectState.value,
+        vm.bridgeMenuState.value,
         vm.bridgeMenuActions,
-        webViewDeps,
+        vm.webViewDeps,
     )
 }
 
@@ -152,7 +145,7 @@ fun HomeScreen2InitializingPreview()
     {
         HomeScreen2(
             HomeScreenSystemUIState(
-                statusBarAppearance =  SystemBarAppearanceOptions.Hide,
+                statusBarAppearance = SystemBarAppearanceOptions.Hide,
                 navigationBarAppearance = SystemBarAppearanceOptions.Hide,
                 drawSystemWallpaperBehindWebView = false,
             ),
@@ -175,7 +168,7 @@ fun HomeScreen2NoStoragePermsPreview()
     {
         HomeScreen2(
             HomeScreenSystemUIState(
-                statusBarAppearance =  SystemBarAppearanceOptions.Hide,
+                statusBarAppearance = SystemBarAppearanceOptions.Hide,
                 navigationBarAppearance = SystemBarAppearanceOptions.Hide,
                 drawSystemWallpaperBehindWebView = false,
             ),
@@ -198,7 +191,7 @@ fun HomeScreen2NoProjectPreviewNoMenu()
     {
         HomeScreen2(
             HomeScreenSystemUIState(
-                statusBarAppearance =  SystemBarAppearanceOptions.Hide,
+                statusBarAppearance = SystemBarAppearanceOptions.Hide,
                 navigationBarAppearance = SystemBarAppearanceOptions.Hide,
                 drawSystemWallpaperBehindWebView = false,
             ),
@@ -221,7 +214,7 @@ fun HomeScreen2NoProjectPreviewMenuCollapsed()
     {
         HomeScreen2(
             HomeScreenSystemUIState(
-                statusBarAppearance =  SystemBarAppearanceOptions.Hide,
+                statusBarAppearance = SystemBarAppearanceOptions.Hide,
                 navigationBarAppearance = SystemBarAppearanceOptions.Hide,
                 drawSystemWallpaperBehindWebView = false,
             ),
@@ -244,7 +237,7 @@ fun HomeScreen2NoProjectPreviewMenuCollapsedWithAppDrawerButton()
     {
         HomeScreen2(
             HomeScreenSystemUIState(
-                statusBarAppearance =  SystemBarAppearanceOptions.Hide,
+                statusBarAppearance = SystemBarAppearanceOptions.Hide,
                 navigationBarAppearance = SystemBarAppearanceOptions.Hide,
                 drawSystemWallpaperBehindWebView = false,
             ),
@@ -267,7 +260,7 @@ fun HomeScreen2NoProjectPreviewMenuOpen()
     {
         HomeScreen2(
             HomeScreenSystemUIState(
-                statusBarAppearance =  SystemBarAppearanceOptions.Hide,
+                statusBarAppearance = SystemBarAppearanceOptions.Hide,
                 navigationBarAppearance = SystemBarAppearanceOptions.Hide,
                 drawSystemWallpaperBehindWebView = false,
             ),

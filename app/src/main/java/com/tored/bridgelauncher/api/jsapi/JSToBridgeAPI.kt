@@ -25,8 +25,8 @@ import com.tored.bridgelauncher.api.server.endpoints.AppIconsEndpoint
 import com.tored.bridgelauncher.api.server.endpoints.IconPackContentEndpoint
 import com.tored.bridgelauncher.api.server.endpoints.IconPacksEndpoint
 import com.tored.bridgelauncher.api.server.getBridgeApiEndpointURL
-import com.tored.bridgelauncher.services.settings.ISettingsStateProvider
 import com.tored.bridgelauncher.services.settings.SettingsState
+import com.tored.bridgelauncher.services.settings.SettingsVM
 import com.tored.bridgelauncher.services.settings.ThemeOptions
 import com.tored.bridgelauncher.services.settings.getCanLockScreen
 import com.tored.bridgelauncher.services.settings.settingsDataStore
@@ -54,7 +54,7 @@ private const val TAG = "JSToBridgeAPI"
 class JSToBridgeAPI(
     private val _context: Context,
     private val _coroutineScope: CoroutineScope,
-    private val _settingsStateProvider: ISettingsStateProvider,
+    private val _settings: SettingsVM,
     var webView: WebView?,
 ) : Any()
 {
@@ -62,7 +62,7 @@ class JSToBridgeAPI(
     private val _modeman = _context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
     private val _dpman = _context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
 
-    private val settingsState get() = _settingsStateProvider.settingsState.value
+    private val settingsState get() = _settings.settingsState.value
 
     var windowInsetsSnapshot = WindowInsetsSnapshots()
     var displayCutoutPathSnapshot: String? = null

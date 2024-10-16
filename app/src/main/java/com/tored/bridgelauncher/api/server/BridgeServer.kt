@@ -11,7 +11,7 @@ import com.tored.bridgelauncher.api.server.endpoints.IconPacksEndpoint
 import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
 import com.tored.bridgelauncher.services.apps.SerializableInstalledApp
 import com.tored.bridgelauncher.services.iconpacks.InstalledIconPacksHolder
-import com.tored.bridgelauncher.services.settings.ISettingsStateProvider
+import com.tored.bridgelauncher.services.settings.SettingsVM
 import com.tored.bridgelauncher.utils.URLWithQueryBuilder
 import com.tored.bridgelauncher.utils.q
 import kotlinx.serialization.Serializable
@@ -31,7 +31,7 @@ data class BridgeAPIEndpointAppsResponse(
 )
 
 class BridgeServer(
-    settings: ISettingsStateProvider,
+    settings: SettingsVM,
     apps: InstalledAppsHolder,
     iconPacks: InstalledIconPacksHolder,
 )

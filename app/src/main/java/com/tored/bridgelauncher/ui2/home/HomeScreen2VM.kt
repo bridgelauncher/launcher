@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Application
 import android.util.Log
 import android.webkit.WebView
+import androidx.compose.runtime.derivedStateOf
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -27,16 +28,14 @@ import com.tored.bridgelauncher.ui2.home.bridgemenu.BridgeMenuState
 import com.tored.bridgelauncher.ui2.home.composables.BridgeWebViewDeps
 import com.tored.bridgelauncher.ui2.home.composables.onBridgeWebViewCreated
 import com.tored.bridgelauncher.utils.readBool
-import com.tored.bridgelauncher.utils.startAndroidHomeSettingsActivity
 import com.tored.bridgelauncher.utils.startBridgeAppDrawerActivity
 import com.tored.bridgelauncher.utils.startBridgeSettingsActivity
 import com.tored.bridgelauncher.utils.startDevConsoleActivity
+import com.tored.bridgelauncher.utils.tryStartAndroidHomeSettingsActivity
 import com.tored.bridgelauncher.utils.writeBool
 import com.tored.bridgelauncher.webview.BridgeWebChromeClient
 import com.tored.bridgelauncher.webview.BridgeWebViewClient
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 private const val TAG = "HomeScreen2VM"
@@ -52,11 +51,6 @@ class HomeScreen2VM(
     private val _bridgeToJSAPI: BridgeToJSAPI,
 ) : ViewModel()
 {
-    init
-    {
-        startCollectingSettings()
-    }
-
     private val _bridgeServer = BridgeServer(
         _settings,
         _apps,
@@ -70,7 +64,7 @@ class HomeScreen2VM(
     val bridgeMenuActions = BridgeMenuActions(
         onWebViewRefreshRequest = { webView?.reload() },
         onOpenDevConsoleRequest = { _context.startDevConsoleActivity() },
-        onSwitchLaunchersRequest = { _context.startAndroidHomeSettingsActivity() },
+        onSwitchLaunchersRequest = { _context.tryStartAndroidHomeSettingsActivity() },
         onOpenSettingsRequest = { _context.startBridgeSettingsActivity() },
         onHideBridgeButtonRequest = {
             viewModelScope.launch {
@@ -83,17 +77,42 @@ class HomeScreen2VM(
             }
         },
         onOpenAppDrawerRequest = { _context.startBridgeAppDrawerActivity() },
-        onRequestIsExpandedChange = { _bridgeMenuState.value = bridgeMenuState.value.copy(isExpanded = it) },
+        onRequestIsExpandedChange = { bridgeMenuIsExpandedState.value = it },
     )
 
-    private val _systemUIState = MutableStateFlow(getSystemUIState(_settings.settingsState.value))
-    val systemUIState = _systemUIState.asStateFlow()
+    val systemUIState = derivedStateOf {
+        val settings = _settings.settingsState.value
+        HomeScreenSystemUIState(
+            drawSystemWallpaperBehindWebView = settings.drawSystemWallpaperBehindWebView,
+            statusBarAppearance = settings.statusBarAppearance,
+            navigationBarAppearance = settings.navigationBarAppearance,
+        )
+    }
 
-    private val _projectState = MutableStateFlow(getProjectState(_settings.settingsState.value))
-    val projectState = _projectState.asStateFlow()
+    val projectState = derivedStateOf {
+        val settings = _settings.settingsState.value
+        if (!_permsManager.hasStoragePermsState.value)
+            IHomeScreenProjectState.NoStoragePerm
+        else
+        {
+            val projDir = settings.currentProjDir
+            if (projDir == null)
+                IHomeScreenProjectState.NoProjectLoaded
+            else
+                IHomeScreenProjectState.ProjectLoaded(projDir)
+        }
+    }
 
-    private val _bridgeMenuState = MutableStateFlow(getBridgeMenuState(_settings.settingsState.value, isExpandedOverride = false))
-    val bridgeMenuState = _bridgeMenuState.asStateFlow()
+    val bridgeMenuIsExpandedState = MutableStateFlow(false)
+
+    val bridgeMenuState = derivedStateOf {
+        val settings = _settings.settingsState.value
+        BridgeMenuState(
+            isShown = settings.showBridgeButton,
+            isExpanded = bridgeMenuIsExpandedState.value,
+            showAppDrawerButtonWhenCollapsed = settings.showBridgeButton
+        )
+    }
 
     val webViewDeps = BridgeWebViewDeps(
         webViewClient = BridgeWebViewClient(_bridgeServer),
@@ -110,47 +129,6 @@ class HomeScreen2VM(
             _jsToBridgeAPI.webView = null
         }
     )
-
-    private fun startCollectingSettings() = viewModelScope.launch {
-        _settings.settingsState.collectLatest {
-            Log.d(TAG, "_settings.settingsState.collectLatest(): settingsState changed, updating UI state")
-            _systemUIState.value = getSystemUIState(it)
-            _projectState.value = getProjectState(it)
-            _bridgeMenuState.value = getBridgeMenuState(it)
-        }
-    }
-
-    private fun getSystemUIState(settingsState: SettingsState): HomeScreenSystemUIState
-    {
-        return HomeScreenSystemUIState(
-            drawSystemWallpaperBehindWebView = settingsState.drawSystemWallpaperBehindWebView,
-            statusBarAppearance = settingsState.statusBarAppearance,
-            navigationBarAppearance = settingsState.navigationBarAppearance,
-        )
-    }
-
-    private fun getProjectState(settingsState: SettingsState): IHomeScreenProjectState
-    {
-        return if (!_permsManager.hasStoragePermsState.value)
-            IHomeScreenProjectState.NoStoragePerm
-        else
-        {
-            val projDir = settingsState.currentProjDir
-            if (projDir == null)
-                IHomeScreenProjectState.NoProjectLoaded
-            else
-                IHomeScreenProjectState.ProjectLoaded(projDir)
-        }
-    }
-
-    private fun getBridgeMenuState(settingsState: SettingsState, isExpandedOverride: Boolean? = null): BridgeMenuState
-    {
-        return BridgeMenuState(
-            isShown = settingsState.showBridgeButton,
-            isExpanded = isExpandedOverride ?: _bridgeMenuState.value.isExpanded,
-            showAppDrawerButtonWhenCollapsed = settingsState.showBridgeButton
-        )
-    }
 
     fun beforePause()
     {

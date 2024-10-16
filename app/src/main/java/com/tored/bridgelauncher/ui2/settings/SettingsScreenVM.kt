@@ -1,17 +1,27 @@
 package com.tored.bridgelauncher.ui2.settings
 
 import android.app.Application
+import android.app.StatusBarManager
+import android.graphics.drawable.Icon
+import android.util.Log
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.datastore.preferences.core.MutablePreferences
+import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.tored.bridgelauncher.BridgeLauncherApplication
+import com.tored.bridgelauncher.R
 import com.tored.bridgelauncher.services.BridgeServiceProvider
 import com.tored.bridgelauncher.services.PermsManager
 import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
 import com.tored.bridgelauncher.services.iconpacks.InstalledIconPacksHolder
+import com.tored.bridgelauncher.services.settings.SettingsState
 import com.tored.bridgelauncher.services.settings.SettingsVM
+import com.tored.bridgelauncher.services.settings.settingsDataStore
 import com.tored.bridgelauncher.ui2.settings.sections.bridge.SettingsScreen2BridgeSectionActions
 import com.tored.bridgelauncher.ui2.settings.sections.bridge.SettingsScreen2BridgeSectionState
 import com.tored.bridgelauncher.ui2.settings.sections.development.SettingsScreen2DevelopmentSectionActions
@@ -25,23 +35,36 @@ import com.tored.bridgelauncher.ui2.settings.sections.project.SettingsScreen2Pro
 import com.tored.bridgelauncher.ui2.settings.sections.wallpaper.SettingsScreen2WallpaperSectionActions
 import com.tored.bridgelauncher.ui2.settings.sections.wallpaper.SettingsScreen2WallpaperSectionState
 import com.tored.bridgelauncher.utils.CurrentAndroidVersion
+import com.tored.bridgelauncher.utils.bridgeLauncherApplication
+import com.tored.bridgelauncher.utils.collectAsStateButInViewModel
+import com.tored.bridgelauncher.utils.tryStartWallpaperPickerActivity
+import com.tored.bridgelauncher.utils.writeBool
+import com.tored.bridgelauncher.utils.writeEnum
+import kotlinx.coroutines.launch
 
 private val TAG = SettingsScreenVM::class.simpleName
 
 class SettingsScreenVM(
-    private val _context: Application,
+    private val _app: BridgeLauncherApplication,
     private val _settingsVM: SettingsVM,
     private val _permsManager: PermsManager,
     private val _apps: InstalledAppsHolder,
     private val _iconPacks: InstalledIconPacksHolder,
 ) : ViewModel()
 {
+    private val _statusBarManager = if (CurrentAndroidVersion.supportsQSTilePrompt())
+        _app.getSystemService(StatusBarManager::class.java)
+    else
+        null
+
+
+    val settingsState by collectAsStateButInViewModel(_settingsVM.settingsState)
 
     // PROJECT
 
     val projectSectionState = derivedStateOf()
     {
-        val settings = _settingsVM.settingsState.value
+        val settings = settingsState
 
         val screenLockingMethod = when (CurrentAndroidVersion.supportsAccessiblityServiceScreenLock())
         {
@@ -68,8 +91,8 @@ class SettingsScreenVM(
 
     val projectSectionActions = SettingsScreen2ProjectSectionActions(
         changeProject = { TODO() },
-        requestGrantStoragePerms = { TODO() },
-        changeAllowProjectsToTurnScreenOff = { TODO() },
+        changeAllowProjectsToTurnScreenOff = { updateSettings { writeBool(SettingsState::allowProjectsToTurnScreenOff, it) } },
+        onStoragePermsStateChanged = { _permsManager.notifyPermsMightHaveChanged() },
     )
 
 
@@ -77,15 +100,15 @@ class SettingsScreenVM(
 
     val wallpaperSectionState = derivedStateOf()
     {
-        val settings = _settingsVM.settingsState.value
+        val settings = settingsState
         SettingsScreen2WallpaperSectionState(
             drawSystemWallpaperBehindWebView = settings.drawSystemWallpaperBehindWebView,
         )
     }
 
     val wallpaperSectionActions = SettingsScreen2WallpaperSectionActions(
-        changeSystemWallpaper = { TODO() },
-        changeDrawSystemWallpaperBehindWebView = { TODO() }
+        changeSystemWallpaper = { _app.tryStartWallpaperPickerActivity() },
+        changeDrawSystemWallpaperBehindWebView = { updateSettings { writeBool(SettingsState::drawSystemWallpaperBehindWebView, it) } }
     )
 
 
@@ -93,7 +116,8 @@ class SettingsScreenVM(
 
     val overlaysSectionState = derivedStateOf()
     {
-        val settings = _settingsVM.settingsState.value
+        val settings = settingsState
+        Log.d(TAG, "overlaysSectionState reevaluating")
         SettingsScreen2OverlaysSectionState(
             statusBarAppearance = settings.statusBarAppearance,
             navigationBarAppearance = settings.navigationBarAppearance,
@@ -102,9 +126,15 @@ class SettingsScreenVM(
     }
 
     val overlaysSectionActions = SettingsScreen2OverlaysSectionActions(
-        changeStatusBarAppearance = { TODO() },
-        changeNavigationBarAppearance = { TODO() },
-        changeDrawWebViewOverscrollEffects = { TODO() },
+        changeStatusBarAppearance = {
+            Log.d(TAG, "changeStatusBarAppearance called")
+            updateSettings { writeEnum(SettingsState::statusBarAppearance, it) }
+        },
+        changeNavigationBarAppearance = {
+            Log.d(TAG, "changeNavigationBarAppearance called")
+            updateSettings { writeEnum(SettingsState::navigationBarAppearance, it) }
+        },
+        changeDrawWebViewOverscrollEffects = { updateSettings { writeBool(SettingsState::drawWebViewOverscrollEffects, it) } },
     )
 
 
@@ -112,7 +142,7 @@ class SettingsScreenVM(
 
     val bridgeSectionState = derivedStateOf()
     {
-        val settings = _settingsVM.settingsState.value
+        val settings = settingsState
         SettingsScreen2BridgeSectionState(
             theme = settings.theme,
             showBridgeButton = settings.showBridgeButton,
@@ -123,10 +153,21 @@ class SettingsScreenVM(
     }
 
     val bridgeSectionActions = SettingsScreen2BridgeSectionActions(
-        changeTheme = { TODO() },
-        changeShowBridgeButton = { TODO() },
-        changeShowLaunchAppsWhenBridgeButtonCollapsed = { TODO() },
-        requestQSTilePrompt = { TODO() },
+        changeTheme = { updateSettings { writeEnum(SettingsState::theme, it) } },
+        changeShowBridgeButton = { updateSettings { writeBool(SettingsState::showBridgeButton, it) } },
+        changeShowLaunchAppsWhenBridgeButtonCollapsed = { updateSettings { writeBool(SettingsState::showLaunchAppsWhenBridgeButtonCollapsed, it) } },
+        requestQSTilePrompt = {
+            if (CurrentAndroidVersion.supportsQSTilePrompt())
+            {
+                _statusBarManager!!.requestAddTileService(
+                    _app.qsTileServiceComponentName,
+                    "Bridge button",
+                    Icon.createWithResource(_app, R.drawable.ic_bridge_white),
+                    {},
+                    {}
+                )
+            }
+        },
     )
 
 
@@ -144,6 +185,16 @@ class SettingsScreenVM(
     )
 
 
+    // utils
+
+    private fun updateSettings(edits: MutablePreferences.() -> Unit)
+    {
+        viewModelScope.launch {
+            _app.settingsDataStore.edit { it.edits() }
+        }
+    }
+
+
     companion object
     {
         fun from(context: Application, serviceProvider: BridgeServiceProvider): SettingsScreenVM
@@ -151,7 +202,7 @@ class SettingsScreenVM(
             with(serviceProvider)
             {
                 return SettingsScreenVM(
-                    _context = context,
+                    _app = context.bridgeLauncherApplication,
                     _permsManager = storagePermsManager,
                     _settingsVM = settingsVM,
                     _apps = installedAppsHolder,
