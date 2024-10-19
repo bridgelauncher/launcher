@@ -84,7 +84,7 @@ class SettingsVM(app: BridgeLauncherApplication) : AndroidViewModel(app)
         val Factory = viewModelFactory {
             initializer {
                 val app = checkNotNull(this[APPLICATION_KEY]) as BridgeLauncherApplication
-                app.serviceProvider.settingsVM
+                app.services.settingsVM
             }
         }
     }

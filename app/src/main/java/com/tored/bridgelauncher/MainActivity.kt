@@ -37,7 +37,7 @@ class MainActivity : ComponentActivity()
         _bridge.hasStoragePerms = checkStoragePerms()
         _modeman = getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
 
-        _bridgeToJSAPI = _bridge.serviceProvider.bridgeToJSAPI
+        _bridgeToJSAPI = _bridge.services.bridgeToJSAPI
 
         setContent {
             BridgeLauncherTheme {

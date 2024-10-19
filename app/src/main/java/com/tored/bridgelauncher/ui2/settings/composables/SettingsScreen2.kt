@@ -1,7 +1,8 @@
 package com.tored.bridgelauncher.ui2.settings.composables
 
-import android.content.res.Configuration.UI_MODE_NIGHT_YES
-import android.content.res.Configuration.UI_MODE_TYPE_NORMAL
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -11,13 +12,18 @@ import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tored.bridgelauncher.R
 import com.tored.bridgelauncher.services.settings.SystemBarAppearanceOptions
 import com.tored.bridgelauncher.services.settings.ThemeOptions
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherThemeStateless
+import com.tored.bridgelauncher.ui2.dirpicker.DirectoryPickerActions
+import com.tored.bridgelauncher.ui2.dirpicker.DirectoryPickerDialog
+import com.tored.bridgelauncher.ui2.dirpicker.DirectoryPickerState
+import com.tored.bridgelauncher.ui2.settings.SettingsScreen2MiscActions
 import com.tored.bridgelauncher.ui2.settings.SettingsScreenVM
 import com.tored.bridgelauncher.ui2.settings.sections.about.SettingsScreen2AboutSectionContent
 import com.tored.bridgelauncher.ui2.settings.sections.bridge.SettingsScreen2BridgeSectionActions
@@ -38,9 +44,12 @@ import com.tored.bridgelauncher.ui2.settings.sections.wallpaper.SettingsScreen2W
 import com.tored.bridgelauncher.ui2.settings.sections.wallpaper.SettingsScreen2WallpaperSectionContent
 import com.tored.bridgelauncher.ui2.settings.sections.wallpaper.SettingsScreen2WallpaperSectionState
 import com.tored.bridgelauncher.ui2.shared.BotBarScreen
+import com.tored.bridgelauncher.utils.CurrentAndroidVersion
+import com.tored.bridgelauncher.utils.UseEdgeToEdgeWithTransparentBars
+import com.tored.bridgelauncher.utils.tryStartExtStorageManagerPermissionActivity
 
 @Composable
-fun SettingsScreen2(vm: SettingsScreenVM = viewModel())
+fun SettingsScreen2(vm: SettingsScreenVM = viewModel(), requestFinish: () -> Unit)
 {
     SettingsScreen2(
         projectSectionState = vm.projectSectionState.value,
@@ -57,6 +66,12 @@ fun SettingsScreen2(vm: SettingsScreenVM = viewModel())
 
         developmentSectionState = vm.developmentSectionState.value,
         developmentSectionActions = vm.developmentSectionActions,
+
+        directoryPickerState = vm.directoryPickerState.value,
+        directoryPickerActions = vm.directoryPickerActions,
+
+        miscActions = vm.miscActions,
+        requestFinish = requestFinish,
     )
 }
 
@@ -76,14 +91,46 @@ fun SettingsScreen2(
 
     developmentSectionState: SettingsScreen2DevelopmentSectionState,
     developmentSectionActions: SettingsScreen2DevelopmentSectionActions,
+
+    directoryPickerState: DirectoryPickerState?,
+    directoryPickerActions: DirectoryPickerActions,
+
+    miscActions: SettingsScreen2MiscActions,
+
+    requestFinish: () -> Unit,
 )
 {
+    val permsLauncher = rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestMultiplePermissions()) { areGranted ->
+        miscActions.permissionsChanged(areGranted)
+    }
+
+    val context = LocalContext.current
+
+    fun requestStoragePermission()
+    {
+        if (CurrentAndroidVersion.supportsScopedStorage())
+        {
+            context.tryStartExtStorageManagerPermissionActivity()
+        }
+        else
+        {
+            permsLauncher.launch(
+                arrayOf(
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                )
+            )
+        }
+    }
+
+    UseEdgeToEdgeWithTransparentBars()
+
     Surface(
         color = MaterialTheme.colors.background,
         modifier = Modifier.fillMaxSize(),
     ) {
         BotBarScreen(
-            onLeftActionClick = { TODO() },
+            onLeftActionClick = { requestFinish() },
             titleAreaContent = {
                 Text(text = "Settings")
             }
@@ -97,6 +144,7 @@ fun SettingsScreen2(
                     SettingsScreen2ProjectSectionContent(
                         state = projectSectionState,
                         actions = projectSectionActions,
+                        requestStoragePermission = ::requestStoragePermission,
                     )
                 }
 
@@ -144,23 +192,22 @@ fun SettingsScreen2(
             }
         }
     }
+
+    if (directoryPickerState != null)
+    {
+        DirectoryPickerDialog(
+            state = directoryPickerState,
+            actions = directoryPickerActions,
+            requestStoragePermission = ::requestStoragePermission,
+        )
+    }
 }
 
 
 // PREVIEWS
 
-const val settingsScreen2PreviewHeight = 2000
-
 @Composable
-@Preview(
-    name = "Light",
-    heightDp = settingsScreen2PreviewHeight,
-)
-@Preview(
-    name = "Dark",
-    uiMode = UI_MODE_NIGHT_YES or UI_MODE_TYPE_NORMAL,
-    heightDp = settingsScreen2PreviewHeight,
-)
+@PreviewLightDark
 fun SettingsScreen2Preview01()
 {
     BridgeLauncherThemeStateless {
@@ -170,7 +217,7 @@ fun SettingsScreen2Preview01()
                 hasStoragePerms = true,
                 allowProjectsToTurnScreenOff = true,
                 screenLockingMethod = ScreenLockingMethodOptions.DeviceAdmin,
-                canBridgeTurnScreenOff = true
+                canBridgeTurnScreenOff = true,
             ),
             projectSectionActions = SettingsScreen2ProjectSectionActions.empty(),
 
@@ -198,7 +245,13 @@ fun SettingsScreen2Preview01()
             developmentSectionState = SettingsScreen2DevelopmentSectionState(
                 isExportDisabled = false,
             ),
-            developmentSectionActions = SettingsScreen2DevelopmentSectionActions.empty()
+            developmentSectionActions = SettingsScreen2DevelopmentSectionActions.empty(),
+
+            directoryPickerState = null,
+            directoryPickerActions = DirectoryPickerActions.empty(),
+
+            miscActions = SettingsScreen2MiscActions.empty(),
+            requestFinish = {}
         )
     }
 }

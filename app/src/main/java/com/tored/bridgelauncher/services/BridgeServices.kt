@@ -10,7 +10,7 @@ import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
 import com.tored.bridgelauncher.services.iconpacks.InstalledIconPacksHolder
 import com.tored.bridgelauncher.services.settings.SettingsVM
 
-data class BridgeServiceProvider(
+data class BridgeServices(
     val packageManager: PackageManager,
     val settingsVM: SettingsVM,
     val storagePermsManager: PermsManager,

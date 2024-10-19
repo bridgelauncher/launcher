@@ -1,8 +1,11 @@
 package com.tored.bridgelauncher.utils
 
-import android.content.Context
-import android.content.res.Configuration
-import android.widget.Toast
+import android.graphics.Color
+import android.os.Build
+import android.view.Window
+import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import com.tored.bridgelauncher.annotations.Display
 import kotlin.reflect.KProperty1
@@ -35,32 +38,30 @@ fun String?.defaultIfNullOrEmpty(default: String): String
     return if (isNullOrEmpty()) default else this
 }
 
-fun Context.showErrorToast(ex: Exception)
-{
-    showErrorToast(ex.messageOrDefault())
-}
-
-fun Context.showErrorToast(message: String?)
-{
-    Toast.makeText(this, message ?: "Exception with no message.", Toast.LENGTH_LONG).show()
-}
-
-fun Context.getIsSystemInNightMode(): Boolean
-{
-    return if (CurrentAndroidVersion.supportsNightMode())
-    {
-        resources.configuration.isNightModeActive
-    }
-    else
-    {
-        resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
-    }
-}
-
 /** Quote - wraps the given string in quotation marks. */
 fun q(s: String?) = "\"$s\""
 
 object EncodingStrings
 {
     const val UTF8 = "utf-8"
+}
+
+fun ComponentActivity.enableEdgeToEdgeWithTransparentSystemBars()
+{
+    enableEdgeToEdge(
+        SystemBarStyle.auto(
+            lightScrim = Color.TRANSPARENT,
+            darkScrim = Color.TRANSPARENT,
+        )
+    )
+
+    window.setNavigationBarContrastEnforcedIfSupported(false)
+}
+
+fun Window.setNavigationBarContrastEnforcedIfSupported(enforced: Boolean)
+{
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+    {
+        isNavigationBarContrastEnforced = enforced
+    }
 }

@@ -18,9 +18,14 @@ import java.io.IOException
 private const val TAG = "BridgeFileServer"
 
 class BridgeFileServer(
-    private val _settings: SettingsVM
+    private val _settings: SettingsVM,
 )
 {
+    companion object
+    {
+        val StartupFileNames = listOf("index.html")
+    }
+
     suspend fun handle(req: WebResourceRequest): WebResourceResponse
     {
         if (CurrentAndroidVersion.supportsScopedStorage() && !Environment.isExternalStorageManager())
@@ -74,7 +79,19 @@ class BridgeFileServer(
         {
             // treat requests to directories as requests to index.html in that directory
             // TODO: allow other files to be resolved for paths to directories? maybe a custom list?
-            canonicalFile = File(canonicalFile, "index.html")
+            for (startupFileName in StartupFileNames)
+            {
+                val startupFile = File(canonicalFile, startupFileName)
+                if (startupFile.exists() && startupFile.canRead())
+                {
+                    canonicalFile = startupFile
+                    break
+                }
+            }
+
+            // we didn't find a startup file
+            if (canonicalFile.isDirectory)
+                return errorResponse(HTTPStatusCode.NotFound, "Did not find a startup file in the requested directory. Expected startup file names: ${StartupFileNames.joinToString()}")
         }
 
         if (!canonicalFile.canRead())

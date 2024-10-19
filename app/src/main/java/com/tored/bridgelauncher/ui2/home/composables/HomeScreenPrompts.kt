@@ -13,33 +13,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.tored.bridgelauncher.composables.Btn
 import com.tored.bridgelauncher.ui.theme.textSec
+import com.tored.bridgelauncher.ui2.shared.PreviewWithSurfaceAndPadding
 import com.tored.bridgelauncher.utils.startBridgeSettingsActivity
-
-@Preview
-@Composable
-fun HomeScreenNoStoragePermsPrompt(modifier: Modifier = Modifier)
-{
-    HomeScreenPrompt(
-        modifier = modifier,
-        title = "Storage permission required",
-        message = "Bridge needs access to storage to load project files."
-    )
-}
-
-@Preview
-@Composable
-fun HomeScreenNoProjectPrompt(modifier: Modifier = Modifier)
-{
-    HomeScreenPrompt(
-        modifier = modifier,
-        title = "No project loaded",
-        message = "You can load a project in Bridge settings."
-    )
-}
 
 @Composable
 fun HomeScreenPrompt(
@@ -88,5 +67,31 @@ fun HomeScreenPrompt(
                 }
             }
         }
+    }
+}
+
+@Composable
+@PreviewLightDark
+fun HomeScreenNoStoragePermsPrompt(modifier: Modifier = Modifier)
+{
+    PreviewWithSurfaceAndPadding {
+        HomeScreenPrompt(
+            modifier = modifier,
+            title = "Storage permission required",
+            message = "Bridge needs access to storage to load project files."
+        )
+    }
+}
+
+@Composable
+@PreviewLightDark
+fun HomeScreenNoProjectPrompt(modifier: Modifier = Modifier)
+{
+    PreviewWithSurfaceAndPadding {
+        HomeScreenPrompt(
+            modifier = modifier,
+            title = "No project loaded",
+            message = "You can load a project in Bridge settings."
+        )
     }
 }

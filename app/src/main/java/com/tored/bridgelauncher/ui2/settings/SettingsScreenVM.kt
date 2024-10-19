@@ -3,6 +3,7 @@ package com.tored.bridgelauncher.ui2.settings
 import android.app.Application
 import android.app.StatusBarManager
 import android.graphics.drawable.Icon
+import android.os.Environment
 import android.util.Log
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -15,13 +16,17 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.tored.bridgelauncher.BridgeLauncherApplication
 import com.tored.bridgelauncher.R
-import com.tored.bridgelauncher.services.BridgeServiceProvider
+import com.tored.bridgelauncher.services.BridgeServices
 import com.tored.bridgelauncher.services.PermsManager
 import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
 import com.tored.bridgelauncher.services.iconpacks.InstalledIconPacksHolder
 import com.tored.bridgelauncher.services.settings.SettingsState
 import com.tored.bridgelauncher.services.settings.SettingsVM
 import com.tored.bridgelauncher.services.settings.settingsDataStore
+import com.tored.bridgelauncher.ui2.dirpicker.DirectoryPickerActions
+import com.tored.bridgelauncher.ui2.dirpicker.DirectoryPickerMode
+import com.tored.bridgelauncher.ui2.dirpicker.DirectoryPickerRealDirectory
+import com.tored.bridgelauncher.ui2.dirpicker.DirectoryPickerState
 import com.tored.bridgelauncher.ui2.settings.sections.bridge.SettingsScreen2BridgeSectionActions
 import com.tored.bridgelauncher.ui2.settings.sections.bridge.SettingsScreen2BridgeSectionState
 import com.tored.bridgelauncher.ui2.settings.sections.development.SettingsScreen2DevelopmentSectionActions
@@ -37,10 +42,16 @@ import com.tored.bridgelauncher.ui2.settings.sections.wallpaper.SettingsScreen2W
 import com.tored.bridgelauncher.utils.CurrentAndroidVersion
 import com.tored.bridgelauncher.utils.bridgeLauncherApplication
 import com.tored.bridgelauncher.utils.collectAsStateButInViewModel
+import com.tored.bridgelauncher.utils.tryOrShowErrorToast
 import com.tored.bridgelauncher.utils.tryStartWallpaperPickerActivity
 import com.tored.bridgelauncher.utils.writeBool
+import com.tored.bridgelauncher.utils.writeDir
 import com.tored.bridgelauncher.utils.writeEnum
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import java.io.File
+import kotlin.test.assertNotNull
 
 private val TAG = SettingsScreenVM::class.simpleName
 
@@ -57,8 +68,8 @@ class SettingsScreenVM(
     else
         null
 
-
     val settingsState by collectAsStateButInViewModel(_settingsVM.settingsState)
+
 
     // PROJECT
 
@@ -90,7 +101,7 @@ class SettingsScreenVM(
     }
 
     val projectSectionActions = SettingsScreen2ProjectSectionActions(
-        changeProject = { TODO() },
+        changeProject = { openDirectoryPicker(DirectoryPickerMode.LoadProject) },
         changeAllowProjectsToTurnScreenOff = { updateSettings { writeBool(SettingsState::allowProjectsToTurnScreenOff, it) } },
         onStoragePermsStateChanged = { _permsManager.notifyPermsMightHaveChanged() },
     )
@@ -159,7 +170,8 @@ class SettingsScreenVM(
         requestQSTilePrompt = {
             if (CurrentAndroidVersion.supportsQSTilePrompt())
             {
-                _statusBarManager!!.requestAddTileService(
+                assertNotNull(_statusBarManager, "Current Android version supports QS tile prompt, but statusBarManager was null.")
+                _statusBarManager.requestAddTileService(
                     _app.qsTileServiceComponentName,
                     "Bridge button",
                     Icon.createWithResource(_app, R.drawable.ic_bridge_white),
@@ -176,16 +188,149 @@ class SettingsScreenVM(
     val developmentSectionState = derivedStateOf {
         SettingsScreen2DevelopmentSectionState(
             // TODO: disabled until apps, icons and icon packs are done loading?
-            isExportDisabled = false
+            isExportDisabled = false,
         )
     }
 
     val developmentSectionActions = SettingsScreen2DevelopmentSectionActions(
-        exportMockFolder = { TODO() }
+        exportMockFolder = { openDirectoryPicker(DirectoryPickerMode.MockExport) }
     )
 
 
-    // utils
+    // DIRECTORY PICKER
+
+    private val _directoryPickerStateFlow = MutableStateFlow<DirectoryPickerState?>(null)
+    val directoryPickerState = collectAsStateButInViewModel(_directoryPickerStateFlow)
+
+    private fun currentProjDirOrDefault() = settingsState.currentProjDir.let {
+        if (it?.canRead() == true)
+            it
+        else
+            Environment.getExternalStorageDirectory()
+    }
+
+    private fun lastMockExportDirOrDefault() = settingsState.lastMockExportDir.let {
+        if (it?.canRead() == true)
+            it
+        else
+            currentProjDirOrDefault()
+    }
+
+    private fun observeStoragePermissionState()
+    {
+        viewModelScope.launch {
+            _permsManager.hasStoragePermsState.collectLatest { hasStoragePermission ->
+                _directoryPickerStateFlow.value.let { currState ->
+                    Log.d(TAG, "observeStoragePermissionState: _permsManager.hasStoragePermsState.collectLatest called, hasStoragePermission = $hasStoragePermission, currState = $currState")
+                    if (hasStoragePermission)
+                    {
+                        if (currState is DirectoryPickerState.NoStoragePermission)
+                        {
+                            // permission granted while dialog open
+                            Log.d(TAG, "observeStoragePermissionState: NoStoragePermission -> HasStoragePermission")
+                            _directoryPickerStateFlow.value = DirectoryPickerState.HasStoragePermission.fromDirectoryAndFilter(
+                                mode = currState.mode,
+                                directory = currentProjDirOrDefault(),
+                            )
+                        }
+                    }
+                    else
+                    {
+                        if (currState is DirectoryPickerState.HasStoragePermission)
+                        {
+                            // permission revoked while dialog open
+                            Log.d(TAG, "observeStoragePermissionState: HasStoragePermission -> NoStoragePermission")
+                            _directoryPickerStateFlow.value = DirectoryPickerState.NoStoragePermission(currState.mode)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun openDirectoryPicker(mode: DirectoryPickerMode)
+    {
+        if (_permsManager.hasStoragePermsState.value)
+        {
+            _directoryPickerStateFlow.value = DirectoryPickerState.HasStoragePermission.fromDirectoryAndFilter(
+                mode = mode,
+                directory = when (mode)
+                {
+                    DirectoryPickerMode.LoadProject -> currentProjDirOrDefault()
+                    DirectoryPickerMode.MockExport -> lastMockExportDirOrDefault()
+                }
+            )
+        }
+        else
+        {
+            _directoryPickerStateFlow.value = DirectoryPickerState.NoStoragePermission(mode)
+        }
+    }
+
+    val directoryPickerActions = DirectoryPickerActions(
+        dismiss = { _directoryPickerStateFlow.value = null },
+        navigateToDirectory = {
+            _directoryPickerStateFlow.value.let { currState ->
+                if (currState is DirectoryPickerState.HasStoragePermission && it is DirectoryPickerRealDirectory && it.file.canRead())
+                {
+                    _directoryPickerStateFlow.value = DirectoryPickerState.HasStoragePermission.fromDirectoryAndFilter(
+                        mode = currState.mode,
+                        directory = it.file,
+                    )
+                }
+            }
+        },
+        selectCurrentDirectory = {
+            _directoryPickerStateFlow.value.let { currState ->
+                if (currState is DirectoryPickerState.HasStoragePermission && currState.currentDirectory is DirectoryPickerRealDirectory)
+                {
+                    updateSettings { writeDir(SettingsState::currentProjDir, currState.currentDirectory.file) }
+                }
+            }
+        },
+        requestFilterOrCreateDirectoryTextChange = { newText ->
+            _directoryPickerStateFlow.value.let { currState ->
+                if (currState is DirectoryPickerState.HasStoragePermission && currState.currentDirectory is DirectoryPickerRealDirectory)
+                {
+                    _directoryPickerStateFlow.value = DirectoryPickerState.HasStoragePermission.fromDirectoryAndFilter(
+                        mode = currState.mode,
+                        directory = currState.currentDirectory.file,
+                        filterOrCreateDirectoryText = newText,
+                    )
+                }
+            }
+        },
+        createSubdirectory = {
+            _directoryPickerStateFlow.value.let { currState ->
+                if (currState is DirectoryPickerState.HasStoragePermission && currState.currentDirectory is DirectoryPickerRealDirectory)
+                {
+                    if (currState.filterOrCreateDirectoryText.isNotBlank())
+                    {
+                        _app.tryOrShowErrorToast {
+                            val newDir = File(currState.currentDirectory.file, currState.filterOrCreateDirectoryText)
+                            newDir.mkdirs()
+                        }
+                    }
+
+                    // refresh
+                    _directoryPickerStateFlow.value = DirectoryPickerState.HasStoragePermission.fromDirectoryAndFilter(
+                        mode = currState.mode,
+                        directory = currState.currentDirectory.file,
+                        filterOrCreateDirectoryText = currState.filterOrCreateDirectoryText,
+                    )
+                }
+            }
+        },
+    )
+
+
+// MISC ACTIONS
+
+    val miscActions = SettingsScreen2MiscActions(
+        permissionsChanged = { _permsManager.notifyPermsMightHaveChanged() },
+    )
+
+// utils
 
     private fun updateSettings(edits: MutablePreferences.() -> Unit)
     {
@@ -194,10 +339,14 @@ class SettingsScreenVM(
         }
     }
 
+    init
+    {
+        observeStoragePermissionState()
+    }
 
     companion object
     {
-        fun from(context: Application, serviceProvider: BridgeServiceProvider): SettingsScreenVM
+        fun from(context: Application, serviceProvider: BridgeServices): SettingsScreenVM
         {
             with(serviceProvider)
             {
@@ -215,7 +364,7 @@ class SettingsScreenVM(
         val Factory = viewModelFactory {
             initializer {
                 val app = checkNotNull(this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]) as BridgeLauncherApplication
-                from(app, app.serviceProvider)
+                from(app, app.services)
             }
         }
     }

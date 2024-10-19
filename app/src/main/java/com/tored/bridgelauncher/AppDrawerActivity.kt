@@ -92,7 +92,7 @@ class AppDrawerActivity : ComponentActivity()
         super.onCreate(savedInstanceState)
 
         val bridge = applicationContext as BridgeLauncherApplication
-        val installedAppsHolder = bridge.serviceProvider.installedAppsHolder
+        val installedAppsHolder = bridge.services.installedAppsHolder
 
         setContent {
             BridgeLauncherTheme {

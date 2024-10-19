@@ -1,10 +1,13 @@
 package com.tored.bridgelauncher.services
 
 import android.content.Context
+import android.util.Log
 import com.tored.bridgelauncher.utils.checkCanSetSystemNightMode
 import com.tored.bridgelauncher.utils.checkStoragePerms
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+
+private val TAG = PermsManager::class.simpleName
 
 class PermsManager(
     private val _context: Context,
@@ -19,7 +22,10 @@ class PermsManager(
     // intended to be called from onResume() - there is no API to listen for permission changes, so checks in onResume it is
     fun notifyPermsMightHaveChanged()
     {
-        _hasStoragePermsState.value = _context.checkStoragePerms()
-        _canCheckSystemNightModeState.value = _context.checkCanSetSystemNightMode()
+        val hasStoragePerms = _context.checkStoragePerms()
+        val canSetSystemNightMode = _context.checkCanSetSystemNightMode()
+        Log.d(TAG, "notifyPermsMightHaveChanged: hasStoragePerms = $hasStoragePerms, canSetSystemNightMode = $canSetSystemNightMode")
+        _hasStoragePermsState.value = hasStoragePerms
+        _canCheckSystemNightModeState.value = canSetSystemNightMode
     }
 }

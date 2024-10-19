@@ -42,7 +42,7 @@
         <activity
             android:name=".ui2.home.HomeScreenActivity"
             android:clearTaskOnLaunch="true"
-            android:configChanges="uiMode"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|mnc|colorMode|density|fontScale|fontWeightAdjustment|keyboard|layoutDirection|locale|mcc|navigation|smallestScreenSize|touchscreen|uiMode"
             android:exported="true"
             android:launchMode="singleTask"
             android:theme="@style/Theme.BridgeLauncher.Wallpaper"
@@ -69,6 +69,7 @@
 
         <activity
             android:name=".ui2.settings.SettingsScreenActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|mnc|colorMode|density|fontScale|fontWeightAdjustment|keyboard|layoutDirection|locale|mcc|navigation|smallestScreenSize|touchscreen|uiMode"
             android:exported="true"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>

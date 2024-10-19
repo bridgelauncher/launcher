@@ -16,7 +16,7 @@ import com.tored.bridgelauncher.ConsoleMessagesHolder
 import com.tored.bridgelauncher.api.jsapi.BridgeToJSAPI
 import com.tored.bridgelauncher.api.jsapi.JSToBridgeAPI
 import com.tored.bridgelauncher.api.server.BridgeServer
-import com.tored.bridgelauncher.services.BridgeServiceProvider
+import com.tored.bridgelauncher.services.BridgeServices
 import com.tored.bridgelauncher.services.PermsManager
 import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
 import com.tored.bridgelauncher.services.iconpacks.InstalledIconPacksHolder
@@ -27,6 +27,7 @@ import com.tored.bridgelauncher.ui2.home.bridgemenu.BridgeMenuActions
 import com.tored.bridgelauncher.ui2.home.bridgemenu.BridgeMenuState
 import com.tored.bridgelauncher.ui2.home.composables.BridgeWebViewDeps
 import com.tored.bridgelauncher.ui2.home.composables.onBridgeWebViewCreated
+import com.tored.bridgelauncher.utils.collectAsStateButInViewModel
 import com.tored.bridgelauncher.utils.readBool
 import com.tored.bridgelauncher.utils.startBridgeAppDrawerActivity
 import com.tored.bridgelauncher.utils.startBridgeSettingsActivity
@@ -77,7 +78,7 @@ class HomeScreen2VM(
             }
         },
         onOpenAppDrawerRequest = { _context.startBridgeAppDrawerActivity() },
-        onRequestIsExpandedChange = { bridgeMenuIsExpandedState.value = it },
+        onRequestIsExpandedChange = { _bridgeMenuIsExpandedStateFlow.value = it },
     )
 
     val systemUIState = derivedStateOf {
@@ -103,13 +104,14 @@ class HomeScreen2VM(
         }
     }
 
-    val bridgeMenuIsExpandedState = MutableStateFlow(false)
+    private val _bridgeMenuIsExpandedStateFlow = MutableStateFlow(false)
+    private val _bridgeMenuIsExpandedState = collectAsStateButInViewModel(_bridgeMenuIsExpandedStateFlow)
 
     val bridgeMenuState = derivedStateOf {
         val settings = _settings.settingsState.value
         BridgeMenuState(
             isShown = settings.showBridgeButton,
-            isExpanded = bridgeMenuIsExpandedState.value,
+            isExpanded = _bridgeMenuIsExpandedState.value,
             showAppDrawerButtonWhenCollapsed = settings.showBridgeButton
         )
     }
@@ -144,7 +146,7 @@ class HomeScreen2VM(
 
     companion object
     {
-        fun from(context: Application, serviceProvider: BridgeServiceProvider): HomeScreen2VM
+        fun from(context: Application, serviceProvider: BridgeServices): HomeScreen2VM
         {
             with(serviceProvider)
             {
@@ -165,7 +167,7 @@ class HomeScreen2VM(
         val Factory = viewModelFactory {
             initializer {
                 val app = checkNotNull(this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]) as BridgeLauncherApplication
-                from(app, app.serviceProvider)
+                from(app, app.services)
             }
         }
     }

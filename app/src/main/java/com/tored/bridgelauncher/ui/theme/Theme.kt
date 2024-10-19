@@ -108,7 +108,10 @@ val Colors.checkedItemBg: Color
     get() = if (isLight) Color(0x26000000) else Color(0x26FFFFFF)
 
 val Colors.scrim: Color
-    get() = if (isLight) Color(0x26000000) else Color(0x80000000)
+    get() = if (isLight) BridgeColorsLightScrim else BridgeColorsDarkScrim
+
+val BridgeColorsLightScrim = Color(0xD9FFFFFF)
+val BridgeColorsDarkScrim = Color(0x80000000)
 
 val Colors.info: Color
     get() = if (isLight) Color(0xFF1A4FB6) else Color(0xFF729BEC)

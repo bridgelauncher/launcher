@@ -14,7 +14,7 @@ android {
         minSdk 24
         targetSdk 34
         versionCode 3
-        versionName "0.0.3"
+        versionName "0.0.5"
         versionNameSuffix "alpha"
         archivesBaseName = "${applicationId}_${versionCode}_v${versionName}${if (versionNameSuffix?.isAllWhitespace() ?: true) "" else "-${versionNameSuffix}"}"
 

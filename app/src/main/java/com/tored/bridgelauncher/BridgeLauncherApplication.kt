@@ -2,14 +2,11 @@ package com.tored.bridgelauncher
 
 import android.app.Application
 import android.content.ComponentName
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
 import com.tored.bridgelauncher.api.jsapi.BridgeToJSAPI
 import com.tored.bridgelauncher.api.jsapi.JSToBridgeAPI
 import com.tored.bridgelauncher.api.server.BridgeServer
-import com.tored.bridgelauncher.services.BridgeServiceProvider
+import com.tored.bridgelauncher.services.BridgeServices
 import com.tored.bridgelauncher.services.PermsManager
 import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
 import com.tored.bridgelauncher.services.iconpacks.InstalledIconPacksHolder
@@ -25,11 +22,9 @@ class BridgeLauncherApplication : Application()
     lateinit var adminReceiverComponentName: ComponentName
     lateinit var qsTileServiceComponentName: ComponentName
 
-    lateinit var serviceProvider: BridgeServiceProvider
+    lateinit var services: BridgeServices
 
     lateinit var consoleMessagesHolder: ConsoleMessagesHolder
-
-    var hasStoragePerms by mutableStateOf(false)
 
     override fun onCreate()
     {
@@ -65,7 +60,7 @@ class BridgeLauncherApplication : Application()
             ContextCompat.RECEIVER_EXPORTED,
         )
 
-        serviceProvider = BridgeServiceProvider(
+        services = BridgeServices(
             packageManager = pm,
             settingsVM = settingsVM,
             storagePermsManager = storagePermsManager,

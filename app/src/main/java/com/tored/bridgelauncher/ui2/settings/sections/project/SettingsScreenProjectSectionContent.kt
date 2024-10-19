@@ -1,6 +1,5 @@
 package com.tored.bridgelauncher.ui2.settings.sections.project
 
-import android.Manifest
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -15,7 +14,6 @@ import com.tored.bridgelauncher.ui2.shared.PreviewWithSurfaceAndPadding
 import com.tored.bridgelauncher.utils.CurrentAndroidVersion
 import com.tored.bridgelauncher.utils.tryStartAndroidAccessibilitySettingsActivity
 import com.tored.bridgelauncher.utils.tryStartAndroidAddDeviceAdminActivity
-import com.tored.bridgelauncher.utils.tryStartExtStorageManagerPermissionActivity
 
 private const val TAG = "SettingsScreen2ProjectSectionContent"
 
@@ -23,7 +21,8 @@ private const val TAG = "SettingsScreen2ProjectSectionContent"
 fun SettingsScreen2ProjectSectionContent(
     state: SettingsScreen2ProjectSectionState,
     actions: SettingsScreen2ProjectSectionActions,
-    modifier: Modifier = Modifier
+    requestStoragePermission: () -> Unit,
+    modifier: Modifier = Modifier,
 )
 {
     val permsLauncher = rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestMultiplePermissions()) { areGranted ->
@@ -41,21 +40,7 @@ fun SettingsScreen2ProjectSectionContent(
             projectInfo = state.projectInfo,
             hasStoragePerms = state.hasStoragePerms,
             onChangeClick = actions.changeProject,
-            onGrantPermissionRequest = {
-                if (CurrentAndroidVersion.supportsScopedStorage())
-                {
-                    context.tryStartExtStorageManagerPermissionActivity()
-                }
-                else
-                {
-                    permsLauncher.launch(
-                        arrayOf(
-                            Manifest.permission.READ_EXTERNAL_STORAGE,
-                            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                        )
-                    )
-                }
-            },
+            onGrantPermissionRequest = { requestStoragePermission() },
         )
 
         AllowProjectsToTurnScreenOffCheckbox(
@@ -101,6 +86,7 @@ fun SettingsScreenProjectSectionContentPreview(
                 canBridgeTurnScreenOff = canBridgeTurnScreenOff
             ),
             actions = SettingsScreen2ProjectSectionActions.empty(),
+            requestStoragePermission = {}
         )
     }
 }

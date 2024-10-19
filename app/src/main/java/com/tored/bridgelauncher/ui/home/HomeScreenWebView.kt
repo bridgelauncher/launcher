@@ -45,7 +45,7 @@ fun HomeScreenWebView(
 
     val webViewClient = remember {
         BridgeWebViewClient(
-            bridgeServer = bridge.serviceProvider.bridgeServer
+            bridgeServer = bridge.services.bridgeServer
         )
     }
 

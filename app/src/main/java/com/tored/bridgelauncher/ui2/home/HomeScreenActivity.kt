@@ -7,7 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
 import com.tored.bridgelauncher.ui2.home.composables.HomeScreen2
-import com.tored.bridgelauncher.ui2.home.HomeScreen2VM
+import com.tored.bridgelauncher.utils.tryStartBridgeSettingsActivity
 
 private val TAG = HomeScreenActivity::class.simpleName
 
@@ -18,7 +18,10 @@ class HomeScreenActivity : ComponentActivity()
     override fun onCreate(savedInstanceState: Bundle?)
     {
         enableEdgeToEdge()
+
         super.onCreate(savedInstanceState)
+
+        tryStartBridgeSettingsActivity()
 
         setContent {
             BridgeLauncherTheme {
