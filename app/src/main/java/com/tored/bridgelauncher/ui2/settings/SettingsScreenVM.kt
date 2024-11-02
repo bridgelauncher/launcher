@@ -17,9 +17,9 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.tored.bridgelauncher.BridgeLauncherApplication
 import com.tored.bridgelauncher.R
 import com.tored.bridgelauncher.services.BridgeServices
-import com.tored.bridgelauncher.services.PermsManager
-import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
-import com.tored.bridgelauncher.services.iconpacks.InstalledIconPacksHolder
+import com.tored.bridgelauncher.services.mockexport.MockExportProgressState
+import com.tored.bridgelauncher.services.mockexport.MockExporter
+import com.tored.bridgelauncher.services.perms.PermsManager
 import com.tored.bridgelauncher.services.settings.SettingsState
 import com.tored.bridgelauncher.services.settings.SettingsVM
 import com.tored.bridgelauncher.services.settings.settingsDataStore
@@ -27,6 +27,7 @@ import com.tored.bridgelauncher.ui2.dirpicker.DirectoryPickerActions
 import com.tored.bridgelauncher.ui2.dirpicker.DirectoryPickerMode
 import com.tored.bridgelauncher.ui2.dirpicker.DirectoryPickerRealDirectory
 import com.tored.bridgelauncher.ui2.dirpicker.DirectoryPickerState
+import com.tored.bridgelauncher.ui2.progressdialog.MockExportProgressDialogActions
 import com.tored.bridgelauncher.ui2.settings.sections.bridge.SettingsScreen2BridgeSectionActions
 import com.tored.bridgelauncher.ui2.settings.sections.bridge.SettingsScreen2BridgeSectionState
 import com.tored.bridgelauncher.ui2.settings.sections.development.SettingsScreen2DevelopmentSectionActions
@@ -47,6 +48,7 @@ import com.tored.bridgelauncher.utils.tryStartWallpaperPickerActivity
 import com.tored.bridgelauncher.utils.writeBool
 import com.tored.bridgelauncher.utils.writeDir
 import com.tored.bridgelauncher.utils.writeEnum
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -59,8 +61,7 @@ class SettingsScreenVM(
     private val _app: BridgeLauncherApplication,
     private val _settingsVM: SettingsVM,
     private val _permsManager: PermsManager,
-    private val _apps: InstalledAppsHolder,
-    private val _iconPacks: InstalledIconPacksHolder,
+    private val _mockExporter: MockExporter,
 ) : ViewModel()
 {
     private val _statusBarManager = if (CurrentAndroidVersion.supportsQSTilePrompt())
@@ -103,7 +104,6 @@ class SettingsScreenVM(
     val projectSectionActions = SettingsScreen2ProjectSectionActions(
         changeProject = { openDirectoryPicker(DirectoryPickerMode.LoadProject) },
         changeAllowProjectsToTurnScreenOff = { updateSettings { writeBool(SettingsState::allowProjectsToTurnScreenOff, it) } },
-        onStoragePermsStateChanged = { _permsManager.notifyPermsMightHaveChanged() },
     )
 
 
@@ -202,6 +202,18 @@ class SettingsScreenVM(
     private val _directoryPickerStateFlow = MutableStateFlow<DirectoryPickerState?>(null)
     val directoryPickerState = collectAsStateButInViewModel(_directoryPickerStateFlow)
 
+    private var _mockExportJob: Job? = null
+
+    private val _mockExportProgressStateFlow = MutableStateFlow<MockExportProgressState?>(null)
+    val mockExportProgressState = collectAsStateButInViewModel(_mockExportProgressStateFlow)
+
+    val mockExportProgressDialogActions = MockExportProgressDialogActions(
+        dismiss = {
+            _mockExportJob?.cancel()
+            _mockExportJob = null
+        }
+    )
+
     private fun currentProjDirOrDefault() = settingsState.currentProjDir.let {
         if (it?.canRead() == true)
             it
@@ -284,7 +296,24 @@ class SettingsScreenVM(
             _directoryPickerStateFlow.value.let { currState ->
                 if (currState is DirectoryPickerState.HasStoragePermission && currState.currentDirectory is DirectoryPickerRealDirectory)
                 {
-                    updateSettings { writeDir(SettingsState::currentProjDir, currState.currentDirectory.file) }
+                    when (currState.mode)
+                    {
+                        DirectoryPickerMode.LoadProject -> updateSettings { writeDir(SettingsState::currentProjDir, currState.currentDirectory.file) }
+                        DirectoryPickerMode.MockExport -> if (_mockExportJob == null)
+                        {
+                            // hide directory picker
+                            _directoryPickerStateFlow.value = null
+                            // start exporting
+                            _mockExportProgressStateFlow.value = MockExportProgressState()
+
+                            _mockExportJob = viewModelScope.launch {
+                                _mockExporter.exportToDirectory(currState.currentDirectory.file, _mockExportProgressStateFlow)
+                                _app.settingsDataStore.edit { it.writeDir(SettingsState::lastMockExportDir, currState.currentDirectory.file) }
+                                _mockExportProgressStateFlow.value = null
+                                _mockExportJob = null
+                            }
+                        }
+                    }
                 }
             }
         },
@@ -324,13 +353,13 @@ class SettingsScreenVM(
     )
 
 
-// MISC ACTIONS
+    // MISC ACTIONS
 
     val miscActions = SettingsScreen2MiscActions(
         permissionsChanged = { _permsManager.notifyPermsMightHaveChanged() },
     )
 
-// utils
+    // utils
 
     private fun updateSettings(edits: MutablePreferences.() -> Unit)
     {
@@ -354,8 +383,7 @@ class SettingsScreenVM(
                     _app = context.bridgeLauncherApplication,
                     _permsManager = storagePermsManager,
                     _settingsVM = settingsVM,
-                    _apps = installedAppsHolder,
-                    _iconPacks = installedIconPacksHolder,
+                    _mockExporter = mockExporter,
                 )
             }
         }

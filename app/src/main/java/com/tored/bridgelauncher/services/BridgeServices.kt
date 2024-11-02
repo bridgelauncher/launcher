@@ -8,6 +8,8 @@ import com.tored.bridgelauncher.api.jsapi.JSToBridgeAPI
 import com.tored.bridgelauncher.api.server.BridgeServer
 import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
 import com.tored.bridgelauncher.services.iconpacks.InstalledIconPacksHolder
+import com.tored.bridgelauncher.services.mockexport.MockExporter
+import com.tored.bridgelauncher.services.perms.PermsManager
 import com.tored.bridgelauncher.services.settings.SettingsVM
 
 data class BridgeServices(
@@ -15,11 +17,14 @@ data class BridgeServices(
     val settingsVM: SettingsVM,
     val storagePermsManager: PermsManager,
 
-    val bridgeServer: BridgeServer,
     val installedAppsHolder: InstalledAppsHolder,
     val installedIconPacksHolder: InstalledIconPacksHolder,
+
+    val bridgeServer: BridgeServer,
     val consoleMessagesHolder: ConsoleMessagesHolder,
     val broadcastReceiver: BroadcastReceiver,
     val bridgeToJSAPI: BridgeToJSAPI,
     val jsToBridgeAPI: JSToBridgeAPI,
+    
+    val mockExporter: MockExporter,
 )

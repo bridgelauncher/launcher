@@ -27,7 +27,7 @@ class AppIconsEndpoint(
         val packageName = req.url.stringQueryParamOrNull(QUERY_PACKAGE_NAME)
             ?: throw badRequest("No packageName query parameter.")
 
-        val app = _installedApps.installedApps[packageName]
+        val app = _installedApps.packageNameToInstalledAppMap[packageName]
             ?: throw badRequest("No app with package name ${q(packageName)}.")
 
         val notFoundBehavior = req.url.resolveEnumQueryParam(QUERY_NOT_FOUND_BEHAVIOR)

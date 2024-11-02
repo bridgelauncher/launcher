@@ -69,7 +69,8 @@ fun DirectoryPickerFilterCreateDirectoryBar(
         )
 
         IconButton(
-            onClick = onCreateDirectoryClick
+            enabled = text.isNotBlank(),
+            onClick = onCreateDirectoryClick,
         )
         {
             ResIcon(iconResId = R.drawable.ic_folder_plus)

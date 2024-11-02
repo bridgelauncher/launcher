@@ -3,6 +3,7 @@ package com.tored.bridgelauncher.api.jsapi
 import android.content.Context
 import android.util.Log
 import android.webkit.WebView
+import com.tored.bridgelauncher.services.apps.InstalledAppListChangeEvent
 import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
 import com.tored.bridgelauncher.services.apps.SerializableInstalledApp
 import com.tored.bridgelauncher.services.settings.SettingsState
@@ -10,8 +11,11 @@ import com.tored.bridgelauncher.services.settings.SettingsVM
 import com.tored.bridgelauncher.services.settings.getCanLockScreen
 import com.tored.bridgelauncher.utils.checkCanSetSystemNightMode
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
@@ -30,18 +34,26 @@ data class ValueChangeEventArgs<T>(val newValue: T) : BridgeEventArgs
 
 class BridgeToJSAPI(
     private val _context: Context,
-    private val _coroutineScope: CoroutineScope,
     private val _settings: SettingsVM,
     private val _installedApps: InstalledAppsHolder,
     private var _lastCanSetSystemNightMode: Boolean,
 )
 {
+    private val _coroutineScope = CoroutineScope(Dispatchers.Default) + SupervisorJob()
+
     init
     {
         // subscribe to app list change events
-        _installedApps.onAdded { raiseAppInstalled(it.toSerializable()) }
-        _installedApps.onChanged { raiseAppChanged(it.toSerializable()) }
-        _installedApps.onRemoved { raiseAppRemoved(it) }
+        _coroutineScope.launch {
+            _installedApps.appListChangeEventFlow.collectLatest { event ->
+                when (event)
+                {
+                    is InstalledAppListChangeEvent.Added -> raiseAppInstalled(event.newApp.toSerializable())
+                    is InstalledAppListChangeEvent.Changed -> raiseAppChanged(event.newApp.toSerializable())
+                    is InstalledAppListChangeEvent.Removed -> raiseAppRemoved(event.packageName)
+                }
+            }
+        }
 
         _coroutineScope.launch()
         {

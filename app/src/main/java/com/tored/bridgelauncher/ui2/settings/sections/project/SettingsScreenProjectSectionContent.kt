@@ -1,8 +1,6 @@
 package com.tored.bridgelauncher.ui2.settings.sections.project
 
 import android.util.Log
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
@@ -25,10 +23,6 @@ fun SettingsScreen2ProjectSectionContent(
     modifier: Modifier = Modifier,
 )
 {
-    val permsLauncher = rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestMultiplePermissions()) { areGranted ->
-        actions.onStoragePermsStateChanged(areGranted)
-    }
-
     val context = LocalContext.current
 
     Column(

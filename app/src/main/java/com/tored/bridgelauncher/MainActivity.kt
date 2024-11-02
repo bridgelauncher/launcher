@@ -15,7 +15,6 @@ import com.tored.bridgelauncher.api.jsapi.BridgeToJSAPI
 import com.tored.bridgelauncher.api.jsapi.getSystemNightModeString
 import com.tored.bridgelauncher.ui.home.HomeScreen
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
-import com.tored.bridgelauncher.utils.checkStoragePerms
 
 private const val TAG = "MainActivity"
 
@@ -34,7 +33,7 @@ class MainActivity : ComponentActivity()
         Log.d(TAG, "onCreate: savedInstanceState == null: ${savedInstanceState == null}")
 
         _bridge = applicationContext as BridgeLauncherApplication
-        _bridge.hasStoragePerms = checkStoragePerms()
+//        _bridge.hasStoragePerms = checkStoragePerms()
         _modeman = getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
 
         _bridgeToJSAPI = _bridge.services.bridgeToJSAPI
@@ -42,7 +41,7 @@ class MainActivity : ComponentActivity()
         setContent {
             BridgeLauncherTheme {
                 HomeScreen(
-                    hasStoragePerms = _bridge.hasStoragePerms
+                    hasStoragePerms = true//_bridge.hasStoragePerms
                 )
             }
         }
@@ -98,7 +97,7 @@ class MainActivity : ComponentActivity()
             _lastCanSetSystemNightMode = canSetSystemNightMode
         }
 
-        _bridge.hasStoragePerms = checkStoragePerms()
+//        _bridge.hasStoragePerms = checkStoragePerms()
         _bridgeToJSAPI.raiseAfterResume()
     }
 

@@ -1,4 +1,4 @@
-package com.tored.bridgelauncher.services
+package com.tored.bridgelauncher.services.perms
 
 import android.content.Context
 import android.util.Log

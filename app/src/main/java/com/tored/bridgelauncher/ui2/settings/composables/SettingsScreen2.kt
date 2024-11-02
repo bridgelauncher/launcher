@@ -17,12 +17,15 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tored.bridgelauncher.R
+import com.tored.bridgelauncher.services.mockexport.MockExportProgressState
 import com.tored.bridgelauncher.services.settings.SystemBarAppearanceOptions
 import com.tored.bridgelauncher.services.settings.ThemeOptions
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherThemeStateless
 import com.tored.bridgelauncher.ui2.dirpicker.DirectoryPickerActions
 import com.tored.bridgelauncher.ui2.dirpicker.DirectoryPickerDialog
 import com.tored.bridgelauncher.ui2.dirpicker.DirectoryPickerState
+import com.tored.bridgelauncher.ui2.progressdialog.MockExportProgressDialog
+import com.tored.bridgelauncher.ui2.progressdialog.MockExportProgressDialogActions
 import com.tored.bridgelauncher.ui2.settings.SettingsScreen2MiscActions
 import com.tored.bridgelauncher.ui2.settings.SettingsScreenVM
 import com.tored.bridgelauncher.ui2.settings.sections.about.SettingsScreen2AboutSectionContent
@@ -70,6 +73,9 @@ fun SettingsScreen2(vm: SettingsScreenVM = viewModel(), requestFinish: () -> Uni
         directoryPickerState = vm.directoryPickerState.value,
         directoryPickerActions = vm.directoryPickerActions,
 
+        mockExportProgressState = vm.mockExportProgressState.value,
+        mockExportProgressDialogActions = vm.mockExportProgressDialogActions,
+
         miscActions = vm.miscActions,
         requestFinish = requestFinish,
     )
@@ -95,8 +101,10 @@ fun SettingsScreen2(
     directoryPickerState: DirectoryPickerState?,
     directoryPickerActions: DirectoryPickerActions,
 
-    miscActions: SettingsScreen2MiscActions,
+    mockExportProgressState: MockExportProgressState?,
+    mockExportProgressDialogActions: MockExportProgressDialogActions,
 
+    miscActions: SettingsScreen2MiscActions,
     requestFinish: () -> Unit,
 )
 {
@@ -201,6 +209,14 @@ fun SettingsScreen2(
             requestStoragePermission = ::requestStoragePermission,
         )
     }
+
+    if (mockExportProgressState != null)
+    {
+        MockExportProgressDialog(
+            state = mockExportProgressState,
+            actions = mockExportProgressDialogActions,
+        )
+    }
 }
 
 
@@ -249,6 +265,9 @@ fun SettingsScreen2Preview01()
 
             directoryPickerState = null,
             directoryPickerActions = DirectoryPickerActions.empty(),
+
+            mockExportProgressState = null,
+            mockExportProgressDialogActions = MockExportProgressDialogActions.empty(),
 
             miscActions = SettingsScreen2MiscActions.empty(),
             requestFinish = {}

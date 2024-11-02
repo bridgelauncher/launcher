@@ -29,7 +29,7 @@ fun SettingsScreen2DevelopmentSectionContent(
             text = "Export",
             suffixIcon = R.drawable.ic_save_to_device,
             disabled = state.isExportDisabled,
-            onClick = { actions.exportMockFolder }
+            onClick = { actions.exportMockFolder() }
         )
     }
 }

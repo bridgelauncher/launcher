@@ -17,7 +17,7 @@ import com.tored.bridgelauncher.api.jsapi.BridgeToJSAPI
 import com.tored.bridgelauncher.api.jsapi.JSToBridgeAPI
 import com.tored.bridgelauncher.api.server.BridgeServer
 import com.tored.bridgelauncher.services.BridgeServices
-import com.tored.bridgelauncher.services.PermsManager
+import com.tored.bridgelauncher.services.perms.PermsManager
 import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
 import com.tored.bridgelauncher.services.iconpacks.InstalledIconPacksHolder
 import com.tored.bridgelauncher.services.settings.SettingsState

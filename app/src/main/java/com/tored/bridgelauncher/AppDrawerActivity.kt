@@ -116,7 +116,7 @@ fun AppDrawerScreen(
     val searchStringTrimmed = searchString.trim().lowercase()
     val searchStringSimplified = InstalledApp.simplifyLabel(searchString)
 
-    val filteredApps = installedAppsHolder.installedApps.values
+    val filteredApps = installedAppsHolder.packageNameToInstalledAppMap.values
         .filter {
             it.labelSimplified.contains(searchStringSimplified)
                     || it.packageName.lowercase().contains(searchStringTrimmed)
@@ -481,7 +481,7 @@ fun SearchBotBar(searchString: String, onSearchStringChange: (String) -> Unit, o
                 onValueChange = onSearchStringChange,
                 keyboardOptions = KeyboardOptions(
                     imeAction = ImeAction.Go,
-                    autoCorrect = false,
+                    autoCorrectEnabled = false,
                     keyboardType = KeyboardType.Uri,
                     capitalization = KeyboardCapitalization.None,
                 ),

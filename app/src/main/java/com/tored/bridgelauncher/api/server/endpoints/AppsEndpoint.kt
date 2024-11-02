@@ -16,7 +16,7 @@ class AppsEndpoint(private val _installedApps: InstalledAppsHolder) : IBridgeSer
             Json.encodeToString(
                 BridgeAPIEndpointAppsResponse.serializer(),
                 BridgeAPIEndpointAppsResponse(
-                    apps = _installedApps.installedApps.values.map { it.toSerializable() },
+                    apps = _installedApps.packageNameToInstalledAppMap.values.map { it.toSerializable() },
                 )
             )
         )

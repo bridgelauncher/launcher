@@ -5,8 +5,11 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -132,24 +135,28 @@ fun DirectoryPickerDialog(
                         }
                     }
 
-                    Divider()
+                    @OptIn(ExperimentalLayoutApi::class)
+                    if (!WindowInsets.isImeVisible)
+                    {
+                        Divider()
 
-                    DirectoryPickerFooter(
-                        confirmText = when (state.mode)
-                        {
-                            DirectoryPickerMode.LoadProject -> "Load project"
-                            DirectoryPickerMode.MockExport -> "Export here"
-                        },
-                        confirmIconResId = when (state.mode)
-                        {
-                            DirectoryPickerMode.LoadProject -> R.drawable.ic_check
-                            DirectoryPickerMode.MockExport -> R.drawable.ic_save_to_device
-                        },
-                        isConfirmDisabled = state is DirectoryPickerState.NoStoragePermission,
-                        cancelText = "Cancel",
-                        onConfirmRequest = { actions.selectCurrentDirectory() },
-                        onCancelRequest = { actions.dismiss() },
-                    )
+                        DirectoryPickerFooter(
+                            confirmText = when (state.mode)
+                            {
+                                DirectoryPickerMode.LoadProject -> "Load project"
+                                DirectoryPickerMode.MockExport -> "Export here"
+                            },
+                            confirmIconResId = when (state.mode)
+                            {
+                                DirectoryPickerMode.LoadProject -> R.drawable.ic_check
+                                DirectoryPickerMode.MockExport -> R.drawable.ic_save_to_device
+                            },
+                            isConfirmDisabled = state is DirectoryPickerState.NoStoragePermission,
+                            cancelText = "Cancel",
+                            onConfirmRequest = { actions.selectCurrentDirectory() },
+                            onCancelRequest = { actions.dismiss() },
+                        )
+                    }
                 }
             }
         }
