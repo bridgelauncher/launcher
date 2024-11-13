@@ -8,6 +8,7 @@ import com.tored.bridgelauncher.api.jsapi.BridgeToJSAPI
 import com.tored.bridgelauncher.api.jsapi.JSToBridgeAPI
 import com.tored.bridgelauncher.api.server.BridgeServer
 import com.tored.bridgelauncher.services.BridgeServices
+import com.tored.bridgelauncher.services.iconcache.IconCache
 import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
 import com.tored.bridgelauncher.services.iconpacks.InstalledIconPacksHolder
 import com.tored.bridgelauncher.services.mockexport.MockExporter
@@ -19,7 +20,7 @@ import com.tored.bridgelauncher.services.system.BridgeLauncherDeviceAdminReceive
 import com.tored.bridgelauncher.utils.checkCanSetSystemNightMode
 import kotlinx.coroutines.MainScope
 
-private const val TAG = "BridgeLauncherApplication"
+private const val TAG = "Application"
 
 class BridgeLauncherApplication : Application()
 {
@@ -59,6 +60,7 @@ class BridgeLauncherApplication : Application()
         val settingsVM = SettingsVM(this)
 
         val installedAppsHolder = InstalledAppsHolder(pm)
+        val appIconsCache = IconCache(pm, installedAppsHolder)
         val installedIconPacksHolder = InstalledIconPacksHolder(pm)
 
         val bridgeToJSAPI = BridgeToJSAPI(
@@ -96,6 +98,7 @@ class BridgeLauncherApplication : Application()
             storagePermsManager = storagePermsManager,
 
             installedAppsHolder = installedAppsHolder,
+            appIconsCache = appIconsCache,
             installedIconPacksHolder = installedIconPacksHolder,
 
             bridgeServer = bridgeServer,

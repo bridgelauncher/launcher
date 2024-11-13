@@ -3,17 +3,21 @@ package com.tored.bridgelauncher.services.apps
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.util.Log
-import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.mutableStateOf
 import com.tored.bridgelauncher.utils.q
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.supervisorScope
+import kotlin.system.measureTimeMillis
+import kotlin.time.measureTimedValue
 
 private const val TAG = "InstalledApps"
 
@@ -28,10 +32,10 @@ class InstalledAppsHolder(
     private val _pm: PackageManager,
 )
 {
-    private val _scope = CoroutineScope(Dispatchers.Default) + SupervisorJob()
+    private val _coroutineScope = CoroutineScope(Dispatchers.Default) + SupervisorJob()
 
-    private val _initialLoadingFinished = mutableStateOf(false)
-    val initialLoadingFinished = _initialLoadingFinished as State<Boolean>
+    private val _initialLoadingFinished = MutableStateFlow(false)
+    val initialLoadingFinished = _initialLoadingFinished.asStateFlow()
 
     private val _packageNameToInstalledAppMap = mutableStateMapOf<String, InstalledApp>()
     val packageNameToInstalledAppMap = _packageNameToInstalledAppMap as Map<String, InstalledApp>;
@@ -82,19 +86,38 @@ class InstalledAppsHolder(
     {
         _packageNameToInstalledAppMap.clear()
 
-        _pm.getInstalledApplications(PackageManager.GET_META_DATA)
-            .forEach { addFromAppInfoIfLaunchable(it) }
+        val appInfos = measureTimedValue {
+            _pm.getInstalledApplications(PackageManager.GET_META_DATA)
+        }.let { (appInfos, dur) ->
+            Log.d(TAG, "loadInstalledApps: getInstalledApplications took ${dur.inWholeMilliseconds}ms")
+            appInfos
+        }
+
+        measureTimeMillis {
+            runBlocking {
+                supervisorScope {
+                    appInfos.forEach {
+                        launch { addFromAppInfoIfLaunchable(it) }
+                    }
+                }
+            }
+        }.let { ms ->
+            Log.d(TAG, "loadInstalledApps: forEach took ${ms}ms")
+        }
+
+
     }
 
-    private fun addFromAppInfoIfLaunchable(app: ApplicationInfo): InstalledApp?
+    private fun addFromAppInfoIfLaunchable(appInfo: ApplicationInfo): InstalledApp?
     {
-        return _pm.getLaunchIntentForPackage(app.packageName)?.let { launchIntent ->
+        return _pm.getLaunchIntentForPackage(appInfo.packageName)?.let { launchIntent ->
             val newApp = InstalledApp(
-                app.uid,
-                app.packageName,
-                _pm.getApplicationLabel(app).toString(),
+                appInfo.uid,
+                appInfo.packageName,
+                _pm.getApplicationLabel(appInfo).toString(),
                 launchIntent,
-                _pm.getApplicationIcon(app),
+                _pm.getApplicationIcon(appInfo),
+                appInfo,
             )
 
             addOrChangeInstalledApp(newApp)
@@ -108,7 +131,7 @@ class InstalledAppsHolder(
 
     // region receiving notifications from BridgeLauncherBroadcastReciever
 
-    // these functions could theoretically be replaced with collecting an event flow from the BridgeLauncherBroadcastReceiver instead,
+    // these functions could theoretically be replaced with collecting an event flow from the BridgeLauncherBroadcastReceiver (BLBR) instead,
     // but I've opted to keep it simple, because for now the BLBR is the only component that will send those notifications,
     // because no other component is notified by the system about apps being added, changed and removed.
 
@@ -131,11 +154,14 @@ class InstalledAppsHolder(
 
     private fun initialLoad()
     {
-        loadInstalledApps()
-        _initialLoadingFinished.value = true
-        Log.d(TAG, "${::initialLoad.name}: OK, _packageNameToInstalledAppMap.size = ${_packageNameToInstalledAppMap.size}")
+        measureTimeMillis {
+            loadInstalledApps()
+            _initialLoadingFinished.value = true
+        }.let { ms ->
+            Log.d(TAG, "${::initialLoad.name}: OK in ${ms}ms, _packageNameToInstalledAppMap.size = ${_packageNameToInstalledAppMap.size}")
+        }
     }
 
-    fun launchInitalLoad() = _scope.launch { initialLoad() }
+    fun launchInitalLoad() = _coroutineScope.launch { initialLoad() }
 
 }

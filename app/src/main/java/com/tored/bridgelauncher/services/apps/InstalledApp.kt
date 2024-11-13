@@ -1,6 +1,7 @@
 package com.tored.bridgelauncher.services.apps
 
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.graphics.drawable.Drawable
 import com.tored.bridgelauncher.api.jsapi.BridgeEventArgs
 import kotlinx.serialization.Serializable
@@ -12,8 +13,10 @@ data class InstalledApp(
     val label: String,
     val launchIntent: Intent,
     val defaultIcon: Drawable,
+    val appInfo: ApplicationInfo,
 )
 {
+    val lastModifiedNanoTime = System.nanoTime()
     val labelSimplified = simplifyLabel(label)
 
     fun toSerializable(): SerializableInstalledApp
