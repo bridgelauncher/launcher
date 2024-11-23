@@ -5,10 +5,31 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
-import com.tored.bridgelauncher.AppDrawerActivity
 import com.tored.bridgelauncher.services.apps.InstalledApp
+import com.tored.bridgelauncher.ui2.appdrawer.AppDrawerActivity
 import com.tored.bridgelauncher.ui2.devconsole.DevConsoleActivity
 import com.tored.bridgelauncher.ui2.settings.SettingsScreenActivity
+
+// UTILS
+
+fun Context.tryStartActivity(intent: Intent) = tryOrShowErrorToast {
+    startActivity(intent)
+}
+
+fun Context.tryOrShowErrorToast(action: Context.() -> Unit)
+{
+    try
+    {
+        action()
+    }
+    catch (ex: Exception)
+    {
+        showErrorToast(ex)
+    }
+}
+
+
+// BRIDGE ACTIVITIES
 
 fun Context.startBridgeSettingsActivity() = startActivity(Intent(this, SettingsScreenActivity::class.java))
 fun Context.tryStartBridgeSettingsActivity() = tryOrShowErrorToast { startBridgeSettingsActivity() }
@@ -20,6 +41,9 @@ fun Context.startDevConsoleActivity() = startActivity(Intent(this, DevConsoleAct
 fun Context.tryStartDevConsoleActivity() = tryOrShowErrorToast { startDevConsoleActivity() }
 
 
+// APPLICATIONS
+
+fun Context.tryOpenAppInfo(packageName: String) = tryOrShowErrorToast { openAppInfo(packageName) }
 fun Context.openAppInfo(packageName: String)
 {
     startActivity(
@@ -30,6 +54,7 @@ fun Context.openAppInfo(packageName: String)
     )
 }
 
+fun Context.tryRequestAppUninstall(packageName: String) = tryOrShowErrorToast { requestAppUninstall(packageName) }
 fun Context.requestAppUninstall(packageName: String)
 {
     val packageURI = Uri.parse("package:${packageName}")
@@ -37,11 +62,10 @@ fun Context.requestAppUninstall(packageName: String)
     startActivity(uninstallIntent)
 }
 
-fun Context.launchApp(app: InstalledApp)
-{
-    startActivity(app.launchIntent)
-}
+fun Context.tryLaunchApp(app: InstalledApp) = tryOrShowErrorToast { launchApp(app) }
+fun Context.launchApp(app: InstalledApp) = launchApp(packageName)
 
+fun Context.tryLaunchApp(packageName: String) = tryOrShowErrorToast { launchApp(packageName) }
 fun Context.launchApp(packageName: String)
 {
     val intent = packageManager.getLaunchIntentForPackage(packageName)
@@ -51,41 +75,45 @@ fun Context.launchApp(packageName: String)
         throw Exception("Launch intent not found.")
 }
 
-fun Context.tryStartWallpaperPickerActivity()
-{
-    tryOrShowErrorToast { startWallpaperPickerActivity() }
-}
 
+// SYSTEM
+
+/** Change system wallpaper*/
+fun Context.tryStartWallpaperPickerActivity() = tryOrShowErrorToast { startWallpaperPickerActivity() }
 fun Context.startWallpaperPickerActivity()
 {
     startActivity(Intent(Intent.ACTION_SET_WALLPAPER))
 }
 
 /** Switch away from Bridge */
-fun Context.tryStartAndroidHomeSettingsActivity()
+fun Context.tryStartAndroidHomeSettingsActivity() = tryOrShowErrorToast { startAndroidHomeSettingsActivity() }
+fun Context.startAndroidHomeSettingsActivity()
 {
-    tryStartActivity(
+    startActivity(
         Intent(Settings.ACTION_HOME_SETTINGS).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        })
+        }
+    )
 }
 
-fun Context.tryStartExtStorageManagerPermissionActivity()
+fun Context.tryStartExtStorageManagerPermissionActivity() = tryOrShowErrorToast { startExtStorageManagerPermissionActivity() }
+fun Context.startExtStorageManagerPermissionActivity()
 {
     if (CurrentAndroidVersion.supportsScopedStorage())
     {
-        tryStartActivity(
-            Intent(
-                Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
-                Uri.parse("package:${packageName}")
-            )
+    startActivity(
+        Intent(
+            Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+            Uri.parse("package:${packageName}")
         )
+    )
     }
 }
 
-fun Context.tryStartAndroidAccessibilitySettingsActivity()
+fun Context.tryStartAndroidAccessibilitySettingsActivity() = tryOrShowErrorToast { startAndroidAccessiblitySettingsActivity() }
+fun Context.startAndroidAccessiblitySettingsActivity()
 {
-    tryStartActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+    startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
 }
 
 fun Context.tryStartAndroidAddDeviceAdminActivity()
@@ -104,22 +132,5 @@ fun Context.tryStartAndroidAddDeviceAdminActivity()
     )
 }
 
-
 fun Context.launchViewURIActivity(uriString: String) = launchViewURIActivity(Uri.parse(uriString))
 fun Context.launchViewURIActivity(uri: Uri) = startActivity(Intent(Intent.ACTION_VIEW, uri))
-
-fun Context.tryStartActivity(intent: Intent) = tryOrShowErrorToast {
-    startActivity(intent)
-}
-
-fun Context.tryOrShowErrorToast(action: Context.() -> Unit)
-{
-    try
-    {
-        action()
-    }
-    catch (ex: Exception)
-    {
-        showErrorToast(ex)
-    }
-}

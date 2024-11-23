@@ -9,11 +9,15 @@ import androidx.compose.ui.graphics.ImageBitmap
 import com.tored.bridgelauncher.services.apps.InstalledApp
 import com.tored.bridgelauncher.services.iconpacks.IconPack
 
+typealias AppIconGetIconFunc = suspend (iconPack: IconPack?, app: InstalledApp) -> ImageBitmap
+
+suspend fun dummyGetIconFunc(iconPack: IconPack?, app: InstalledApp): Nothing = TODO()
+
 @Composable
-fun RememberAppIconStateWithAutoReload(
+fun rememberAppIconStateWithAutoReload(
     iconPack: IconPack?,
     app: InstalledApp,
-    getIconFunc: suspend (iconPack: IconPack?, app: InstalledApp) -> ImageBitmap,
+    getIconFunc: AppIconGetIconFunc,
 ): State<ImageBitmap?>
 {
     val bitmapState = remember { mutableStateOf<ImageBitmap?>(null) }

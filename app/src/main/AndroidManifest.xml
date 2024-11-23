@@ -86,6 +86,10 @@
             android:name=".ui2.devconsole.DevConsoleActivity"
             android:exported="true" />
 
+        <activity
+            android:name="com.tored.bridgelauncher.ui2.appdrawer.AppDrawerActivity"
+            android:exported="true" />
+
         <service
             android:name=".services.system.BridgeButtonQSTileService"
             android:exported="true"

@@ -22,7 +22,7 @@ data class BridgeServices(
     val installedAppsHolder: InstalledAppsHolder,
     val installedIconPacksHolder: InstalledIconPacksHolder,
     val iconPackCache: IconPackCache,
-    val appIconsCache: IconCache,
+    val iconCache: IconCache,
 
     val bridgeServer: BridgeServer,
     val consoleMessagesHolder: DevConsoleMessagesHolder,

@@ -101,7 +101,7 @@ class BridgeLauncherApplication : Application()
             installedAppsHolder = installedAppsHolder,
             installedIconPacksHolder = installedIconPacksHolder,
             iconPackCache = iconPackCache,
-            appIconsCache = appIconsCache,
+            iconCache = appIconsCache,
 
             bridgeServer = bridgeServer,
             consoleMessagesHolder = consoleMessagesHolder,

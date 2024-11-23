@@ -3,6 +3,7 @@ package com.tored.bridgelauncher.ui2.appdrawer
 import android.app.Application
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.initializer
@@ -11,13 +12,21 @@ import com.tored.bridgelauncher.BridgeLauncherApplication
 import com.tored.bridgelauncher.services.BridgeServices
 import com.tored.bridgelauncher.services.apps.InstalledApp
 import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
+import com.tored.bridgelauncher.services.iconcache.IconCache
+import com.tored.bridgelauncher.services.iconpacks.IconPack
 
 class AppDrawerVM(
     private val _apps: InstalledAppsHolder,
+    private val _iconCache: IconCache,
 ) : ViewModel()
 {
     private val _appListState = mutableStateOf(_apps.packageNameToInstalledAppMap.values.toList())
-    val appListState = _appListState as State<List<InstalledApp>>
+    val filteredApps = _appListState as State<List<InstalledApp>>
+
+    suspend fun getIcon(iconPack: IconPack?, app: InstalledApp): ImageBitmap
+    {
+        return _iconCache.getIcon(null, app.packageName, app.lastModifiedNanoTime)
+    }
 
     companion object
     {
@@ -26,7 +35,8 @@ class AppDrawerVM(
             with(serviceProvider)
             {
                 return AppDrawerVM(
-                    _apps = serviceProvider.installedAppsHolder,
+                    _apps = installedAppsHolder,
+                    _iconCache = iconCache,
                 )
             }
         }
