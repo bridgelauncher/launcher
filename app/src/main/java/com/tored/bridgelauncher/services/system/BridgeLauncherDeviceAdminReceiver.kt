@@ -4,9 +4,9 @@ import android.app.admin.DeviceAdminReceiver
 import android.content.Context
 import android.content.Intent
 import androidx.datastore.preferences.core.edit
-import com.tored.bridgelauncher.services.settings.SettingsState
 import com.tored.bridgelauncher.services.settings.settingsDataStore
-import com.tored.bridgelauncher.utils.writeBool
+import com.tored.bridgelauncher.services.settings2.BridgeSettings
+import com.tored.bridgelauncher.services.settings2.setBridgeSetting
 import kotlinx.coroutines.runBlocking
 
 class BridgeLauncherDeviceAdminReceiver : DeviceAdminReceiver()
@@ -25,7 +25,7 @@ class BridgeLauncherDeviceAdminReceiver : DeviceAdminReceiver()
     {
         runBlocking {
             context.settingsDataStore.edit { prefs ->
-                prefs.writeBool(SettingsState::isDeviceAdminEnabled, isEnabled)
+                prefs.setBridgeSetting(BridgeSettings.isDeviceAdminEnabled, isEnabled)
             }
         }
     }

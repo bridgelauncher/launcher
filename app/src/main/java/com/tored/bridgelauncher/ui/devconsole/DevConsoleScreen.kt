@@ -35,12 +35,15 @@ import com.tored.bridgelauncher.ui.theme.BridgeLauncherThemeStateless
 import com.tored.bridgelauncher.ui.theme.info
 import com.tored.bridgelauncher.ui.theme.textSec
 import com.tored.bridgelauncher.ui.theme.warning
+import com.tored.bridgelauncher.ui2.devconsole.IConsoleMessage
+import com.tored.bridgelauncher.ui2.devconsole.TestConsoleMessages
+import com.tored.bridgelauncher.ui2.devconsole.getSourceAndLineString
 
 @Composable
 fun DevConsoleScreenStateless(
-    messages: List<ConsoleMessage>,
+    messages: List<IConsoleMessage>,
     onClearAllRequest: () -> Unit,
-    onMessageClick: (ConsoleMessage) -> Unit,
+    onMessageClick: (IConsoleMessage) -> Unit,
 )
 {
     Surface(
@@ -60,7 +63,7 @@ fun DevConsoleScreenStateless(
                     items(messages.reversed())
                     { msg ->
                         Surface(
-                            color = when (msg.messageLevel())
+                            color = when (msg.messageLevel)
                             {
                                 MessageLevel.WARNING -> MaterialTheme.colors.warning.copy(alpha = 0.15f)
                                 MessageLevel.ERROR -> MaterialTheme.colors.error.copy(alpha = 0.15f)
@@ -78,7 +81,7 @@ fun DevConsoleScreenStateless(
                             {
                                 val t = buildAnnotatedString()
                                 {
-                                    when (msg.messageLevel())
+                                    when (msg.messageLevel)
                                     {
                                         MessageLevel.TIP -> appendSecColored("TIP", MaterialTheme.colors.info)
                                         MessageLevel.DEBUG -> appendSecColored("DBG", MaterialTheme.colors.info)
@@ -88,11 +91,11 @@ fun DevConsoleScreenStateless(
                                     }
 
                                     append(" ")
-                                    append(msg.message())
+                                    append(msg.message)
                                 }
 
                                 Text(
-                                    text = msg.getSourceAndLine(),
+                                    text = msg.getSourceAndLineString(),
                                     style = MaterialTheme.typography.body2,
                                     color = MaterialTheme.colors.textSec,
                                 )
@@ -163,8 +166,8 @@ fun DevConsoleScreenStateful()
         },
         onMessageClick = {
             clipman.setText(buildAnnotatedString {
-                appendLine(it.getSourceAndLine())
-                append(it.message())
+                appendLine(it.getSourceAndLineString())
+                append(it.message)
             })
             Toast.makeText(context, "Message copied to clipboard.", Toast.LENGTH_SHORT).show()
         }
@@ -178,13 +181,7 @@ fun DevConsoleScreenPreview()
     BridgeLauncherThemeStateless(useDarkTheme = true)
     {
         DevConsoleScreenStateless(
-            messages = listOf(
-                ConsoleMessage("I have information that could lead to the arrest of Hillary Clinton", "LOL", 10, MessageLevel.LOG),
-                ConsoleMessage("Debug message!", "LOL", 10, MessageLevel.DEBUG),
-                ConsoleMessage("Watch for rolling rocks", "LOL", 123, MessageLevel.TIP),
-                ConsoleMessage("Caution! Wet floor.", "LOL", 5124, MessageLevel.WARNING),
-                ConsoleMessage("Major malfunction.", "LOL", 5124, MessageLevel.ERROR)
-            ),
+            messages = TestConsoleMessages.List,
             onClearAllRequest = {},
             onMessageClick = {}
         )

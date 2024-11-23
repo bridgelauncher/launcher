@@ -36,14 +36,15 @@ import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tored.bridgelauncher.BridgeLauncherApplication
 import com.tored.bridgelauncher.annotations.DontReset
 import com.tored.bridgelauncher.composables.Btn
+import com.tored.bridgelauncher.services.settings.SettingsHolder
 import com.tored.bridgelauncher.services.settings.SettingsState
-import com.tored.bridgelauncher.services.settings.SettingsVM
 import com.tored.bridgelauncher.services.settings.SystemBarAppearanceOptions
 import com.tored.bridgelauncher.services.settings.settingsDataStore
+import com.tored.bridgelauncher.services.settings2.BridgeSettings
+import com.tored.bridgelauncher.services.settings2.setBridgeSetting
 import com.tored.bridgelauncher.ui.dirpicker.DirPickerDialogStateless
 import com.tored.bridgelauncher.ui.dirpicker.DirPickerExportState
 import com.tored.bridgelauncher.ui.dirpicker.DirPickerUIState
@@ -55,9 +56,9 @@ import com.tored.bridgelauncher.ui.settings.sections.SettingsOverlaysSection
 import com.tored.bridgelauncher.ui.settings.sections.SettingsProjectSection
 import com.tored.bridgelauncher.ui.settings.sections.SettingsSystemWallpaperSection
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
+import com.tored.bridgelauncher.utils.bridgeLauncherApplication
 import com.tored.bridgelauncher.utils.getPrefKeyName
 import com.tored.bridgelauncher.utils.showErrorToast
-import com.tored.bridgelauncher.utils.writeDir
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlin.reflect.full.hasAnnotation
@@ -67,11 +68,11 @@ import kotlin.reflect.full.memberProperties
 fun SettingsScreen(
     hasStoragePerms: Boolean,
     onGrantPermissionRequest: () -> Unit,
-    vm: SettingsVM = viewModel(),
+    vm: SettingsHolder = SettingsHolder(LocalContext.current.bridgeLauncherApplication),
 )
 {
     val uiState by vm.settingsState.collectAsStateWithLifecycle()
-    LaunchedEffect(vm) { vm.request() }
+    LaunchedEffect(vm) { vm.startCollectingSettingsUpdates() }
 
     var dirPickerCurrentDir by remember { mutableStateOf(uiState.currentProjDir) }
     var dirPickerFilterOrCreateDirText by remember { mutableStateOf("") }
@@ -115,7 +116,8 @@ fun SettingsScreen(
                             dirPickerCurrentDir = uiState.currentProjDir
                             dirPickerExportState = null
                             dirPickerIsOpen = true
-                        }
+                        },
+                        vm = vm,
                     )
 
                     Divider()
@@ -128,7 +130,7 @@ fun SettingsScreen(
 
                     Divider()
 
-                    SettingsBridgeSection()
+                    SettingsBridgeSection(vm = vm)
 
                     Divider()
 
@@ -307,7 +309,7 @@ fun SettingsScreen(
 //                            )
 
                             context.settingsDataStore.edit {
-                                it.writeDir(SettingsState::lastMockExportDir, exportToDir)
+                                it.setBridgeSetting(BridgeSettings.lastMockExportDir, exportToDir)
                             }
 
                             Toast.makeText(context, "Export finished!", Toast.LENGTH_SHORT).show()
@@ -328,7 +330,7 @@ fun SettingsScreen(
                     try
                     {
                         vm.edit {
-                            writeDir(SettingsState::currentProjDir, dir)
+                            setBridgeSetting(BridgeSettings.currentProjDir, dir)
                         }
                         dirPickerIsOpen = false
                     }

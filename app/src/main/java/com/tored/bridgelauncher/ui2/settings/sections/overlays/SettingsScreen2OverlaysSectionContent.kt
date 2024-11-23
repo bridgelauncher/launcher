@@ -6,18 +6,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import com.tored.bridgelauncher.services.settings.SettingsState
 import com.tored.bridgelauncher.services.settings.SystemBarAppearanceOptions
+import com.tored.bridgelauncher.services.settings2.BridgeSettings
 import com.tored.bridgelauncher.ui.settings.SystemBarAppearanceOptionsField
 import com.tored.bridgelauncher.ui.shared.CheckboxField
 import com.tored.bridgelauncher.ui2.shared.PreviewWithSurfaceAndPadding
-import com.tored.bridgelauncher.utils.getDisplayName
 
 @Composable
 fun SettingsScreen2OverlaysSectionContent(
     state: SettingsScreen2OverlaysSectionState,
     actions: SettingsScreen2OverlaysSectionActions,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 )
 {
     Column(
@@ -26,19 +25,19 @@ fun SettingsScreen2OverlaysSectionContent(
     )
     {
         SystemBarAppearanceOptionsField(
-            label = SettingsState::statusBarAppearance.getDisplayName(),
+            label = BridgeSettings.statusBarAppearance.displayName,
             selectedOption = state.statusBarAppearance,
             onChange = { actions.changeStatusBarAppearance(it) }
         )
 
         SystemBarAppearanceOptionsField(
-            label = SettingsState::navigationBarAppearance.getDisplayName(),
+            label = BridgeSettings.navigationBarAppearance.displayName,
             selectedOption = state.navigationBarAppearance,
             onChange = { actions.changeNavigationBarAppearance(it) }
         )
 
         CheckboxField(
-            label = SettingsState::drawWebViewOverscrollEffects.getDisplayName(),
+            label = BridgeSettings.drawWebViewOverscrollEffects.displayName,
             isChecked = state.drawWebViewOverscrollEffects,
             onCheckedChange = { actions.changeDrawWebViewOverscrollEffects(it) }
         )

@@ -95,6 +95,7 @@ fun HomeScreen2(
                             chromeClient = webViewDeps.chromeClient,
                             onCreated = webViewDeps.onCreated,
                             onDispose = webViewDeps.onDispose,
+                            modifier = Modifier.fillMaxSize(),
                         )
                     }
                 }
@@ -155,7 +156,7 @@ fun HomeScreen2InitializingPreview()
                 isExpanded = true,
                 showAppDrawerButtonWhenCollapsed = false
             ),
-            BridgeMenuActions.Empty(),
+            BridgeMenuActions.empty(),
         )
     }
 }
@@ -178,7 +179,7 @@ fun HomeScreen2NoStoragePermsPreview()
                 isExpanded = true,
                 showAppDrawerButtonWhenCollapsed = false
             ),
-            BridgeMenuActions.Empty(),
+            BridgeMenuActions.empty(),
         )
     }
 }
@@ -201,7 +202,7 @@ fun HomeScreen2NoProjectPreviewNoMenu()
                 isExpanded = false,
                 showAppDrawerButtonWhenCollapsed = false,
             ),
-            BridgeMenuActions.Empty(),
+            BridgeMenuActions.empty(),
         )
     }
 }
@@ -224,7 +225,7 @@ fun HomeScreen2NoProjectPreviewMenuCollapsed()
                 isExpanded = false,
                 showAppDrawerButtonWhenCollapsed = false,
             ),
-            BridgeMenuActions.Empty(),
+            BridgeMenuActions.empty(),
         )
     }
 }
@@ -247,7 +248,7 @@ fun HomeScreen2NoProjectPreviewMenuCollapsedWithAppDrawerButton()
                 isExpanded = false,
                 showAppDrawerButtonWhenCollapsed = true,
             ),
-            BridgeMenuActions.Empty(),
+            BridgeMenuActions.empty(),
         )
     }
 }
@@ -270,7 +271,7 @@ fun HomeScreen2NoProjectPreviewMenuOpen()
                 isExpanded = true,
                 showAppDrawerButtonWhenCollapsed = false,
             ),
-            BridgeMenuActions.Empty(),
+            BridgeMenuActions.empty(),
         )
     }
 }

@@ -4,9 +4,9 @@ import android.accessibilityservice.AccessibilityService
 import android.content.Intent
 import android.view.accessibility.AccessibilityEvent
 import androidx.datastore.preferences.core.edit
-import com.tored.bridgelauncher.services.settings.SettingsState
 import com.tored.bridgelauncher.services.settings.settingsDataStore
-import com.tored.bridgelauncher.utils.writeBool
+import com.tored.bridgelauncher.services.settings2.BridgeSettings
+import com.tored.bridgelauncher.services.settings2.setBridgeSetting
 import kotlinx.coroutines.runBlocking
 
 
@@ -42,7 +42,7 @@ class BridgeLauncherAccessibilityService : AccessibilityService()
     {
         runBlocking {
             settingsDataStore.edit { prefs ->
-                prefs.writeBool(SettingsState::isAccessibilityServiceEnabled, isEnabled)
+                prefs.setBridgeSetting(BridgeSettings.isAccessibilityServiceEnabled, isEnabled)
             }
         }
     }

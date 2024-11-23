@@ -9,15 +9,12 @@ import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.tored.bridgelauncher.services.settings.SettingsVM
 import com.tored.bridgelauncher.services.settings.ThemeOptions
+import com.tored.bridgelauncher.services.settings2.BridgeSettings
+import com.tored.bridgelauncher.services.settings2.rememberBridgeSettingState
 import com.tored.bridgelauncher.utils.ComposableContent
 
 private val DarkColorPalette = darkColors(
@@ -45,25 +42,11 @@ private val LightColorPalette = lightColors(
 )
 
 @Composable
-fun BridgeLauncherTheme(settingsVM: SettingsVM = viewModel(factory = SettingsVM.Factory), content: ComposableContent)
+fun BridgeLauncherTheme(content: ComposableContent)
 {
-    val state by settingsVM.settingsState.collectAsStateWithLifecycle()
-    LaunchedEffect(settingsVM) { settingsVM.request() }
+    val theme by rememberBridgeSettingState(BridgeSettings.theme)
 
-    val useDarkTheme = state.theme == ThemeOptions.Dark || (state.theme == ThemeOptions.System && isSystemInDarkTheme())
-
-    val context = LocalContext.current
-//    SideEffect()
-//    {
-//        AppCompatDelegate.setDefaultNightMode(
-//            when (state.theme)
-//            {
-//                ThemeOptions.System -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
-//                ThemeOptions.Dark -> AppCompatDelegate.MODE_NIGHT_YES
-//                ThemeOptions.Light -> AppCompatDelegate.MODE_NIGHT_NO
-//            }
-//        )
-//    }
+    val useDarkTheme = theme == ThemeOptions.Dark || (theme == ThemeOptions.System && isSystemInDarkTheme())
 
     BridgeLauncherThemeStateless(
         useDarkTheme = useDarkTheme,

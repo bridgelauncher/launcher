@@ -20,9 +20,11 @@ import com.tored.bridgelauncher.services.BridgeServices
 import com.tored.bridgelauncher.services.mockexport.MockExportProgressState
 import com.tored.bridgelauncher.services.mockexport.MockExporter
 import com.tored.bridgelauncher.services.perms.PermsManager
-import com.tored.bridgelauncher.services.settings.SettingsState
-import com.tored.bridgelauncher.services.settings.SettingsVM
+import com.tored.bridgelauncher.services.settings.SettingsHolder
 import com.tored.bridgelauncher.services.settings.settingsDataStore
+import com.tored.bridgelauncher.services.settings2.BridgeSettings
+import com.tored.bridgelauncher.services.settings2.setBridgeSetting
+import com.tored.bridgelauncher.services.settings2.useBridgeSettingState
 import com.tored.bridgelauncher.ui2.dirpicker.DirectoryPickerActions
 import com.tored.bridgelauncher.ui2.dirpicker.DirectoryPickerMode
 import com.tored.bridgelauncher.ui2.dirpicker.DirectoryPickerRealDirectory
@@ -45,9 +47,6 @@ import com.tored.bridgelauncher.utils.bridgeLauncherApplication
 import com.tored.bridgelauncher.utils.collectAsStateButInViewModel
 import com.tored.bridgelauncher.utils.tryOrShowErrorToast
 import com.tored.bridgelauncher.utils.tryStartWallpaperPickerActivity
-import com.tored.bridgelauncher.utils.writeBool
-import com.tored.bridgelauncher.utils.writeDir
-import com.tored.bridgelauncher.utils.writeEnum
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -59,7 +58,7 @@ private val TAG = SettingsScreenVM::class.simpleName
 
 class SettingsScreenVM(
     private val _app: BridgeLauncherApplication,
-    private val _settingsVM: SettingsVM,
+    private val _settingsHolder: SettingsHolder,
     private val _permsManager: PermsManager,
     private val _mockExporter: MockExporter,
 ) : ViewModel()
@@ -69,15 +68,26 @@ class SettingsScreenVM(
     else
         null
 
-    val settingsState by collectAsStateButInViewModel(_settingsVM.settingsState)
+    // SETTING STATES
 
+    private val _isQSTileAdded by useBridgeSettingState(_app, BridgeSettings.isQSTileAdded)
+
+    private val _currentProjDir by useBridgeSettingState(_app, BridgeSettings.currentProjDir)
+    private val _lastMockExportDir by useBridgeSettingState(_app, BridgeSettings.lastMockExportDir)
+
+    private val _theme by useBridgeSettingState(_app, BridgeSettings.theme)
+    private val _allowProjectsToTurnScreenOff by useBridgeSettingState(_app, BridgeSettings.allowProjectsToTurnScreenOff)
+    private val _drawSystemWallpaperBehindWebView by useBridgeSettingState(_app, BridgeSettings.drawSystemWallpaperBehindWebView)
+    private val _statusBarAppearance by useBridgeSettingState(_app, BridgeSettings.statusBarAppearance)
+    private val _navigationBarAppearance by useBridgeSettingState(_app, BridgeSettings.navigationBarAppearance)
+    private val _drawWebViewOverscrollEffects by useBridgeSettingState(_app, BridgeSettings.drawWebViewOverscrollEffects)
+    private val _showBridgeButton by useBridgeSettingState(_app, BridgeSettings.showBridgeButton)
+    private val _showLaunchAppsWhenBridgeButtonCollapsed by useBridgeSettingState(_app, BridgeSettings.showLaunchAppsWhenBridgeButtonCollapsed)
 
     // PROJECT
 
     val projectSectionState = derivedStateOf()
     {
-        val settings = settingsState
-
         val screenLockingMethod = when (CurrentAndroidVersion.supportsAccessiblityServiceScreenLock())
         {
             true -> ScreenLockingMethodOptions.AccessibilityService
@@ -85,25 +95,25 @@ class SettingsScreenVM(
         }
 
         SettingsScreen2ProjectSectionState(
-            projectInfo = settings.currentProjDir?.run {
+            projectInfo = _currentProjDir?.run {
                 SettingsScreen2ProjectSectionStateProjectInfo(
                     name = name
                 )
             },
             hasStoragePerms = _permsManager.hasStoragePermsState.value,
-            allowProjectsToTurnScreenOff = settings.allowProjectsToTurnScreenOff,
+            allowProjectsToTurnScreenOff = _allowProjectsToTurnScreenOff,
             screenLockingMethod = screenLockingMethod,
             canBridgeTurnScreenOff = when (screenLockingMethod)
             {
-                ScreenLockingMethodOptions.DeviceAdmin -> _settingsVM.settingsState.value.isDeviceAdminEnabled
-                ScreenLockingMethodOptions.AccessibilityService -> _settingsVM.settingsState.value.isAccessibilityServiceEnabled
+                ScreenLockingMethodOptions.DeviceAdmin -> _settingsHolder.settingsState.value.isDeviceAdminEnabled
+                ScreenLockingMethodOptions.AccessibilityService -> _settingsHolder.settingsState.value.isAccessibilityServiceEnabled
             }
         )
     }
 
     val projectSectionActions = SettingsScreen2ProjectSectionActions(
         changeProject = { openDirectoryPicker(DirectoryPickerMode.LoadProject) },
-        changeAllowProjectsToTurnScreenOff = { updateSettings { writeBool(SettingsState::allowProjectsToTurnScreenOff, it) } },
+        changeAllowProjectsToTurnScreenOff = { updateSettings { setBridgeSetting(BridgeSettings.allowProjectsToTurnScreenOff, it) } },
     )
 
 
@@ -111,15 +121,14 @@ class SettingsScreenVM(
 
     val wallpaperSectionState = derivedStateOf()
     {
-        val settings = settingsState
         SettingsScreen2WallpaperSectionState(
-            drawSystemWallpaperBehindWebView = settings.drawSystemWallpaperBehindWebView,
+            drawSystemWallpaperBehindWebView = _drawSystemWallpaperBehindWebView,
         )
     }
 
     val wallpaperSectionActions = SettingsScreen2WallpaperSectionActions(
         changeSystemWallpaper = { _app.tryStartWallpaperPickerActivity() },
-        changeDrawSystemWallpaperBehindWebView = { updateSettings { writeBool(SettingsState::drawSystemWallpaperBehindWebView, it) } }
+        changeDrawSystemWallpaperBehindWebView = { updateSettings { setBridgeSetting(BridgeSettings.drawSystemWallpaperBehindWebView, it) } }
     )
 
 
@@ -127,25 +136,27 @@ class SettingsScreenVM(
 
     val overlaysSectionState = derivedStateOf()
     {
-        val settings = settingsState
         Log.d(TAG, "overlaysSectionState reevaluating")
         SettingsScreen2OverlaysSectionState(
-            statusBarAppearance = settings.statusBarAppearance,
-            navigationBarAppearance = settings.navigationBarAppearance,
-            drawWebViewOverscrollEffects = settings.drawWebViewOverscrollEffects,
+            statusBarAppearance = _statusBarAppearance,
+            navigationBarAppearance = _navigationBarAppearance,
+            drawWebViewOverscrollEffects = _drawWebViewOverscrollEffects,
         )
     }
 
     val overlaysSectionActions = SettingsScreen2OverlaysSectionActions(
         changeStatusBarAppearance = {
             Log.d(TAG, "changeStatusBarAppearance called")
-            updateSettings { writeEnum(SettingsState::statusBarAppearance, it) }
+            updateSettings { setBridgeSetting(BridgeSettings.statusBarAppearance, it) }
         },
         changeNavigationBarAppearance = {
             Log.d(TAG, "changeNavigationBarAppearance called")
-            updateSettings { writeEnum(SettingsState::navigationBarAppearance, it) }
+            updateSettings { setBridgeSetting(BridgeSettings.navigationBarAppearance, it) }
         },
-        changeDrawWebViewOverscrollEffects = { updateSettings { writeBool(SettingsState::drawWebViewOverscrollEffects, it) } },
+        changeDrawWebViewOverscrollEffects = {
+            Log.d(TAG, "changeDrawWebViewOverscrollEffects called: $it")
+            updateSettings { setBridgeSetting(BridgeSettings.drawWebViewOverscrollEffects, it) }
+        },
     )
 
 
@@ -153,20 +164,19 @@ class SettingsScreenVM(
 
     val bridgeSectionState = derivedStateOf()
     {
-        val settings = settingsState
         SettingsScreen2BridgeSectionState(
-            theme = settings.theme,
-            showBridgeButton = settings.showBridgeButton,
-            showLaunchAppsWhenBridgeButtonCollapsed = settings.showLaunchAppsWhenBridgeButtonCollapsed,
-            isQSTileAdded = settings.isQSTileAdded,
+            theme = _theme,
+            showBridgeButton = _showBridgeButton,
+            showLaunchAppsWhenBridgeButtonCollapsed = _showLaunchAppsWhenBridgeButtonCollapsed,
+            isQSTileAdded = _isQSTileAdded,
             isQSTilePromptSupported = CurrentAndroidVersion.supportsQSTilePrompt()
         )
     }
 
     val bridgeSectionActions = SettingsScreen2BridgeSectionActions(
-        changeTheme = { updateSettings { writeEnum(SettingsState::theme, it) } },
-        changeShowBridgeButton = { updateSettings { writeBool(SettingsState::showBridgeButton, it) } },
-        changeShowLaunchAppsWhenBridgeButtonCollapsed = { updateSettings { writeBool(SettingsState::showLaunchAppsWhenBridgeButtonCollapsed, it) } },
+        changeTheme = { updateSettings { setBridgeSetting(BridgeSettings.theme, it) } },
+        changeShowBridgeButton = { updateSettings { setBridgeSetting(BridgeSettings.showBridgeButton, it) } },
+        changeShowLaunchAppsWhenBridgeButtonCollapsed = { updateSettings { setBridgeSetting(BridgeSettings.showLaunchAppsWhenBridgeButtonCollapsed, it) } },
         requestQSTilePrompt = {
             if (CurrentAndroidVersion.supportsQSTilePrompt())
             {
@@ -214,14 +224,14 @@ class SettingsScreenVM(
         }
     )
 
-    private fun currentProjDirOrDefault() = settingsState.currentProjDir.let {
+    private fun currentProjDirOrDefault() = _currentProjDir.let {
         if (it?.canRead() == true)
             it
         else
             Environment.getExternalStorageDirectory()
     }
 
-    private fun lastMockExportDirOrDefault() = settingsState.lastMockExportDir.let {
+    private fun lastMockExportDirOrDefault() = _lastMockExportDir.let {
         if (it?.canRead() == true)
             it
         else
@@ -298,7 +308,13 @@ class SettingsScreenVM(
                 {
                     when (currState.mode)
                     {
-                        DirectoryPickerMode.LoadProject -> updateSettings { writeDir(SettingsState::currentProjDir, currState.currentDirectory.file) }
+                        DirectoryPickerMode.LoadProject ->
+                        {
+                            // hide directory picker
+                            _directoryPickerStateFlow.value = null
+                            updateSettings { setBridgeSetting(BridgeSettings.currentProjDir, currState.currentDirectory.file) }
+                        }
+
                         DirectoryPickerMode.MockExport -> if (_mockExportJob == null)
                         {
                             // hide directory picker
@@ -308,7 +324,7 @@ class SettingsScreenVM(
 
                             _mockExportJob = viewModelScope.launch {
                                 _mockExporter.exportToDirectory(currState.currentDirectory.file, _mockExportProgressStateFlow)
-                                _app.settingsDataStore.edit { it.writeDir(SettingsState::lastMockExportDir, currState.currentDirectory.file) }
+                                _app.settingsDataStore.edit { it.setBridgeSetting(BridgeSettings.lastMockExportDir, currState.currentDirectory.file) }
                                 _mockExportProgressStateFlow.value = null
                                 _mockExportJob = null
                             }
@@ -382,7 +398,7 @@ class SettingsScreenVM(
                 return SettingsScreenVM(
                     _app = context.bridgeLauncherApplication,
                     _permsManager = storagePermsManager,
-                    _settingsVM = settingsVM,
+                    _settingsHolder = settingsHolder,
                     _mockExporter = mockExporter,
                 )
             }

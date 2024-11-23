@@ -19,6 +19,7 @@ import com.tored.bridgelauncher.composables.Btn
 import com.tored.bridgelauncher.composables.ResIcon
 import com.tored.bridgelauncher.services.settings.SettingsState
 import com.tored.bridgelauncher.services.settings.ThemeOptions
+import com.tored.bridgelauncher.services.settings2.BridgeSettings
 import com.tored.bridgelauncher.ui.shared.ActionCard
 import com.tored.bridgelauncher.ui.shared.CheckboxField
 import com.tored.bridgelauncher.ui.shared.OptionsRow
@@ -49,13 +50,13 @@ fun SettingsScreen2BridgeSectionContent(
             onChange = { actions.changeTheme(it) },
 //        onChange = { theme ->
 //            vm.edit {
-//                writeEnum(SettingsState::theme, theme)
+//                setBridgeSetting(BridgeSettings.theme, theme)
 //            }
 //        },
         )
 
         CheckboxField(
-            label = SettingsState::showBridgeButton.getDisplayName(),
+            label = BridgeSettings.showBridgeButton.displayName,
             isChecked = state.showBridgeButton,
             onCheckedChange = { actions.changeShowBridgeButton(it) }
         )

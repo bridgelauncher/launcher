@@ -2,9 +2,9 @@ package com.tored.bridgelauncher.ui2.home
 
 import android.annotation.SuppressLint
 import android.app.Application
-import android.util.Log
 import android.webkit.WebView
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -12,28 +12,25 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.tored.bridgelauncher.BridgeLauncherApplication
-import com.tored.bridgelauncher.ConsoleMessagesHolder
 import com.tored.bridgelauncher.api.jsapi.BridgeToJSAPI
 import com.tored.bridgelauncher.api.jsapi.JSToBridgeAPI
 import com.tored.bridgelauncher.api.server.BridgeServer
 import com.tored.bridgelauncher.services.BridgeServices
-import com.tored.bridgelauncher.services.perms.PermsManager
 import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
+import com.tored.bridgelauncher.services.devconsole.DevConsoleMessagesHolder
 import com.tored.bridgelauncher.services.iconpacks.InstalledIconPacksHolder
-import com.tored.bridgelauncher.services.settings.SettingsState
-import com.tored.bridgelauncher.services.settings.SettingsVM
+import com.tored.bridgelauncher.services.perms.PermsManager
+import com.tored.bridgelauncher.services.settings.SettingsHolder
 import com.tored.bridgelauncher.services.settings.settingsDataStore
+import com.tored.bridgelauncher.services.settings2.BridgeSettings
+import com.tored.bridgelauncher.services.settings2.setBridgeSetting
+import com.tored.bridgelauncher.services.settings2.useBridgeSettingState
 import com.tored.bridgelauncher.ui2.home.bridgemenu.BridgeMenuActions
 import com.tored.bridgelauncher.ui2.home.bridgemenu.BridgeMenuState
 import com.tored.bridgelauncher.ui2.home.composables.BridgeWebViewDeps
 import com.tored.bridgelauncher.ui2.home.composables.onBridgeWebViewCreated
+import com.tored.bridgelauncher.utils.bridgeLauncherApplication
 import com.tored.bridgelauncher.utils.collectAsStateButInViewModel
-import com.tored.bridgelauncher.utils.readBool
-import com.tored.bridgelauncher.utils.startBridgeAppDrawerActivity
-import com.tored.bridgelauncher.utils.startBridgeSettingsActivity
-import com.tored.bridgelauncher.utils.startDevConsoleActivity
-import com.tored.bridgelauncher.utils.tryStartAndroidHomeSettingsActivity
-import com.tored.bridgelauncher.utils.writeBool
 import com.tored.bridgelauncher.webview.BridgeWebChromeClient
 import com.tored.bridgelauncher.webview.BridgeWebViewClient
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,21 +39,31 @@ import kotlinx.coroutines.launch
 private const val TAG = "HomeScreen2VM"
 
 class HomeScreen2VM(
-    private val _context: Application,
+    private val _app: BridgeLauncherApplication,
     private val _permsManager: PermsManager,
-    private val _settings: SettingsVM,
+    private val _settings: SettingsHolder,
     private val _apps: InstalledAppsHolder,
     private val _iconPacks: InstalledIconPacksHolder,
-    private val _consoleMessages: ConsoleMessagesHolder,
+    private val _consoleMessages: DevConsoleMessagesHolder,
     private val _jsToBridgeAPI: JSToBridgeAPI,
     private val _bridgeToJSAPI: BridgeToJSAPI,
 ) : ViewModel()
 {
     private val _bridgeServer = BridgeServer(
-        _settings,
+        _app,
         _apps,
         _iconPacks,
     )
+
+    // SETTINGS STATE
+
+    private val _currentProjDir by useBridgeSettingState(_app, BridgeSettings.currentProjDir)
+    private val _drawSystemWallpaperBehindWebView by useBridgeSettingState(_app, BridgeSettings.drawSystemWallpaperBehindWebView)
+    private val _statusBarAppearance by useBridgeSettingState(_app, BridgeSettings.statusBarAppearance)
+    private val _navigationBarAppearance by useBridgeSettingState(_app, BridgeSettings.navigationBarAppearance)
+    private val _drawWebViewOverscrollEffects by useBridgeSettingState(_app, BridgeSettings.drawWebViewOverscrollEffects)
+    private val _showBridgeButton by useBridgeSettingState(_app, BridgeSettings.showBridgeButton)
+    private val _showLaunchAppsWhenBridgeButtonCollapsed by useBridgeSettingState(_app, BridgeSettings.showLaunchAppsWhenBridgeButtonCollapsed)
 
     // we store the webview because it needs to be affected by
     @SuppressLint("StaticFieldLeak")
@@ -64,39 +71,30 @@ class HomeScreen2VM(
 
     val bridgeMenuActions = BridgeMenuActions(
         onWebViewRefreshRequest = { webView?.reload() },
-        onOpenDevConsoleRequest = { _context.startDevConsoleActivity() },
-        onSwitchLaunchersRequest = { _context.tryStartAndroidHomeSettingsActivity() },
-        onOpenSettingsRequest = { _context.startBridgeSettingsActivity() },
         onHideBridgeButtonRequest = {
             viewModelScope.launch {
-                _context.settingsDataStore.edit {
-                    Log.d(TAG, "onHideBridgeButtonRequest: showBridgeButton: ${it.readBool(SettingsState::showBridgeButton, true)} => false")
-                    it.writeBool(SettingsState::showBridgeButton, false)
-                    Log.d(TAG, "onHideBridgeButtonRequest: showBridgeButton successfully set to false")
+                _app.settingsDataStore.edit {
+                    it.setBridgeSetting(BridgeSettings.showBridgeButton, false)
                 }
-                Log.d(TAG, "onHideBridgeButtonRequest: settingsDataStore.edit finished")
             }
         },
-        onOpenAppDrawerRequest = { _context.startBridgeAppDrawerActivity() },
         onRequestIsExpandedChange = { _bridgeMenuIsExpandedStateFlow.value = it },
     )
 
     val systemUIState = derivedStateOf {
-        val settings = _settings.settingsState.value
         HomeScreenSystemUIState(
-            drawSystemWallpaperBehindWebView = settings.drawSystemWallpaperBehindWebView,
-            statusBarAppearance = settings.statusBarAppearance,
-            navigationBarAppearance = settings.navigationBarAppearance,
+            drawSystemWallpaperBehindWebView = _drawSystemWallpaperBehindWebView,
+            statusBarAppearance = _statusBarAppearance,
+            navigationBarAppearance = _navigationBarAppearance,
         )
     }
 
     val projectState = derivedStateOf {
-        val settings = _settings.settingsState.value
         if (!_permsManager.hasStoragePermsState.value)
             IHomeScreenProjectState.NoStoragePerm
         else
         {
-            val projDir = settings.currentProjDir
+            val projDir = _currentProjDir
             if (projDir == null)
                 IHomeScreenProjectState.NoProjectLoaded
             else
@@ -108,11 +106,10 @@ class HomeScreen2VM(
     private val _bridgeMenuIsExpandedState = collectAsStateButInViewModel(_bridgeMenuIsExpandedStateFlow)
 
     val bridgeMenuState = derivedStateOf {
-        val settings = _settings.settingsState.value
         BridgeMenuState(
-            isShown = settings.showBridgeButton,
+            isShown = _showBridgeButton,
             isExpanded = _bridgeMenuIsExpandedState.value,
-            showAppDrawerButtonWhenCollapsed = settings.showBridgeButton
+            showAppDrawerButtonWhenCollapsed = _showBridgeButton
         )
     }
 
@@ -151,9 +148,9 @@ class HomeScreen2VM(
             with(serviceProvider)
             {
                 return HomeScreen2VM(
-                    _context = context,
+                    _app = context.bridgeLauncherApplication,
                     _permsManager = storagePermsManager,
-                    _settings = settingsVM,
+                    _settings = settingsHolder,
                     _apps = installedAppsHolder,
                     _iconPacks = installedIconPacksHolder,
                     _consoleMessages = consoleMessagesHolder,

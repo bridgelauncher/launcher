@@ -18,24 +18,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tored.bridgelauncher.R
 import com.tored.bridgelauncher.composables.Btn
 import com.tored.bridgelauncher.composables.ResIcon
-import com.tored.bridgelauncher.services.system.BridgeButtonQSTileService
+import com.tored.bridgelauncher.services.settings.SettingsHolder
 import com.tored.bridgelauncher.services.settings.SettingsState
-import com.tored.bridgelauncher.services.settings.SettingsVM
 import com.tored.bridgelauncher.services.settings.ThemeOptions
+import com.tored.bridgelauncher.services.settings2.BridgeSettings
+import com.tored.bridgelauncher.services.settings2.setBridgeSetting
+import com.tored.bridgelauncher.services.system.BridgeButtonQSTileService
 import com.tored.bridgelauncher.ui.settings.SettingsCheckboxFieldFor
 import com.tored.bridgelauncher.ui.settings.SettingsSection
 import com.tored.bridgelauncher.ui.shared.ActionCard
 import com.tored.bridgelauncher.ui.shared.OptionsRow
 import com.tored.bridgelauncher.ui.theme.borders
 import com.tored.bridgelauncher.utils.CurrentAndroidVersion
-import com.tored.bridgelauncher.utils.writeEnum
 
 @Composable
-fun SettingsBridgeSection(vm: SettingsVM = viewModel())
+fun SettingsBridgeSection(vm: SettingsHolder)
 {
     val uiState by vm.settingsState.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -52,7 +52,7 @@ fun SettingsBridgeSection(vm: SettingsVM = viewModel())
             selectedOption = uiState.theme,
             onChange = { theme ->
                 vm.edit {
-                    writeEnum(SettingsState::theme, theme)
+                    setBridgeSetting(BridgeSettings.theme, theme)
                 }
             },
         )

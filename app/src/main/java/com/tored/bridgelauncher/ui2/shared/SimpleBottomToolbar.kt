@@ -32,6 +32,7 @@ fun SimpleBottomToolbar(
     modifier: Modifier = Modifier,
     leftActionIconResId: Int = R.drawable.ic_arrow_left,
     onLeftActionClick: () -> Unit,
+    rightContent: ComposableContent? = null,
     titleContent: ComposableContent,
 )
 {
@@ -73,6 +74,16 @@ fun SimpleBottomToolbar(
                     )
                     {
                         titleContent()
+                    }
+                }
+
+                if (rightContent != null)
+                {
+                    Box(
+                        modifier = Modifier.align(Alignment.CenterEnd)
+                    )
+                    {
+                        rightContent()
                     }
                 }
             }

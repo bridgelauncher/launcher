@@ -20,32 +20,26 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tored.bridgelauncher.R
 import com.tored.bridgelauncher.composables.ResIcon
 import com.tored.bridgelauncher.services.settings.SettingsState
-import com.tored.bridgelauncher.services.settings.SettingsVM
 import com.tored.bridgelauncher.utils.startBridgeAppDrawerActivity
-import com.tored.bridgelauncher.utils.startBridgeSettingsActivity
 import com.tored.bridgelauncher.utils.startDevConsoleActivity
-import com.tored.bridgelauncher.utils.writeBool
+import com.tored.bridgelauncher.utils.tryStartBridgeSettingsActivity
 
 @Composable
 fun BridgeButtonStateless(
     isExpanded: Boolean,
     onIsExpandedChange: (newState: Boolean) -> Unit,
     onWebViewRefreshRequest: () -> Unit,
-    settingsVM: SettingsVM = viewModel(),
 )
 {
-    val settingsState by settingsVM.settingsState.collectAsStateWithLifecycle()
+    val settingsState = SettingsState()
 
     Row(
         modifier = Modifier
@@ -129,14 +123,14 @@ fun BridgeButtonStateless(
 
                     TouchTarget(iconResId = R.drawable.ic_settings)
                     {
-                        context.startBridgeSettingsActivity()
+                        context.tryStartBridgeSettingsActivity()
                     }
 
                     TouchTarget(iconResId = R.drawable.ic_hide)
                     {
-                        settingsVM.edit {
-                            writeBool(SettingsState::showBridgeButton, false)
-                        }
+//                        settingsHolder.edit {
+//                            setBridgeSetting(BridgeSettings.showBridgeButton, false)
+//                        }
                     }
                 }
 

@@ -6,8 +6,8 @@ import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
 import com.tored.bridgelauncher.AppDrawerActivity
-import com.tored.bridgelauncher.DevConsoleActivity
 import com.tored.bridgelauncher.services.apps.InstalledApp
+import com.tored.bridgelauncher.ui2.devconsole.DevConsoleActivity
 import com.tored.bridgelauncher.ui2.settings.SettingsScreenActivity
 
 fun Context.startBridgeSettingsActivity() = startActivity(Intent(this, SettingsScreenActivity::class.java))

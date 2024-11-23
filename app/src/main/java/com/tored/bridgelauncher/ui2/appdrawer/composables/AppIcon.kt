@@ -1,4 +1,4 @@
-package com.tored.bridgelauncher.ui2.appdrawer
+package com.tored.bridgelauncher.ui2.appdrawer.composables
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Spacer

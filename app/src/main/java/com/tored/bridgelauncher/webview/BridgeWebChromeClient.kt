@@ -1,10 +1,10 @@
 package com.tored.bridgelauncher.webview
 
 import android.webkit.ConsoleMessage
-import com.tored.bridgelauncher.ConsoleMessagesHolder
+import com.tored.bridgelauncher.services.devconsole.DevConsoleMessagesHolder
 
 class BridgeWebChromeClient(
-    private val _consoleMessageHolder: ConsoleMessagesHolder
+    private val _consoleMessageHolder: DevConsoleMessagesHolder
 ) : AccompanistWebChromeClient()
 {
 

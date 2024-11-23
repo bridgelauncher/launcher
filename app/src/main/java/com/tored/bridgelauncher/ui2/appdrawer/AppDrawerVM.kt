@@ -1,30 +1,32 @@
-package com.tored.bridgelauncher.services.settings
+package com.tored.bridgelauncher.ui2.appdrawer
 
 import android.app.Application
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.tored.bridgelauncher.BridgeLauncherApplication
 import com.tored.bridgelauncher.services.BridgeServices
-import com.tored.bridgelauncher.ui2.settings.SettingsScreenVM
-import com.tored.bridgelauncher.utils.bridgeLauncherApplication
+import com.tored.bridgelauncher.services.apps.InstalledApp
+import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
 
-class SettingsVM(
-    private val _settingsHolder: SettingsHolder,
+class AppDrawerVM(
+    private val _apps: InstalledAppsHolder,
 ) : ViewModel()
 {
+    private val _appListState = mutableStateOf(_apps.packageNameToInstalledAppMap.values.toList())
+    val appListState = _appListState as State<List<InstalledApp>>
+
     companion object
     {
-        fun from(context: Application, serviceProvider: BridgeServices): SettingsScreenVM
+        fun from(context: Application, serviceProvider: BridgeServices): AppDrawerVM
         {
             with(serviceProvider)
             {
-                return SettingsScreenVM(
-                    _app = context.bridgeLauncherApplication,
-                    _permsManager = storagePermsManager,
-                    _settingsHolder = settingsHolder,
-                    _mockExporter = mockExporter,
+                return AppDrawerVM(
+                    _apps = serviceProvider.installedAppsHolder,
                 )
             }
         }

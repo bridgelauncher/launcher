@@ -7,10 +7,13 @@ import android.webkit.WebResourceResponse
 import com.tored.bridgelauncher.api.server.BetterMimeTypeMap
 import com.tored.bridgelauncher.api.server.HTTPStatusCode
 import com.tored.bridgelauncher.api.server.errorResponse
-import com.tored.bridgelauncher.services.settings.SettingsVM
 import com.tored.bridgelauncher.utils.CurrentAndroidVersion
 import com.tored.bridgelauncher.utils.q
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
@@ -18,7 +21,7 @@ import java.io.IOException
 private const val TAG = "BridgeFileServer"
 
 class BridgeFileServer(
-    private val _settings: SettingsVM,
+    private val _currentProjDir: StateFlow<File?>
 )
 {
     companion object
@@ -26,13 +29,15 @@ class BridgeFileServer(
         val StartupFileNames = listOf("index.html")
     }
 
+    private val _scope = CoroutineScope(Dispatchers.Main) + SupervisorJob()
+
     suspend fun handle(req: WebResourceRequest): WebResourceResponse
     {
         if (CurrentAndroidVersion.supportsScopedStorage() && !Environment.isExternalStorageManager())
             return errorResponse(HTTPStatusCode.ServiceUnavailable, "Bridge does not have the \"Manage All Files\" permission.")
 
         // TODO: load current project root from settings
-        val projectRoot = _settings.settingsState.value.currentProjDir
+        val projectRoot = _currentProjDir.value
             ?: return errorResponse(HTTPStatusCode.ServiceUnavailable, "No project is loaded.")
 
         val projectRootCanonicalPath = try

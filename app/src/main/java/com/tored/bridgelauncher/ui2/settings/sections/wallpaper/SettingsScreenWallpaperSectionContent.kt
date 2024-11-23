@@ -14,12 +14,11 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.tored.bridgelauncher.composables.Btn
-import com.tored.bridgelauncher.services.settings.SettingsState
+import com.tored.bridgelauncher.services.settings2.BridgeSettings
 import com.tored.bridgelauncher.ui.shared.CheckboxField
 import com.tored.bridgelauncher.ui.shared.Tip
 import com.tored.bridgelauncher.ui.theme.textSec
 import com.tored.bridgelauncher.ui2.shared.PreviewWithSurfaceAndPadding
-import com.tored.bridgelauncher.utils.displayNameFor
 
 @Composable
 fun SettingsScreen2WallpaperSectionContent(
@@ -40,9 +39,8 @@ fun SettingsScreen2WallpaperSectionContent(
             modifier = Modifier.fillMaxWidth(),
         )
 
-        val prop = SettingsState::drawSystemWallpaperBehindWebView
         CheckboxField(
-            label = displayNameFor(prop),
+            label = BridgeSettings.drawSystemWallpaperBehindWebView.displayName,
             isChecked = state.drawSystemWallpaperBehindWebView,
             onCheckedChange = { actions.changeDrawSystemWallpaperBehindWebView(it) }
         )

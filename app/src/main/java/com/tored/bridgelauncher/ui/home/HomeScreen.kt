@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -19,38 +18,37 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tored.bridgelauncher.BridgeLauncherApplication
 import com.tored.bridgelauncher.api.jsapi.BridgeToJSAPI
 import com.tored.bridgelauncher.api.jsapi.JSToBridgeAPI
 import com.tored.bridgelauncher.api.jsapi.WindowInsetsSnapshots
-import com.tored.bridgelauncher.services.settings.SettingsVM
+import com.tored.bridgelauncher.services.settings.SettingsState
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
 import com.tored.bridgelauncher.ui2.home.composables.HomeScreenNoProjectPrompt
 import com.tored.bridgelauncher.ui2.home.composables.HomeScreenNoStoragePermsPrompt
 import com.tored.bridgelauncher.utils.CurrentAndroidVersion
+import com.tored.bridgelauncher.utils.bridgeLauncherApplication
 import com.tored.bridgelauncher.webview.WebView
 import com.tored.bridgelauncher.webview.rememberSaveableWebViewState
 import com.tored.bridgelauncher.webview.rememberWebViewNavigator
-import kotlinx.coroutines.MainScope
 
 private const val TAG = "HomeScreen"
 
 @Composable
 fun HomeScreen(
     hasStoragePerms: Boolean,
-    settingsVM: SettingsVM = viewModel(),
+//    settingsHolder: SettingsHolder = viewModel(),
 )
 {
-    val settingsState by settingsVM.settingsState.collectAsStateWithLifecycle()
-    LaunchedEffect(settingsVM) { settingsVM.request() }
+//    val settingsState by settingsHolder.settingsState.collectAsStateWithLifecycle()
+//    LaunchedEffect(settingsHolder) { settingsHolder.request() }
+    val settingsState = SettingsState()
 
     val context = LocalContext.current
     val bridge = context.applicationContext as BridgeLauncherApplication
     val webViewState = rememberSaveableWebViewState()
     val webViewNavigator = rememberWebViewNavigator()
-    val jsToBridgeAPI = remember { JSToBridgeAPI(context, MainScope(), SettingsVM(bridge), null) }
+    val jsToBridgeAPI = remember { JSToBridgeAPI(context.bridgeLauncherApplication, null) }
 //
 //    SideEffect {
 //        jsToBridgeAPI.settingsState = settingsState

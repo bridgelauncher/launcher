@@ -3,6 +3,7 @@ package com.tored.bridgelauncher.api.server
 import android.util.Log
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
+import com.tored.bridgelauncher.BridgeLauncherApplication
 import com.tored.bridgelauncher.api.server.endpoints.AppIconsEndpoint
 import com.tored.bridgelauncher.api.server.endpoints.AppsEndpoint
 import com.tored.bridgelauncher.api.server.endpoints.BridgeFileServer
@@ -11,9 +12,16 @@ import com.tored.bridgelauncher.api.server.endpoints.IconPacksEndpoint
 import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
 import com.tored.bridgelauncher.services.apps.SerializableInstalledApp
 import com.tored.bridgelauncher.services.iconpacks.InstalledIconPacksHolder
-import com.tored.bridgelauncher.services.settings.SettingsVM
+import com.tored.bridgelauncher.services.settings.settingsDataStore
+import com.tored.bridgelauncher.services.settings2.BridgeSetting
+import com.tored.bridgelauncher.services.settings2.BridgeSettings
+import com.tored.bridgelauncher.services.settings2.useBridgeSettingStateFlow
 import com.tored.bridgelauncher.utils.URLWithQueryBuilder
 import com.tored.bridgelauncher.utils.q
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.plus
 import kotlinx.serialization.Serializable
 
 private const val TAG = "ReqHandler"
@@ -27,22 +35,30 @@ fun getBridgeApiEndpointURL(endpoint: String, vararg queryParams: Pair<String, A
 
 @Serializable
 data class BridgeAPIEndpointAppsResponse(
-    val apps: List<SerializableInstalledApp>
+    val apps: List<SerializableInstalledApp>,
 )
 
 class BridgeServer(
-    settings: SettingsVM,
-    apps: InstalledAppsHolder,
-    iconPacks: InstalledIconPacksHolder,
+    private val _app: BridgeLauncherApplication,
+    private val _apps: InstalledAppsHolder,
+    private val _iconPacks: InstalledIconPacksHolder,
 )
 {
-    private val _fileServer = BridgeFileServer(settings)
+    private val _scope = CoroutineScope(Dispatchers.Main) + SupervisorJob()
+
+    // SETTINGS
+    private fun <TPreference, TResult> s(setting: BridgeSetting<TPreference, TResult>) = useBridgeSettingStateFlow(_app.settingsDataStore, _scope, setting)
+    private val _currentProjDir = s(BridgeSettings.currentProjDir)
+
+    private val _fileServer = BridgeFileServer(
+        _currentProjDir = _currentProjDir,
+    )
 
     private val _endpoints = mapOf(
-        ENDPOINT_APPS to AppsEndpoint(apps),
-        ENDPOINT_APP_ICONS to AppIconsEndpoint(apps, iconPacks),
-        ENDPOINT_ICON_PACKS to IconPacksEndpoint(iconPacks),
-        ENDPOINT_ICON_PACK_CONTENT to IconPackContentEndpoint(iconPacks),
+        ENDPOINT_APPS to AppsEndpoint(_apps),
+        ENDPOINT_APP_ICONS to AppIconsEndpoint(_apps, _iconPacks),
+        ENDPOINT_ICON_PACKS to IconPacksEndpoint(_iconPacks),
+        ENDPOINT_ICON_PACK_CONTENT to IconPackContentEndpoint(_iconPacks),
     )
 
     suspend fun handle(req: WebResourceRequest): WebResourceResponse?

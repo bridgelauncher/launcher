@@ -1,4 +1,4 @@
-package com.tored.bridgelauncher.services.settings
+package com.tored.bridgelauncher.ui2.devconsole
 
 import android.app.Application
 import androidx.lifecycle.ViewModel
@@ -7,24 +7,28 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.tored.bridgelauncher.BridgeLauncherApplication
 import com.tored.bridgelauncher.services.BridgeServices
-import com.tored.bridgelauncher.ui2.settings.SettingsScreenVM
-import com.tored.bridgelauncher.utils.bridgeLauncherApplication
+import com.tored.bridgelauncher.services.devconsole.DevConsoleMessagesHolder
 
-class SettingsVM(
-    private val _settingsHolder: SettingsHolder,
+class DevConsoleVM(
+    private val _messagesHolder: DevConsoleMessagesHolder,
 ) : ViewModel()
 {
+    val messages get() = _messagesHolder.messages as List<IConsoleMessage>
+
+    val actions = DevConsoleActions(
+        clearMessages = {
+            _messagesHolder.clearMessages()
+        }
+    )
+
     companion object
     {
-        fun from(context: Application, serviceProvider: BridgeServices): SettingsScreenVM
+        fun from(context: Application, serviceProvider: BridgeServices): DevConsoleVM
         {
             with(serviceProvider)
             {
-                return SettingsScreenVM(
-                    _app = context.bridgeLauncherApplication,
-                    _permsManager = storagePermsManager,
-                    _settingsHolder = settingsHolder,
-                    _mockExporter = mockExporter,
+                return DevConsoleVM(
+                    _messagesHolder = consoleMessagesHolder,
                 )
             }
         }

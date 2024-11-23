@@ -20,16 +20,19 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.edit
+import com.tored.bridgelauncher.BridgeLauncherApplication
 import com.tored.bridgelauncher.api.server.BridgeServer
 import com.tored.bridgelauncher.api.server.endpoints.AppIconsEndpoint
 import com.tored.bridgelauncher.api.server.endpoints.IconPackContentEndpoint
 import com.tored.bridgelauncher.api.server.endpoints.IconPacksEndpoint
 import com.tored.bridgelauncher.api.server.getBridgeApiEndpointURL
-import com.tored.bridgelauncher.services.settings.SettingsState
-import com.tored.bridgelauncher.services.settings.SettingsVM
 import com.tored.bridgelauncher.services.settings.ThemeOptions
-import com.tored.bridgelauncher.services.settings.getCanLockScreen
 import com.tored.bridgelauncher.services.settings.settingsDataStore
+import com.tored.bridgelauncher.services.settings2.BridgeSetting
+import com.tored.bridgelauncher.services.settings2.BridgeSettings
+import com.tored.bridgelauncher.services.settings2.getIsBridgeAbleToLockTheScreen
+import com.tored.bridgelauncher.services.settings2.setBridgeSetting
+import com.tored.bridgelauncher.services.settings2.useBridgeSettingStateFlow
 import com.tored.bridgelauncher.services.system.BridgeLauncherAccessibilityService
 import com.tored.bridgelauncher.utils.CurrentAndroidVersion
 import com.tored.bridgelauncher.utils.getIsSystemInNightMode
@@ -43,30 +46,40 @@ import com.tored.bridgelauncher.utils.startBridgeAppDrawerActivity
 import com.tored.bridgelauncher.utils.startBridgeSettingsActivity
 import com.tored.bridgelauncher.utils.startDevConsoleActivity
 import com.tored.bridgelauncher.utils.startWallpaperPickerActivity
-import com.tored.bridgelauncher.utils.writeBool
-import com.tored.bridgelauncher.utils.writeEnum
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 
 private const val TAG = "JSToBridgeAPI"
 
 
 class JSToBridgeAPI(
-    private val _context: Context,
-    private val _coroutineScope: CoroutineScope,
-    private val _settings: SettingsVM,
+    private val _app: BridgeLauncherApplication,
     var webView: WebView?,
 ) : Any()
 {
-    private val _wallman = _context.getSystemService(Context.WALLPAPER_SERVICE) as WallpaperManager
-    private val _modeman = _context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
-    private val _dpman = _context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
+    private val _scope = CoroutineScope(Dispatchers.Main)
 
-    private val settingsState get() = _settings.settingsState.value
+    private val _wallman = _app.getSystemService(Context.WALLPAPER_SERVICE) as WallpaperManager
+    private val _modeman = _app.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
+    private val _dpman = _app.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
 
     var windowInsetsSnapshot = WindowInsetsSnapshots()
     var displayCutoutPathSnapshot: String? = null
     var displayShapePathSnapshot: String? = null
+
+    // SETTING STATES
+
+    private fun <TPreference, TResult> s(setting: BridgeSetting<TPreference, TResult>) = useBridgeSettingStateFlow(_app.settingsDataStore, _scope, setting)
+    private val _isDeviceAdminEnabled = s(BridgeSettings.isDeviceAdminEnabled)
+    private val _isAccessibilityServiceEnabled = s(BridgeSettings.isAccessibilityServiceEnabled)
+    private val _theme = s(BridgeSettings.theme)
+    private val _allowProjectsToTurnScreenOff = s(BridgeSettings.allowProjectsToTurnScreenOff)
+    private val _statusBarAppearance = s(BridgeSettings.statusBarAppearance)
+    private val _navigationBarAppearance = s(BridgeSettings.navigationBarAppearance)
+    private val _showBridgeButton = s(BridgeSettings.showBridgeButton)
+    private val _drawSystemWallpaperBehindWebView = s(BridgeSettings.drawSystemWallpaperBehindWebView)
+    private val _drawWebViewOverscrollEffects = s(BridgeSettings.drawWebViewOverscrollEffects)
 
     private var _lastException: Exception? = null
         set(value)
@@ -82,8 +95,8 @@ class JSToBridgeAPI(
 
 
     @JavascriptInterface
-    fun getBridgeVersionCode() = _context.packageManager
-        .getPackageInfo(_context.packageName, 0)
+    fun getBridgeVersionCode() = _app.packageManager
+        .getPackageInfo(_app.packageName, 0)
         .run {
             if (CurrentAndroidVersion.supportsPackageInfoLongVersionCode())
                 longVersionCode
@@ -93,7 +106,7 @@ class JSToBridgeAPI(
         }
 
     @JavascriptInterface
-    fun getBridgeVersionName(): String = _context.packageManager.getPackageInfo(_context.packageName, 0).versionName ?: ""
+    fun getBridgeVersionName(): String = _app.packageManager.getPackageInfo(_app.packageName, 0).versionName ?: ""
 
 
     @JavascriptInterface
@@ -119,21 +132,21 @@ class JSToBridgeAPI(
     @JavascriptInterface
     fun requestAppUninstall(packageName: String, showToastIfFailed: Boolean = true): Boolean
     {
-        return _context.tryRun(showToastIfFailed) { requestAppUninstall(packageName) }
+        return _app.tryRun(showToastIfFailed) { requestAppUninstall(packageName) }
     }
 
     @JvmOverloads
     @JavascriptInterface
     fun requestOpenAppInfo(packageName: String, showToastIfFailed: Boolean = true): Boolean
     {
-        return _context.tryRun(showToastIfFailed) { openAppInfo(packageName) }
+        return _app.tryRun(showToastIfFailed) { openAppInfo(packageName) }
     }
 
     @JvmOverloads
     @JavascriptInterface
     fun requestLaunchApp(packageName: String, showToastIfFailed: Boolean = true): Boolean
     {
-        return _context.tryRun(showToastIfFailed) { launchApp(packageName) }
+        return _app.tryRun(showToastIfFailed) { launchApp(packageName) }
     }
 
     // endregion
@@ -241,7 +254,7 @@ class JSToBridgeAPI(
         val token = webView?.applicationWindowToken
         if (token != null)
         {
-            val metrics = _context.resources.displayMetrics
+            val metrics = _app.resources.displayMetrics
             _wallman.sendWallpaperCommand(
                 token,
                 WallpaperManager.COMMAND_TAP,
@@ -257,7 +270,7 @@ class JSToBridgeAPI(
     @JavascriptInterface
     fun requestChangeSystemWallpaper(showToastIfFailed: Boolean = true): Boolean
     {
-        return _context.tryRun(showToastIfFailed) { startWallpaperPickerActivity() }
+        return _app.tryRun(showToastIfFailed) { startWallpaperPickerActivity() }
     }
 
     // endregion
@@ -268,17 +281,17 @@ class JSToBridgeAPI(
     @JavascriptInterface
     fun getBridgeButtonVisibility(): String
     {
-        return getBridgeButtonVisiblityString(settingsState.showBridgeButton)
+        return getBridgeButtonVisiblityString(_showBridgeButton.value)
     }
 
     @JvmOverloads
     @JavascriptInterface
     fun requestSetBridgeButtonVisibility(state: String, showToastIfFailed: Boolean = true): Boolean
     {
-        return _context.tryEditPrefs(showToastIfFailed)
+        return _app.tryEditPrefs(showToastIfFailed)
         {
-            it.writeBool(
-                SettingsState::showBridgeButton,
+            it.setBridgeSetting(
+                BridgeSettings.showBridgeButton,
                 when (state)
                 {
                     BridgeButtonVisibility.Shown.value -> true
@@ -297,16 +310,16 @@ class JSToBridgeAPI(
     @JavascriptInterface
     fun getDrawSystemWallpaperBehindWebViewEnabled(): Boolean
     {
-        return settingsState.drawSystemWallpaperBehindWebView
+        return _drawSystemWallpaperBehindWebView.value
     }
 
     @JvmOverloads
     @JavascriptInterface
     fun requestSetDrawSystemWallpaperBehindWebViewEnabled(enable: Boolean, showToastIfFailed: Boolean = true): Boolean
     {
-        return _context.tryEditPrefs(showToastIfFailed)
+        return _app.tryEditPrefs(showToastIfFailed)
         {
-            it.writeBool(SettingsState::drawSystemWallpaperBehindWebView, enable)
+            it.setBridgeSetting(BridgeSettings.drawSystemWallpaperBehindWebView, enable)
         }
     }
 
@@ -318,17 +331,17 @@ class JSToBridgeAPI(
     @JavascriptInterface
     fun getOverscrollEffects(): String
     {
-        return getOverscrollEffects(settingsState.drawWebViewOverscrollEffects)
+        return getOverscrollEffects(_drawWebViewOverscrollEffects.value)
     }
 
     @JvmOverloads
     @JavascriptInterface
     fun requestSetOverscrollEffects(effects: String, showToastIfFailed: Boolean = true): Boolean
     {
-        return _context.tryEditPrefs(showToastIfFailed)
+        return _app.tryEditPrefs(showToastIfFailed)
         {
-            it.writeBool(
-                SettingsState::drawWebViewOverscrollEffects,
+            it.setBridgeSetting(
+                BridgeSettings.drawWebViewOverscrollEffects,
                 when (effects)
                 {
                     OverscrollEffects.Default.value -> true
@@ -353,14 +366,14 @@ class JSToBridgeAPI(
     @JavascriptInterface
     fun resolveIsSystemInDarkTheme(): Boolean
     {
-        return _context.getIsSystemInNightMode()
+        return _app.getIsSystemInNightMode()
     }
 
     @JavascriptInterface
     fun getCanSetSystemNightMode(): Boolean
     {
-        return ActivityCompat.checkSelfPermission(_context, "android.permission.MODIFY_DAY_NIGHT_MODE") == PackageManager.PERMISSION_GRANTED
-                || ActivityCompat.checkSelfPermission(_context, Manifest.permission.WRITE_SECURE_SETTINGS) == PackageManager.PERMISSION_GRANTED
+        return ActivityCompat.checkSelfPermission(_app, "android.permission.MODIFY_DAY_NIGHT_MODE") == PackageManager.PERMISSION_GRANTED
+                || ActivityCompat.checkSelfPermission(_app, Manifest.permission.WRITE_SECURE_SETTINGS) == PackageManager.PERMISSION_GRANTED
     }
 
     @SuppressLint("WrongConstant")
@@ -368,7 +381,7 @@ class JSToBridgeAPI(
     @JavascriptInterface
     fun requestSetSystemNightMode(mode: String, showToastIfFailed: Boolean = true): Boolean
     {
-        return _context.tryRun(showToastIfFailed)
+        return _app.tryRun(showToastIfFailed)
         {
             Log.d(TAG, "requestSetSystemNightMode: $mode")
 
@@ -386,7 +399,7 @@ class JSToBridgeAPI(
                 else -> throw Exception("Mode must be one of ${q("no")}, ${q("yes")}, ${q("auto")} or, from API level 30 (Android 11), ${q("custom")} (got ${q(mode)}).")
             }
 
-            val hasModifyPerm = ActivityCompat.checkSelfPermission(_context, "android.permission.MODIFY_DAY_NIGHT_MODE") == PackageManager.PERMISSION_GRANTED
+            val hasModifyPerm = ActivityCompat.checkSelfPermission(_app, "android.permission.MODIFY_DAY_NIGHT_MODE") == PackageManager.PERMISSION_GRANTED
 
             if (hasModifyPerm)
             {
@@ -394,12 +407,12 @@ class JSToBridgeAPI(
             }
             else
             {
-                val hasWriteSecureSettingsPerm = ActivityCompat.checkSelfPermission(_context, Manifest.permission.WRITE_SECURE_SETTINGS) == PackageManager.PERMISSION_GRANTED
+                val hasWriteSecureSettingsPerm = ActivityCompat.checkSelfPermission(_app, Manifest.permission.WRITE_SECURE_SETTINGS) == PackageManager.PERMISSION_GRANTED
 
                 if (hasWriteSecureSettingsPerm)
                 {
                     // shoutouts to joaomgcd (Tasker dev) for this workaround!
-                    Settings.Secure.putInt(_context.contentResolver, "ui_night_mode", modeInt)
+                    Settings.Secure.putInt(_app.contentResolver, "ui_night_mode", modeInt)
                     _modeman.enableCarMode(UiModeManager.ENABLE_CAR_MODE_ALLOW_SLEEP)
                     _modeman.disableCarMode(0)
                 }
@@ -407,7 +420,7 @@ class JSToBridgeAPI(
                 {
                     Toast
                         .makeText(
-                            _context,
+                            _app,
                             "To set system night mode, Bridge needs the WRITE_SECURE_SETTINGS permission, which can be granted via ADB. "
                                     + "Check the documentation for more information.",
                             Toast.LENGTH_LONG
@@ -426,17 +439,17 @@ class JSToBridgeAPI(
     @JavascriptInterface
     fun getBridgeTheme(): String
     {
-        return getBridgeThemeString(settingsState.theme)
+        return getBridgeThemeString(_theme.value)
     }
 
     @JvmOverloads
     @JavascriptInterface
     fun requestSetBridgeTheme(theme: String, showToastIfFailed: Boolean = true): Boolean
     {
-        return _context.tryEditPrefs(showToastIfFailed)
+        return _app.tryEditPrefs(showToastIfFailed)
         {
-            it.writeEnum(
-                SettingsState::theme,
+            it.setBridgeSetting(
+                BridgeSettings.theme,
                 when (theme)
                 {
                     "system" -> ThemeOptions.System
@@ -456,17 +469,17 @@ class JSToBridgeAPI(
     @JavascriptInterface
     fun getStatusBarAppearance(): String
     {
-        return getSystemBarAppearanceString(settingsState.statusBarAppearance)
+        return getSystemBarAppearanceString(_statusBarAppearance.value)
     }
 
     @JvmOverloads
     @JavascriptInterface
     fun requestSetStatusBarAppearance(appearance: String, showToastIfFailed: Boolean = true): Boolean
     {
-        return _context.tryEditPrefs(showToastIfFailed)
+        return _app.tryEditPrefs(showToastIfFailed)
         {
-            it.writeEnum(
-                SettingsState::statusBarAppearance,
+            it.setBridgeSetting(
+                BridgeSettings.statusBarAppearance,
                 stringToSystemBarAppearance(appearance)
             )
         }
@@ -476,17 +489,17 @@ class JSToBridgeAPI(
     @JavascriptInterface
     fun getNavigationBarAppearance(): String
     {
-        return getSystemBarAppearanceString(settingsState.navigationBarAppearance)
+        return getSystemBarAppearanceString(_navigationBarAppearance.value)
     }
 
     @JvmOverloads
     @JavascriptInterface
     fun requestSetNavigationBarAppearance(appearance: String, showToastIfFailed: Boolean = true): Boolean
     {
-        return _context.tryEditPrefs(showToastIfFailed)
+        return _app.tryEditPrefs(showToastIfFailed)
         {
-            it.writeEnum(
-                SettingsState::navigationBarAppearance,
+            it.setBridgeSetting(
+                BridgeSettings.navigationBarAppearance,
                 stringToSystemBarAppearance(appearance)
             )
         }
@@ -500,25 +513,29 @@ class JSToBridgeAPI(
     @JavascriptInterface
     fun getCanLockScreen(): Boolean
     {
-        return settingsState.getCanLockScreen()
+        return getIsBridgeAbleToLockTheScreen(
+            isAccessibilityServiceEnabled = _isAccessibilityServiceEnabled.value,
+            isDeviceAdminEnabled = _isDeviceAdminEnabled.value,
+            allowProjectsToTurnScreenOff = _allowProjectsToTurnScreenOff.value,
+        )
     }
 
     @JvmOverloads
     @JavascriptInterface
     fun requestLockScreen(showToastIfFailed: Boolean = true): Boolean
     {
-        return _context.tryRun(showToastIfFailed)
+        return _app.tryRun(showToastIfFailed)
         {
-            if (!CurrentAndroidVersion.supportsAccessiblityServiceScreenLock() && !settingsState.isDeviceAdminEnabled)
+            if (!CurrentAndroidVersion.supportsAccessiblityServiceScreenLock() && !_isDeviceAdminEnabled.value)
             {
                 throw Exception("Bridge is not a device admin. Visit Bridge Settings to resolve the issue.")
             }
-            else if (CurrentAndroidVersion.supportsAccessiblityServiceScreenLock() && !settingsState.isAccessibilityServiceEnabled)
+            else if (CurrentAndroidVersion.supportsAccessiblityServiceScreenLock() && !_isAccessibilityServiceEnabled.value)
             {
                 throw Exception("Bridge Accessibility Service is not enabled. Visit Bridge Settings to resolve the issue.")
             }
 
-            if (!settingsState.allowProjectsToTurnScreenOff)
+            if (!_allowProjectsToTurnScreenOff.value)
             {
                 throw Exception("Projects are not allowed to lock the screen. Visit Bridge Settings to resolve the issue.")
             }
@@ -550,21 +567,21 @@ class JSToBridgeAPI(
     @JavascriptInterface
     fun requestOpenBridgeSettings(showToastIfFailed: Boolean = true): Boolean
     {
-        return _context.tryRun(showToastIfFailed) { startBridgeSettingsActivity() }
+        return _app.tryRun(showToastIfFailed) { startBridgeSettingsActivity() }
     }
 
     @JvmOverloads
     @JavascriptInterface
     fun requestOpenBridgeAppDrawer(showToastIfFailed: Boolean = true): Boolean
     {
-        return _context.tryRun(showToastIfFailed) { startBridgeAppDrawerActivity() }
+        return _app.tryRun(showToastIfFailed) { startBridgeAppDrawerActivity() }
     }
 
     @JvmOverloads
     @JavascriptInterface
     fun requestOpenDeveloperConsole(showToastIfFailed: Boolean = true): Boolean
     {
-        return _context.tryRun(showToastIfFailed) { startDevConsoleActivity() }
+        return _app.tryRun(showToastIfFailed) { startDevConsoleActivity() }
     }
 
     // https://stackoverflow.com/a/15582509/6796433
@@ -575,7 +592,7 @@ class JSToBridgeAPI(
     {
         try
         {
-            val sbservice: Any = _context.getSystemService("statusbar")
+            val sbservice: Any = _app.getSystemService("statusbar")
             val statusbarManager = Class.forName("android.app.StatusBarManager")
             val showsb = statusbarManager.getMethod("expandNotificationsPanel")
             showsb.invoke(sbservice)
@@ -587,7 +604,7 @@ class JSToBridgeAPI(
             _lastException = ex
 
             if (showToastIfFailed)
-                _context.showErrorToast(ex)
+                _app.showErrorToast(ex)
 
             return false
         }
@@ -602,7 +619,7 @@ class JSToBridgeAPI(
     @JavascriptInterface
     fun showToast(message: String, long: Boolean = false)
     {
-        Toast.makeText(_context, message, if (long) Toast.LENGTH_LONG else Toast.LENGTH_SHORT).show()
+        Toast.makeText(_app, message, if (long) Toast.LENGTH_LONG else Toast.LENGTH_SHORT).show()
     }
 
     // endregion

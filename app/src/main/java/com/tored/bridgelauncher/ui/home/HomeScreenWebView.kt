@@ -6,20 +6,17 @@ import android.view.View
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tored.bridgelauncher.BridgeLauncherApplication
-import com.tored.bridgelauncher.ConsoleMessagesHolder
 import com.tored.bridgelauncher.api.jsapi.BridgeToJSAPI
 import com.tored.bridgelauncher.api.jsapi.JSToBridgeAPI
 import com.tored.bridgelauncher.api.server.BridgeServer
-import com.tored.bridgelauncher.services.settings.SettingsVM
+import com.tored.bridgelauncher.services.devconsole.DevConsoleMessagesHolder
+import com.tored.bridgelauncher.services.settings.SettingsState
 import com.tored.bridgelauncher.utils.CurrentAndroidVersion
 import com.tored.bridgelauncher.webview.BridgeWebViewClient
 import com.tored.bridgelauncher.webview.WebView
@@ -34,10 +31,10 @@ private const val TAG = "HomeWebView"
 fun HomeScreenWebView(
     webViewNavigator: WebViewNavigator,
     webViewState: WebViewState,
-    settingsVM: SettingsVM = viewModel(),
+//    settingsHolder: SettingsHolder = viewModel(),
     jsToBridgeAPI: JSToBridgeAPI,
     bridgeToJSAPI: BridgeToJSAPI,
-    consoleMessagesHolder: ConsoleMessagesHolder,
+    consoleMessagesHolder: DevConsoleMessagesHolder,
 )
 {
     val context = LocalContext.current
@@ -64,7 +61,7 @@ fun HomeScreenWebView(
 //        )
 //    }
 
-    val settingsState by settingsVM.settingsState.collectAsStateWithLifecycle()
+    val settingsState = SettingsState()
 
     // reload the webview whenever the project dir changes
     LaunchedEffect(settingsState.currentProjDir)

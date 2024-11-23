@@ -2,9 +2,20 @@ package com.tored.bridgelauncher.ui.shared
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material.Checkbox
+import androidx.compose.material.CheckboxDefaults
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -15,7 +26,12 @@ import com.tored.bridgelauncher.ui.theme.checkedItemBg
 import com.tored.bridgelauncher.ui.theme.textSec
 
 @Composable
-fun CheckboxField(label: String, isChecked: Boolean, onCheckedChange: (Boolean) -> Unit, description: String = "")
+fun CheckboxField(
+    label: String,
+    isChecked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    description: String = ""
+)
 {
     Surface(
         modifier = Modifier
@@ -47,7 +63,8 @@ fun CheckboxField(label: String, isChecked: Boolean, onCheckedChange: (Boolean) 
                     uncheckedColor = MaterialTheme.colors.onSurface,
                 )
             )
-            Column() {
+            Column()
+            {
                 Text(label)
                 if (description.isNotEmpty())
                 {

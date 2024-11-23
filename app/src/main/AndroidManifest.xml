@@ -83,7 +83,7 @@
             android:windowSoftInputMode="adjustResize" />
 
         <activity
-            android:name=".DevConsoleActivity"
+            android:name=".ui2.devconsole.DevConsoleActivity"
             android:exported="true" />
 
         <service

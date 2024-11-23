@@ -6,6 +6,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
@@ -136,7 +139,8 @@ fun SettingsScreen2(
     Surface(
         color = MaterialTheme.colors.background,
         modifier = Modifier.fillMaxSize(),
-    ) {
+    )
+    {
         BotBarScreen(
             onLeftActionClick = { requestFinish() },
             titleAreaContent = {
@@ -144,8 +148,13 @@ fun SettingsScreen2(
             }
         )
         {
+            val scrollState = rememberScrollState()
             Column(
-                modifier = Modifier.padding(0.dp, 8.dp)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
+                    .safeContentPadding()
+                    .padding(0.dp, 8.dp)
             )
             {
                 SettingsScreen2Section(label = "Project", iconResId = R.drawable.ic_folder_open) {

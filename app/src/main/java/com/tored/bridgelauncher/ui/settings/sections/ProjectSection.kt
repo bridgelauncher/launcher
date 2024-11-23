@@ -10,11 +10,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tored.bridgelauncher.R
-import com.tored.bridgelauncher.services.system.BridgeLauncherDeviceAdminReceiver
+import com.tored.bridgelauncher.services.settings.SettingsHolder
 import com.tored.bridgelauncher.services.settings.SettingsState
-import com.tored.bridgelauncher.services.settings.SettingsVM
+import com.tored.bridgelauncher.services.system.BridgeLauncherDeviceAdminReceiver
 import com.tored.bridgelauncher.ui.settings.CurrentProjectCard
 import com.tored.bridgelauncher.ui.settings.SettingsSection
 import com.tored.bridgelauncher.ui.shared.CheckboxField
@@ -30,7 +29,7 @@ fun SettingsProjectSection(
     hasStoragePerms: Boolean,
     onGrantPermissionRequest: () -> Unit,
     onChangeProjectDirRequest: () -> Unit,
-    vm: SettingsVM = viewModel(),
+    vm: SettingsHolder,
 )
 {
     val uiState by vm.settingsState.collectAsStateWithLifecycle()

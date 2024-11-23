@@ -4,11 +4,11 @@ import android.content.ComponentName
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import androidx.datastore.preferences.core.edit
-import com.tored.bridgelauncher.services.settings.SettingsState
 import com.tored.bridgelauncher.services.settings.settingsDataStore
+import com.tored.bridgelauncher.services.settings2.BridgeSettings
+import com.tored.bridgelauncher.services.settings2.setBridgeSetting
+import com.tored.bridgelauncher.services.settings2.useBridgeSettingStateFlow
 import com.tored.bridgelauncher.utils.CurrentAndroidVersion
-import com.tored.bridgelauncher.utils.readBool
-import com.tored.bridgelauncher.utils.writeBool
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -19,15 +19,21 @@ import kotlinx.coroutines.runBlocking
 class BridgeButtonQSTileService : TileService()
 {
     private var _job = SupervisorJob()
-    private var _scope = CoroutineScope(Dispatchers.Main + _job)
-    private var _isListening = false;
-    private var _shouldBeActive = false;
+    private var _scope = CoroutineScope(Dispatchers.Main)
+    private var _isListening = false
+    private var _shouldShowActiveState = false
+
+    private val _showBridgeButton = useBridgeSettingStateFlow(
+        dataStore = settingsDataStore,
+        coroutineScope = _scope,
+        bridgeSetting = BridgeSettings.showBridgeButton,
+    )
 
     override fun onCreate()
     {
         _scope.launch {
-            applicationContext.settingsDataStore.data.collectLatest { prefs ->
-                _shouldBeActive = prefs.readBool(SettingsState::showBridgeButton, true)
+            _showBridgeButton.collectLatest { showBridgeButton ->
+                _shouldShowActiveState = showBridgeButton
                 if (_isListening)
                 {
                     updateTileIfListening()
@@ -40,7 +46,7 @@ class BridgeButtonQSTileService : TileService()
                     }
                     catch (_: java.lang.Exception)
                     {
-                        { }()
+
                     }
                 }
             }
@@ -52,26 +58,26 @@ class BridgeButtonQSTileService : TileService()
         updateTileIsAdded(true)
     }
 
-    fun updateTileIsAdded(isAdded: Boolean)
+    private fun updateTileIsAdded(isAdded: Boolean)
     {
-        runBlocking {
+        _scope.launch {
             applicationContext.settingsDataStore.edit { prefs ->
-                prefs.writeBool(SettingsState::isQSTileAdded, isAdded)
+                prefs.setBridgeSetting(BridgeSettings.isQSTileAdded, isAdded)
             }
         }
     }
 
     override fun onStartListening()
     {
-        _isListening = true;
-        updateTileIfListening();
+        _isListening = true
+        updateTileIfListening()
     }
 
-    fun updateTileIfListening()
+    private fun updateTileIfListening()
     {
         if (!_isListening) return
 
-        if (_shouldBeActive)
+        if (_shouldShowActiveState)
         {
             qsTile.state = Tile.STATE_ACTIVE
 
@@ -95,7 +101,7 @@ class BridgeButtonQSTileService : TileService()
 
         runBlocking {
             applicationContext.settingsDataStore.edit { prefs ->
-                prefs.writeBool(SettingsState::showBridgeButton, showButton)
+                prefs.setBridgeSetting(BridgeSettings.showBridgeButton, showButton)
             }
         }
     }

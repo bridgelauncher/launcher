@@ -7,9 +7,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.plus
 import java.util.concurrent.ConcurrentHashMap
 
-class IconPackCache(
-    val parser: AppFilterXMLParser
-)
+class IconPackCache()
 {
     private val _coroutineScope = CoroutineScope(Dispatchers.Default) + SupervisorJob()
 

@@ -29,6 +29,10 @@ import com.tored.bridgelauncher.ui.theme.BridgeLauncherThemeStateless
 import com.tored.bridgelauncher.ui2.home.bridgemenu.IBridgeMenuElement.Button
 import com.tored.bridgelauncher.ui2.home.bridgemenu.IBridgeMenuElement.Divider
 import com.tored.bridgelauncher.utils.addAll
+import com.tored.bridgelauncher.utils.tryStartAndroidHomeSettingsActivity
+import com.tored.bridgelauncher.utils.tryStartBridgeAppDrawerActivity
+import com.tored.bridgelauncher.utils.tryStartBridgeSettingsActivity
+import com.tored.bridgelauncher.utils.tryStartDevConsoleActivity
 
 @Composable
 fun BridgeMenu(
@@ -40,15 +44,16 @@ fun BridgeMenu(
     if (!state.isShown) return
 
     val entriesToDisplay = mutableListOf<IBridgeMenuElement>()
+    val context = LocalContext.current
 
     if (state.isExpanded)
     {
         entriesToDisplay.addAll(
             Button(R.drawable.ic_refresh, "Refresh WebView", actions.onWebViewRefreshRequest),
-            Button(R.drawable.ic_dev_console, "Developer console", actions.onOpenDevConsoleRequest),
+            Button(R.drawable.ic_dev_console, "Developer console") { context.tryStartDevConsoleActivity() },
             Divider,
-            Button(R.drawable.ic_switch_launchers, "Switch away from Bridge", actions.onSwitchLaunchersRequest),
-            Button(R.drawable.ic_settings, "Bridge settings", actions.onOpenSettingsRequest),
+            Button(R.drawable.ic_switch_launchers, "Switch away from Bridge") { context.tryStartAndroidHomeSettingsActivity() },
+            Button(R.drawable.ic_settings, "Bridge settings") { context.tryStartBridgeSettingsActivity() },
             Button(R.drawable.ic_hide, "Hide Bridge button", actions.onHideBridgeButtonRequest),
         )
     }
@@ -56,7 +61,7 @@ fun BridgeMenu(
     if (state.isExpanded || state.showAppDrawerButtonWhenCollapsed)
     {
         entriesToDisplay.addAll(
-            Button(R.drawable.ic_apps, "Built-in app drawer", actions.onOpenAppDrawerRequest),
+            Button(R.drawable.ic_apps, "Built-in app drawer") { context.tryStartBridgeAppDrawerActivity() },
             Divider,
         )
     }
@@ -141,7 +146,7 @@ fun BridgeMenu(
 @Composable
 fun BridgeMenuWithEmptyActions(state: BridgeMenuState) = BridgeMenu(
     state = state,
-    actions = BridgeMenuActions.Empty(),
+    actions = BridgeMenuActions.empty(),
 )
 
 @Composable

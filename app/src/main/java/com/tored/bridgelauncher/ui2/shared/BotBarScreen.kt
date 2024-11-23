@@ -8,15 +8,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.safeContent
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.windowInsetsEndWidth
 import androidx.compose.foundation.layout.windowInsetsStartWidth
 import androidx.compose.foundation.layout.windowInsetsTopHeight
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -36,6 +32,7 @@ fun BotBarScreen(
     leftActionIconResId: Int = R.drawable.ic_arrow_left,
     onLeftActionClick: () -> Unit,
     titleAreaContent: ComposableContent,
+    rightContent: ComposableContent? = null,
     content: ComposableContent,
 )
 {
@@ -59,17 +56,7 @@ fun BotBarScreen(
 
             Box(modifier = Modifier.weight(1f))
             {
-                val scrollState = rememberScrollState()
-                Box(
-                    contentAlignment = Alignment.TopStart,
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .verticalScroll(scrollState)
-                        .safeContentPadding(),
-                )
-                {
-                    content()
-                }
+                content()
 
                 Box(
                     modifier = Modifier
@@ -87,6 +74,7 @@ fun BotBarScreen(
             SimpleBottomToolbar(
                 leftActionIconResId = leftActionIconResId,
                 onLeftActionClick = onLeftActionClick,
+                rightContent = rightContent,
             )
             {
                 titleAreaContent()
