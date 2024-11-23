@@ -8,10 +8,8 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,8 +28,6 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.tored.bridgelauncher.R
-import com.tored.bridgelauncher.composables.ResIcon
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherThemeStateless
 import com.tored.bridgelauncher.ui2.appdrawer.AppDrawerVM
 import com.tored.bridgelauncher.ui2.appdrawer.IAppDrawerApp
@@ -39,6 +35,7 @@ import com.tored.bridgelauncher.ui2.appdrawer.TestApps
 import com.tored.bridgelauncher.ui2.appdrawer.composables.appcontextmenu.AppContextMenu
 import com.tored.bridgelauncher.ui2.appdrawer.composables.appcontextmenu.AppContextMenuState
 import com.tored.bridgelauncher.ui2.shared.BotBarScreen
+import com.tored.bridgelauncher.ui2.shared.botbar.SearchbarBottomToolbar
 import com.tored.bridgelauncher.utils.UseEdgeToEdgeWithTransparentBars
 import com.tored.bridgelauncher.utils.launchApp
 
@@ -50,6 +47,8 @@ fun AppDrawerScreen(
 {
     AppDrawerScreen(
         filteredApps = vm.filteredApps.value,
+        searchString = vm.searchString.value,
+        updateSearchStringRequest = { vm.updateSearchStringRequest(it) },
         getIconFunc = { iconPack, app ->
             vm.getIcon(iconPack, app)
         },
@@ -60,6 +59,8 @@ fun AppDrawerScreen(
 @Composable
 fun AppDrawerScreen(
     filteredApps: List<IAppDrawerApp>,
+    searchString: String,
+    updateSearchStringRequest: (newString: String) -> Unit,
     getIconFunc: AppIconGetIconFunc,
     requestFinish: () -> Unit,
 )
@@ -78,17 +79,13 @@ fun AppDrawerScreen(
         modifier = Modifier.fillMaxSize()
     ) {
         BotBarScreen(
-            onLeftActionClick = { requestFinish() },
-            titleAreaContent = {
-                Text("Apps")
-            },
-            rightContent = {
-                IconButton(
-                    onClick = { TODO() },
+            botBar = {
+                SearchbarBottomToolbar(
+                    onLeftActionClick = { requestFinish() },
+                    searchbarText = searchString,
+                    searchbarPlaceholderText = "Search apps...",
+                    onSearchbarTextUpdateRequest = updateSearchStringRequest,
                 )
-                {
-                    ResIcon(R.drawable.ic_search)
-                }
             }
         )
         {
@@ -102,7 +99,8 @@ fun AppDrawerScreen(
                 contentPadding = PaddingValues(0.dp, 8.dp),
             )
             {
-                items(filteredApps) { app ->
+                items(filteredApps, key = { it.packageName })
+                { app ->
 
                     var dropdownItemInLazyColOffset by remember { mutableStateOf(Offset(0f, 0f)) }
 
@@ -156,7 +154,7 @@ fun AppDrawerScreen(
                 }
             }
 
-            val state = appContextMenuState;
+            val state = appContextMenuState
             if (state != null)
             {
                 AppContextMenu(
@@ -180,6 +178,8 @@ fun AppDrawerScreenPreview(
         AppDrawerScreen(
             filteredApps = filteredApps,
             getIconFunc = ::dummyGetIconFunc,
+            searchString = "",
+            updateSearchStringRequest = {},
             requestFinish = { },
         )
     }

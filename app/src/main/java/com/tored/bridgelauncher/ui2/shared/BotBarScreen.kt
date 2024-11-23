@@ -24,6 +24,7 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.tored.bridgelauncher.R
 import com.tored.bridgelauncher.ui.theme.BridgeLauncherThemeStateless
+import com.tored.bridgelauncher.ui2.shared.botbar.SimpleBottomToolbar
 import com.tored.bridgelauncher.utils.ComposableContent
 
 @Composable
@@ -33,6 +34,29 @@ fun BotBarScreen(
     onLeftActionClick: () -> Unit,
     titleAreaContent: ComposableContent,
     rightContent: ComposableContent? = null,
+    content: ComposableContent,
+)
+{
+    BotBarScreen(
+        botBar = {
+            SimpleBottomToolbar(
+                leftActionIconResId = leftActionIconResId,
+                onLeftActionClick = onLeftActionClick,
+                rightContent = rightContent,
+            )
+            {
+                titleAreaContent()
+            }
+        },
+        modifier = modifier,
+        content = content,
+    )
+}
+
+@Composable
+fun BotBarScreen(
+    botBar: ComposableContent,
+    modifier: Modifier = Modifier,
     content: ComposableContent,
 )
 {
@@ -71,14 +95,8 @@ fun BotBarScreen(
                         .align(Alignment.TopStart)
                 )
             }
-            SimpleBottomToolbar(
-                leftActionIconResId = leftActionIconResId,
-                onLeftActionClick = onLeftActionClick,
-                rightContent = rightContent,
-            )
-            {
-                titleAreaContent()
-            }
+
+            botBar()
         }
         Spacer(modifier = Modifier.windowInsetsEndWidth(WindowInsets.safeContent))
     }

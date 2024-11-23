@@ -104,3 +104,15 @@ val Colors.warning: Color
 
 val Colors.borderLight: Color
     get() = if(isLight) Color(0x26000000) else Color(0x26ffffff)
+
+val Colors.inputFieldBg: Color
+    get () = if (isLight) Color(0x10000000) else Color(0x33FFFFFF)
+
+
+
+
+
+
+
+
+

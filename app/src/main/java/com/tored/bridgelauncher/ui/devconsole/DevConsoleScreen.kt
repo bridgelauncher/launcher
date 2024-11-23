@@ -60,7 +60,7 @@ fun DevConsoleScreenStateless(
             {
                 if (messages.any())
                 {
-                    items(messages.reversed())
+                    items(messages.reversed(), key = { it.uid })
                     { msg ->
                         Surface(
                             color = when (msg.messageLevel)

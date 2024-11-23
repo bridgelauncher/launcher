@@ -15,7 +15,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.PlatformTextStyle
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -49,11 +48,11 @@ fun DirPickerFilterOrCreateDirBar(
             onValueChange = onTextChange,
             keyboardOptions = KeyboardOptions(
                 imeAction = ImeAction.Done,
-                autoCorrect = false,
+                autoCorrectEnabled = false,
                 keyboardType = KeyboardType.Uri,
                 capitalization = KeyboardCapitalization.None,
             ),
-            textStyle = TextStyle(
+            textStyle = MaterialTheme.typography.body1.copy(
                 platformStyle = PlatformTextStyle(includeFontPadding = true),
                 color = MaterialTheme.colors.onSurface,
             ),
