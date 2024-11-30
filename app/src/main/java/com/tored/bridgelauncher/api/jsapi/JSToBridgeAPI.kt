@@ -11,9 +11,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.util.DisplayMetrics
 import android.util.Log
-import android.util.TypedValue
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.widget.Toast
@@ -21,17 +19,17 @@ import androidx.core.app.ActivityCompat
 import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.edit
 import com.tored.bridgelauncher.BridgeLauncherApplication
-import com.tored.bridgelauncher.api.server.BridgeServer
-import com.tored.bridgelauncher.api.server.endpoints.AppIconsEndpoint
-import com.tored.bridgelauncher.api.server.endpoints.IconPackContentEndpoint
-import com.tored.bridgelauncher.api.server.endpoints.IconPacksEndpoint
-import com.tored.bridgelauncher.api.server.getBridgeApiEndpointURL
-import com.tored.bridgelauncher.services.settings.ThemeOptions
-import com.tored.bridgelauncher.services.settings.settingsDataStore
+import com.tored.bridgelauncher.api2.server.BridgeServer
+import com.tored.bridgelauncher.api2.server.endpoints.AppIconsEndpoint
+import com.tored.bridgelauncher.api2.server.endpoints.IconPackContentEndpoint
+import com.tored.bridgelauncher.api2.server.endpoints.IconPacksEndpoint
+import com.tored.bridgelauncher.api2.server.getBridgeApiEndpointURL
 import com.tored.bridgelauncher.services.settings2.BridgeSetting
 import com.tored.bridgelauncher.services.settings2.BridgeSettings
+import com.tored.bridgelauncher.services.settings2.BridgeThemeOptions
 import com.tored.bridgelauncher.services.settings2.getIsBridgeAbleToLockTheScreen
 import com.tored.bridgelauncher.services.settings2.setBridgeSetting
+import com.tored.bridgelauncher.services.settings2.settingsDataStore
 import com.tored.bridgelauncher.services.settings2.useBridgeSettingStateFlow
 import com.tored.bridgelauncher.services.system.BridgeLauncherAccessibilityService
 import com.tored.bridgelauncher.utils.CurrentAndroidVersion
@@ -46,6 +44,7 @@ import com.tored.bridgelauncher.utils.startBridgeAppDrawerActivity
 import com.tored.bridgelauncher.utils.startBridgeSettingsActivity
 import com.tored.bridgelauncher.utils.startDevConsoleActivity
 import com.tored.bridgelauncher.utils.startWallpaperPickerActivity
+import com.tored.bridgelauncher.utils.toPx
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -57,8 +56,7 @@ class JSToBridgeAPI(
     private val _app: BridgeLauncherApplication,
     var webView: WebView?,
 ) : Any()
-{
-    private val _scope = CoroutineScope(Dispatchers.Main)
+{private val _scope = CoroutineScope(Dispatchers.Main)
 
     private val _wallman = _app.getSystemService(Context.WALLPAPER_SERVICE) as WallpaperManager
     private val _modeman = _app.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
@@ -294,9 +292,9 @@ class JSToBridgeAPI(
                 BridgeSettings.showBridgeButton,
                 when (state)
                 {
-                    BridgeButtonVisibility.Shown.value -> true
-                    BridgeButtonVisibility.Hidden.value -> false
-                    else -> throw Exception("State must be either \"${BridgeButtonVisibility.Shown.value}\" or \"${BridgeButtonVisibility.Hidden.value}\" (got \"$state\").")
+                    BridgeButtonVisibilityOptions.Shown.rawValue -> true
+                    BridgeButtonVisibilityOptions.Hidden.rawValue -> false
+                    else -> throw Exception("State must be either \"${BridgeButtonVisibilityOptions.Shown.rawValue}\" or \"${BridgeButtonVisibilityOptions.Hidden.rawValue}\" (got \"$state\").")
                 }
             )
         }
@@ -452,9 +450,9 @@ class JSToBridgeAPI(
                 BridgeSettings.theme,
                 when (theme)
                 {
-                    "system" -> ThemeOptions.System
-                    "light" -> ThemeOptions.Light
-                    "dark" -> ThemeOptions.Dark
+                    "system" -> BridgeThemeOptions.System
+                    "light" -> BridgeThemeOptions.Light
+                    "dark" -> BridgeThemeOptions.Dark
                     else -> throw Exception("Theme must be one of ${q("system")}, ${q("light")} or ${q("dark")} (got ${q(theme)}).")
                 }
             )
@@ -727,6 +725,5 @@ class JSToBridgeAPI(
 
     // endregion
 
-}
 
-private fun DisplayMetrics.toPx(x: Float) = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, x, this)
+}

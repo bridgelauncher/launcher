@@ -23,7 +23,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.tored.bridgelauncher.R
-import com.tored.bridgelauncher.ui.theme.BridgeLauncherThemeStateless
+import com.tored.bridgelauncher.ui2.theme.BridgeLauncherThemeStateless
 import com.tored.bridgelauncher.ui2.shared.botbar.SimpleBottomToolbar
 import com.tored.bridgelauncher.utils.ComposableContent
 

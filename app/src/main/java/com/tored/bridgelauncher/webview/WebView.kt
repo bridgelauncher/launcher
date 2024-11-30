@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 package com.tored.bridgelauncher.webview
 
 // they told me to fork it so I did

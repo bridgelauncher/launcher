@@ -3,10 +3,9 @@ package com.tored.bridgelauncher.utils
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import androidx.core.graphics.drawable.toBitmap
-import com.tored.bridgelauncher.api.server.BridgeAPIEndpointAppsResponse
+import com.tored.bridgelauncher.api2.server.BridgeAPIEndpointAppsResponse
 import com.tored.bridgelauncher.services.apps.InstalledApp
 import com.tored.bridgelauncher.services.iconpacks.InstalledIconPackHolder
-import com.tored.bridgelauncher.ui.dirpicker.Directory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
@@ -24,7 +23,7 @@ fun saveAsPNG(file: File, drawable: Drawable)
 suspend fun exportForMockAsync(
     installedApps: Iterable<InstalledApp>,
     iconPacks: Iterable<InstalledIconPackHolder>,
-    dir: Directory,
+    dir: File,
     onJobStarted: (jobCount: Int) -> Unit,
     onJobFinished: (jobCount: Int) -> Unit
 )
@@ -71,17 +70,17 @@ suspend fun exportForMockAsync(
         }
 
         // create a directory for icons
-        val iconsDir = Directory(dir, "icons")
+        val iconsDir = File(dir, "icons")
         iconsDir.mkdir()
 
         // create a directory for default icons
-        val defIconsDir = Directory(iconsDir, "default")
+        val defIconsDir = File(iconsDir, "default")
         defIconsDir.mkdir()
 
         // create a directory for each icon pack
         for (iconPack in iconPacks)
         {
-            val iconPackDir = Directory(iconsDir, iconPack.packageName)
+            val iconPackDir = File(iconsDir, iconPack.packageName)
             iconPackDir.mkdir()
 
             // copy entire appfilter.xml to a file in the icon pack folder
@@ -101,7 +100,7 @@ suspend fun exportForMockAsync(
 
             for (iconPack in iconPacks)
             {
-                val iconPackDir = Directory(iconsDir, iconPack.packageName)
+                val iconPackDir = File(iconsDir, iconPack.packageName)
                 val iconPackIcon = iconPack.getIconForOrNull(app.packageName)
                 if (iconPackIcon != null)
                 {

@@ -24,8 +24,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.tored.bridgelauncher.R
-import com.tored.bridgelauncher.composables.ResIcon
-import com.tored.bridgelauncher.ui.theme.BridgeLauncherThemeStateless
+import com.tored.bridgelauncher.ui2.shared.ResIcon
+import com.tored.bridgelauncher.ui2.theme.BridgeLauncherThemeStateless
 import com.tored.bridgelauncher.ui2.home.bridgemenu.IBridgeMenuElement.Button
 import com.tored.bridgelauncher.ui2.home.bridgemenu.IBridgeMenuElement.Divider
 import com.tored.bridgelauncher.utils.addAll

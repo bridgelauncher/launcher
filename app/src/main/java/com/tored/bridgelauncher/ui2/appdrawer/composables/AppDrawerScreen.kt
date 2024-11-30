@@ -28,7 +28,6 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.tored.bridgelauncher.ui.theme.BridgeLauncherThemeStateless
 import com.tored.bridgelauncher.ui2.appdrawer.AppDrawerVM
 import com.tored.bridgelauncher.ui2.appdrawer.IAppDrawerApp
 import com.tored.bridgelauncher.ui2.appdrawer.TestApps
@@ -36,6 +35,7 @@ import com.tored.bridgelauncher.ui2.appdrawer.composables.appcontextmenu.AppCont
 import com.tored.bridgelauncher.ui2.appdrawer.composables.appcontextmenu.AppContextMenuState
 import com.tored.bridgelauncher.ui2.shared.BotBarScreen
 import com.tored.bridgelauncher.ui2.shared.botbar.SearchbarBottomToolbar
+import com.tored.bridgelauncher.ui2.theme.BridgeLauncherThemeStateless
 import com.tored.bridgelauncher.utils.UseEdgeToEdgeWithTransparentBars
 import com.tored.bridgelauncher.utils.launchApp
 
@@ -177,7 +177,7 @@ fun AppDrawerScreenPreview(
     BridgeLauncherThemeStateless {
         AppDrawerScreen(
             filteredApps = filteredApps,
-            getIconFunc = ::dummyGetIconFunc,
+            getIconFunc = emptyGetIconFunc,
             searchString = "",
             updateSearchStringRequest = {},
             requestFinish = { },

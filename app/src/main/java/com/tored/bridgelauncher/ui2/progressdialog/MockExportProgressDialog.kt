@@ -33,10 +33,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.tored.bridgelauncher.R
-import com.tored.bridgelauncher.composables.Btn
+import com.tored.bridgelauncher.ui2.shared.Btn
 import com.tored.bridgelauncher.services.mockexport.MockExportProgressState
 import com.tored.bridgelauncher.services.mockexport.hasFinished
-import com.tored.bridgelauncher.ui.theme.borderLight
+import com.tored.bridgelauncher.ui2.theme.borderLight
 import com.tored.bridgelauncher.ui2.shared.PreviewWithSurfaceAndPadding
 
 @Composable

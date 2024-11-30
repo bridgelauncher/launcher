@@ -14,7 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.tored.bridgelauncher.R
-import com.tored.bridgelauncher.composables.Btn
+import com.tored.bridgelauncher.ui2.shared.Btn
 import com.tored.bridgelauncher.ui2.shared.PreviewWithSurfaceAndPadding
 
 @Composable

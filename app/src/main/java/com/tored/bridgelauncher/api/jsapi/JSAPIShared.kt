@@ -1,11 +1,16 @@
 package com.tored.bridgelauncher.api.jsapi
 
 import android.app.UiModeManager
-import com.tored.bridgelauncher.services.settings.SystemBarAppearanceOptions
-import com.tored.bridgelauncher.services.settings.ThemeOptions
+import com.tored.bridgelauncher.services.settings2.SystemBarAppearanceOptions
+import com.tored.bridgelauncher.services.settings2.BridgeThemeOptions
+import com.tored.bridgelauncher.utils.RawRepresentable
 import com.tored.bridgelauncher.utils.q
+import com.tored.bridgelauncher.utils.serialization.StringEnumWriteOnlySerializer
+import kotlinx.serialization.Serializable
 
-enum class BridgeButtonVisibility(val value: String)
+@Suppress("SERIALIZER_TYPE_INCOMPATIBLE")
+@Serializable(with = StringEnumWriteOnlySerializer::class)
+enum class BridgeButtonVisibilityOptions(override val rawValue: String) : RawRepresentable<String>
 {
     Shown("shown"),
     Hidden("hidden"),
@@ -15,8 +20,8 @@ fun getBridgeButtonVisiblityString(showBridgeButton: Boolean): String
 {
     return when (showBridgeButton)
     {
-        true -> BridgeButtonVisibility.Shown.value
-        false -> BridgeButtonVisibility.Hidden.value
+        true -> BridgeButtonVisibilityOptions.Shown.rawValue
+        false -> BridgeButtonVisibilityOptions.Hidden.rawValue
     }
 }
 
@@ -36,13 +41,13 @@ fun getOverscrollEffects(draw: Boolean): String
     }
 }
 
-fun getBridgeThemeString(theme: ThemeOptions): String
+fun getBridgeThemeString(theme: BridgeThemeOptions): String
 {
     return when (theme)
     {
-        ThemeOptions.System -> "system"
-        ThemeOptions.Light -> "light"
-        ThemeOptions.Dark -> "dark"
+        BridgeThemeOptions.System -> "system"
+        BridgeThemeOptions.Light -> "light"
+        BridgeThemeOptions.Dark -> "dark"
     }
 }
 

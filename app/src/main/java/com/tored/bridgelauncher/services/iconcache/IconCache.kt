@@ -81,24 +81,26 @@ class IconCache(
     }
 
 
-    fun collectAppsLoadingFinished() = _coroutineScope.launch {
+    private fun collectAppsLoadingFinished() = _coroutineScope.launch {
         _apps.initialLoadingFinished.collect { isFinished ->
             if (isFinished)
                 startPregeneration()
         }
     }
 
-    fun startPregeneration()
+    private fun startPregeneration()
     {
         // TODO: start generating bitmaps for icons that are likely to be loaded
     }
 
-    fun collectAppListChangeEvents() = _coroutineScope.launch {
+    private fun collectAppListChangeEvents() = _coroutineScope.launch {
         _apps.appListChangeEventFlow.collect { event ->
             when (event)
             {
                 is InstalledAppListChangeEvent.Added,
-                is InstalledAppListChangeEvent.Changed -> {
+                is InstalledAppListChangeEvent.Changed,
+                ->
+                {
                     // TODO: regenerate icon if it's likely to be loaded by something soon (i.e. app drawer is open or project has indicated that it is using a particular icon pack)
                 }
 
@@ -109,6 +111,12 @@ class IconCache(
                 }
             }
         }
+    }
+
+    fun startup()
+    {
+        collectAppsLoadingFinished()
+        collectAppListChangeEvents()
     }
 
     companion object

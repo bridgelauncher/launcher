@@ -11,9 +11,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.tored.bridgelauncher.R
-import com.tored.bridgelauncher.composables.Btn
-import com.tored.bridgelauncher.composables.ResIcon
-import com.tored.bridgelauncher.ui.theme.textSec
+import com.tored.bridgelauncher.ui2.shared.Btn
+import com.tored.bridgelauncher.ui2.shared.ResIcon
+import com.tored.bridgelauncher.ui2.theme.textSec
 
 @Composable
 fun DirectoryPickerStoragePermissionPrompt(

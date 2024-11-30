@@ -1,8 +1,5 @@
 package com.tored.bridgelauncher.services.settings2
 
-import com.tored.bridgelauncher.services.settings.SystemBarAppearanceOptions
-import com.tored.bridgelauncher.services.settings.ThemeOptions
-
 object BridgeSettings
 {
     val isQSTileAdded = BridgeSetting.systemBool("isQSTileAdded")
@@ -15,7 +12,7 @@ object BridgeSettings
 
     val theme = BridgeSetting.enum(
         key = "theme",
-        defaultValue = ThemeOptions.System,
+        defaultValue = BridgeThemeOptions.System,
     )
 
     val allowProjectsToTurnScreenOff = BridgeSetting.bool(
@@ -53,7 +50,7 @@ object BridgeSettings
     )
 
     val showLaunchAppsWhenBridgeButtonCollapsed = BridgeSetting.bool(
-        key = "showBridgeButton",
+        key = "showLaunchAppsWhenBridgeButtonCollapsed",
         displayName = "Show \"Launch apps\" button when the Bridge menu is collapsed",
     )
 }

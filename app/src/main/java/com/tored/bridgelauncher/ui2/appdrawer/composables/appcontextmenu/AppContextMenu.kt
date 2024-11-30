@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import com.tored.bridgelauncher.R
-import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
+import com.tored.bridgelauncher.ui2.theme.BridgeLauncherTheme
 import com.tored.bridgelauncher.ui2.appdrawer.IAppDrawerApp
 import com.tored.bridgelauncher.ui2.appdrawer.TestApps
 import com.tored.bridgelauncher.utils.tryOpenAppInfo

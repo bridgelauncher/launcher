@@ -11,7 +11,7 @@ import kotlinx.coroutines.sync.withLock
 const val ACTION_ADW_LAUNCHER_THEME = "org.adw.launcher.THEMES"
 const val ACTION_GO_LAUNCHER_THEME = "com.gau.go.launcherex.theme"
 
-class InstalledIconPacksHolder(
+class DEL_InstalledIconPacksHolder(
     private val _pm: PackageManager
 )
 {

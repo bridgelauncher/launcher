@@ -15,17 +15,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.tored.bridgelauncher.R
-import com.tored.bridgelauncher.composables.Btn
-import com.tored.bridgelauncher.composables.ResIcon
-import com.tored.bridgelauncher.services.settings.SettingsState
-import com.tored.bridgelauncher.services.settings.ThemeOptions
+import com.tored.bridgelauncher.ui2.shared.Btn
+import com.tored.bridgelauncher.ui2.shared.ResIcon
 import com.tored.bridgelauncher.services.settings2.BridgeSettings
-import com.tored.bridgelauncher.ui.shared.ActionCard
-import com.tored.bridgelauncher.ui.shared.CheckboxField
-import com.tored.bridgelauncher.ui.shared.OptionsRow
-import com.tored.bridgelauncher.ui.theme.borders
+import com.tored.bridgelauncher.services.settings2.BridgeThemeOptions
+import com.tored.bridgelauncher.ui2.shared.ActionCard
+import com.tored.bridgelauncher.ui2.shared.CheckboxField
+import com.tored.bridgelauncher.ui2.shared.OptionsRow
 import com.tored.bridgelauncher.ui2.shared.PreviewWithSurfaceAndPadding
-import com.tored.bridgelauncher.utils.getDisplayName
+import com.tored.bridgelauncher.ui2.theme.borders
 
 @Composable
 fun SettingsScreen2BridgeSectionContent(
@@ -42,9 +40,9 @@ fun SettingsScreen2BridgeSectionContent(
         OptionsRow(
             label = "Theme",
             options = mapOf(
-                ThemeOptions.System to "System",
-                ThemeOptions.Light to "Light",
-                ThemeOptions.Dark to "Dark",
+                BridgeThemeOptions.System to "System",
+                BridgeThemeOptions.Light to "Light",
+                BridgeThemeOptions.Dark to "Dark",
             ),
             selectedOption = state.theme,
             onChange = { actions.changeTheme(it) },
@@ -68,7 +66,7 @@ fun SettingsScreen2BridgeSectionContent(
 
 
         CheckboxField(
-            label = SettingsState::showLaunchAppsWhenBridgeButtonCollapsed.getDisplayName(),
+            label = BridgeSettings.showLaunchAppsWhenBridgeButtonCollapsed.displayName,
             isChecked = state.showLaunchAppsWhenBridgeButtonCollapsed,
             onCheckedChange = { actions.changeShowLaunchAppsWhenBridgeButtonCollapsed(it) }
         )
@@ -135,7 +133,7 @@ fun SettingsScreen2BridgeSectionContent(
 
 @Composable
 fun SettingsScreen2BridgeSectionPreview(
-    theme: ThemeOptions = ThemeOptions.System,
+    theme: BridgeThemeOptions = BridgeThemeOptions.System,
     showBridgeButton: Boolean = true,
     showLaunchAppsWhenBridgeButtonCollapsed: Boolean = true,
     isQSTileAdded: Boolean = false,
@@ -170,7 +168,7 @@ fun SettingsScreen2BridgeSectionPreview01()
 fun SettingsScreen2BridgeSectionPreview02()
 {
     SettingsScreen2BridgeSectionPreview(
-        theme = ThemeOptions.Light,
+        theme = BridgeThemeOptions.Light,
         showBridgeButton = false,
         isQSTilePromptSupported = true,
     )
@@ -181,7 +179,7 @@ fun SettingsScreen2BridgeSectionPreview02()
 fun SettingsScreen2BridgeSectionPreview03()
 {
     SettingsScreen2BridgeSectionPreview(
-        theme = ThemeOptions.Dark,
+        theme = BridgeThemeOptions.Dark,
         showBridgeButton = true,
         showLaunchAppsWhenBridgeButtonCollapsed = false,
         isQSTileAdded = true,

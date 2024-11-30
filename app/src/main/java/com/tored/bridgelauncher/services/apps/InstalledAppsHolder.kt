@@ -38,7 +38,7 @@ class InstalledAppsHolder(
     val initialLoadingFinished = _initialLoadingFinished.asStateFlow()
 
     private val _packageNameToInstalledAppMap = mutableStateMapOf<String, InstalledApp>()
-    val packageNameToInstalledAppMap = _packageNameToInstalledAppMap as Map<String, InstalledApp>;
+    val packageNameToInstalledAppMap = _packageNameToInstalledAppMap as Map<String, InstalledApp>
 
     private val _appListChangeEventFlow = MutableSharedFlow<InstalledAppListChangeEvent>()
     val appListChangeEventFlow = _appListChangeEventFlow.asSharedFlow()
@@ -162,6 +162,11 @@ class InstalledAppsHolder(
         }
     }
 
-    fun launchInitalLoad() = _coroutineScope.launch { initialLoad() }
+    private fun launchInitalLoad() = _coroutineScope.launch { initialLoad() }
+
+    fun startup()
+    {
+        launchInitalLoad()
+    }
 
 }

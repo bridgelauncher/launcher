@@ -11,13 +11,13 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import com.tored.bridgelauncher.composables.Btn
 import com.tored.bridgelauncher.services.settings2.BridgeSettings
-import com.tored.bridgelauncher.ui.shared.CheckboxField
-import com.tored.bridgelauncher.ui.shared.Tip
-import com.tored.bridgelauncher.ui.theme.mono
-import com.tored.bridgelauncher.ui.theme.textSec
+import com.tored.bridgelauncher.ui2.shared.Btn
+import com.tored.bridgelauncher.ui2.shared.CheckboxField
 import com.tored.bridgelauncher.ui2.shared.PreviewWithSurfaceAndPadding
+import com.tored.bridgelauncher.ui2.shared.Tip
+import com.tored.bridgelauncher.ui2.theme.monoSec
+import com.tored.bridgelauncher.ui2.theme.textSec
 
 @Composable
 fun SettingsScreen2WallpaperSectionContent(
@@ -50,7 +50,7 @@ fun SettingsScreen2WallpaperSectionContent(
         {
             Text(
                 text = buildAnnotatedString {
-                    val monoStyle = MaterialTheme.typography.mono.toSpanStyle()
+                    val monoStyle = MaterialTheme.typography.monoSec.toSpanStyle()
                     append("For the system wallpaper to be visible, both the ")
                     withStyle(monoStyle) { append("html") }
                     append(" and ")

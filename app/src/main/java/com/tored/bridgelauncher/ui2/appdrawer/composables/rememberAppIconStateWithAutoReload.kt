@@ -11,7 +11,7 @@ import com.tored.bridgelauncher.services.iconpacks.IconPack
 
 typealias AppIconGetIconFunc = suspend (iconPack: IconPack?, app: InstalledApp) -> ImageBitmap
 
-suspend fun dummyGetIconFunc(iconPack: IconPack?, app: InstalledApp): Nothing = TODO()
+val emptyGetIconFunc: AppIconGetIconFunc = { _, _  -> throw NotImplementedError() }
 
 @Composable
 fun rememberAppIconStateWithAutoReload(

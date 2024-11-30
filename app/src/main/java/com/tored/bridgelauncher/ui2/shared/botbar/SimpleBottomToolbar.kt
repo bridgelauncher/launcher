@@ -1,8 +1,9 @@
 package com.tored.bridgelauncher.ui2.shared.botbar
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.ProvideTextStyle
@@ -14,8 +15,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.tored.bridgelauncher.R
-import com.tored.bridgelauncher.composables.ResIcon
-import com.tored.bridgelauncher.ui.theme.BridgeLauncherThemeStateless
+import com.tored.bridgelauncher.ui2.shared.ResIcon
+import com.tored.bridgelauncher.ui2.theme.BridgeLauncherThemeStateless
 import com.tored.bridgelauncher.utils.ComposableContent
 
 @Composable
@@ -30,7 +31,8 @@ fun SimpleBottomToolbar(
     EmptyBottomToolbar {
         Box(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
+                .wrapContentHeight()
                 .padding(4.dp)
         )
         {

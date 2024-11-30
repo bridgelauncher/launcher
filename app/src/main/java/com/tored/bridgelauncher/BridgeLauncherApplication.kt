@@ -4,23 +4,23 @@ import android.app.Application
 import android.content.ComponentName
 import android.util.Log
 import androidx.core.content.ContextCompat
-import com.tored.bridgelauncher.api.jsapi.BridgeToJSAPI
-import com.tored.bridgelauncher.api.jsapi.JSToBridgeAPI
-import com.tored.bridgelauncher.api.server.BridgeServer
+import com.tored.bridgelauncher.api2.bridgetojs.BridgeToJSInterface
+import com.tored.bridgelauncher.api2.jstobridge.JSToBridgeInterface
+import com.tored.bridgelauncher.api2.server.BridgeServer
 import com.tored.bridgelauncher.services.BridgeServices
 import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
 import com.tored.bridgelauncher.services.devconsole.DevConsoleMessagesHolder
+import com.tored.bridgelauncher.services.displayshape.DisplayShapeHolder
 import com.tored.bridgelauncher.services.iconcache.IconCache
 import com.tored.bridgelauncher.services.iconpackcache.IconPackCache
-import com.tored.bridgelauncher.services.iconpacks.InstalledIconPacksHolder
+import com.tored.bridgelauncher.services.iconpackcache.InstalledIconPacksHolder
+import com.tored.bridgelauncher.services.lifecycleevents.LifecycleEventsHolder
 import com.tored.bridgelauncher.services.mockexport.MockExporter
-import com.tored.bridgelauncher.services.perms.PermsManager
-import com.tored.bridgelauncher.services.settings.SettingsHolder
+import com.tored.bridgelauncher.services.perms.PermsHolder
 import com.tored.bridgelauncher.services.system.BridgeButtonQSTileService
 import com.tored.bridgelauncher.services.system.BridgeLauncherBroadcastReceiver
 import com.tored.bridgelauncher.services.system.BridgeLauncherDeviceAdminReceiver
-import com.tored.bridgelauncher.utils.checkCanSetSystemNightMode
-import kotlinx.coroutines.MainScope
+import com.tored.bridgelauncher.services.windowinsetsholder.WindowInsetsHolder
 
 private const val TAG = "Application"
 
@@ -30,8 +30,6 @@ class BridgeLauncherApplication : Application()
     lateinit var qsTileServiceComponentName: ComponentName
 
     lateinit var services: BridgeServices
-
-    lateinit var consoleMessagesHolder: DevConsoleMessagesHolder
 
     override fun onCreate()
     {
@@ -54,37 +52,44 @@ class BridgeLauncherApplication : Application()
         // constructing the services ahead of time helps with manually resolving the dependency graph at compile time
         // yeah this probably could be done by some DI library but I'd rather explicitly know what is happening
 
-        val singletonCoroutineScope = MainScope()
-
         val pm = packageManager
 
-        val storagePermsManager = PermsManager(this)
-        val settingsHolder = SettingsHolder(this)
+        val permsHolder = PermsHolder(this)
 
         val installedAppsHolder = InstalledAppsHolder(pm)
         val iconPackCache = IconPackCache()
         val appIconsCache = IconCache(pm, installedAppsHolder, iconPackCache)
-        val installedIconPacksHolder = InstalledIconPacksHolder(pm)
-
-        val bridgeToJSAPI = BridgeToJSAPI(
-            this,
-            settingsHolder,
-            installedAppsHolder,
-            checkCanSetSystemNightMode()
+        val installedIconPacksHolder = InstalledIconPacksHolder(
+            _pm = pm,
+            _apps = installedAppsHolder
         )
 
-        val jsToBridgeAPI = JSToBridgeAPI(
-            this,
-                        null
+        val lifecycleEventsHolder = LifecycleEventsHolder()
+        val windowInsetsHolder = WindowInsetsHolder()
+        val displayShapeHolder = DisplayShapeHolder()
+
+        val bridgeToJSAPI = BridgeToJSInterface(
+            _app = this,
+            _perms = permsHolder,
+            _insets = windowInsetsHolder,
+            _lifecycleEventsHolder = lifecycleEventsHolder,
+            _apps = installedAppsHolder,
+        )
+
+        val jsToBridgeAPI = JSToBridgeInterface(
+            _app = this,
+            _windowInsetsHolder = windowInsetsHolder,
+            _displayShapeHolder = displayShapeHolder,
         )
 
         val bridgeServer = BridgeServer(
             this,
             installedAppsHolder,
-            installedIconPacksHolder,
+            _iconPacks = installedIconPacksHolder,
         )
 
         val consoleMessagesHolder = DevConsoleMessagesHolder()
+
 
         val mockExporter = MockExporter(
             installedAppsHolder,
@@ -95,8 +100,7 @@ class BridgeLauncherApplication : Application()
 
         return BridgeServices(
             packageManager = pm,
-            settingsHolder = settingsHolder,
-            storagePermsManager = storagePermsManager,
+            storagePermsManager = permsHolder,
 
             installedAppsHolder = installedAppsHolder,
             installedIconPacksHolder = installedIconPacksHolder,
@@ -106,8 +110,11 @@ class BridgeLauncherApplication : Application()
             bridgeServer = bridgeServer,
             consoleMessagesHolder = consoleMessagesHolder,
             broadcastReceiver = broadcastReceiver,
-            bridgeToJSAPI = bridgeToJSAPI,
-            jsToBridgeAPI = jsToBridgeAPI,
+            bridgeToJSInterface = bridgeToJSAPI,
+            jsToBridgeInterface = jsToBridgeAPI,
+            windowInsetsHolder = windowInsetsHolder,
+            lifecycleEventsHolder = lifecycleEventsHolder,
+            displayShapeHolder = displayShapeHolder,
 
             mockExporter = mockExporter,
         )
@@ -122,6 +129,10 @@ class BridgeLauncherApplication : Application()
             ContextCompat.RECEIVER_EXPORTED,
         )
 
-        services.installedAppsHolder.launchInitalLoad()
+        services.iconPackCache.startup()
+        services.installedIconPacksHolder.startup()
+        services.iconCache.startup()
+        services.installedAppsHolder.startup()
+        services.bridgeToJSInterface.startup()
     }
 }

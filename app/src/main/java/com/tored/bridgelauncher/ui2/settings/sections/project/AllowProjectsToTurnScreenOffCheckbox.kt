@@ -3,7 +3,7 @@ package com.tored.bridgelauncher.ui2.settings.sections.project
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.tored.bridgelauncher.services.settings2.BridgeSettings
-import com.tored.bridgelauncher.ui.shared.CheckboxField
+import com.tored.bridgelauncher.ui2.shared.CheckboxField
 
 enum class ScreenLockingMethodOptions
 {
@@ -16,9 +16,9 @@ fun AllowProjectsToTurnScreenOffCheckbox(
     allowProjectsTurnScreenOff: Boolean,
     hasNecessaryPermissions: Boolean,
     screenLockingMethod: ScreenLockingMethodOptions,
+    modifier: Modifier = Modifier,
     onAllowProjectsTurnScreenOffChange: (newChecked: Boolean) -> Unit,
     onGrantPermissionRequest: () -> Unit,
-    modifier: Modifier = Modifier
 )
 {
     val description = when (screenLockingMethod)

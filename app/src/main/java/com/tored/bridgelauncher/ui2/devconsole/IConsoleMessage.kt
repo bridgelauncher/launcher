@@ -1,7 +1,7 @@
 package com.tored.bridgelauncher.ui2.devconsole
 
 import android.webkit.ConsoleMessage.MessageLevel
-import com.tored.bridgelauncher.api.server.BridgeServer
+import com.tored.bridgelauncher.api2.server.BridgeServer
 import java.util.concurrent.atomic.AtomicLong
 
 private var IConsoleMessageCounter = AtomicLong(0)

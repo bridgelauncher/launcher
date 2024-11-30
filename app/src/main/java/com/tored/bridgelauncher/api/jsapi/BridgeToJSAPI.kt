@@ -6,10 +6,10 @@ import android.webkit.WebView
 import com.tored.bridgelauncher.services.apps.InstalledAppListChangeEvent
 import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
 import com.tored.bridgelauncher.services.apps.SerializableInstalledApp
-import com.tored.bridgelauncher.services.settings.SettingsState
-import com.tored.bridgelauncher.services.settings.SettingsHolder
-import com.tored.bridgelauncher.services.settings.getCanLockScreen
-import com.tored.bridgelauncher.utils.checkCanSetSystemNightMode
+//import com.tored.bridgelauncher.services.settings.SettingsState
+//import com.tored.bridgelauncher.services.settings.SettingsHolder
+//import com.tored.bridgelauncher.services.settings.getCanLockScreen
+//import com.tored.bridgelauncher.utils.checkCanSetSystemNightMode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -23,8 +23,6 @@ import kotlinx.serialization.json.Json
 private const val TAG = "BridgeToJSAPI"
 
 interface BridgeEventArgs
-{
-}
 
 @Serializable
 data class AppRemovedEventArgs(val packageName: String) : BridgeEventArgs
@@ -34,7 +32,6 @@ data class ValueChangeEventArgs<T>(val newValue: T) : BridgeEventArgs
 
 class BridgeToJSAPI(
     private val _context: Context,
-    private val _settings: SettingsHolder,
     private val _installedApps: InstalledAppsHolder,
     private var _lastCanSetSystemNightMode: Boolean,
 )
@@ -55,40 +52,40 @@ class BridgeToJSAPI(
             }
         }
 
-        _coroutineScope.launch()
-        {
-            var prev: SettingsState? = null
-            _settings.settingsState.collectLatest()
-            { new ->
-                val old = prev
-
-                if (old != null)
-                {
-                    if (new.showBridgeButton != old.showBridgeButton)
-                        raiseBridgeButtonVisibilityChanged(getBridgeButtonVisiblityString(new.showBridgeButton))
-
-                    if (new.drawSystemWallpaperBehindWebView != old.drawSystemWallpaperBehindWebView)
-                        raiseDrawSystemWallpaperBehindWebViewChanged(new.drawSystemWallpaperBehindWebView)
-
-                    if (new.drawWebViewOverscrollEffects != old.drawWebViewOverscrollEffects)
-                        raiseOverscrollEffectsChanged(getOverscrollEffects(new.drawWebViewOverscrollEffects))
-
-                    if (new.theme != old.theme)
-                        raiseBridgeThemeChanged(getBridgeThemeString(new.theme))
-
-                    if (new.statusBarAppearance != old.statusBarAppearance)
-                        raiseStatusBarAppearanceChanged(getSystemBarAppearanceString(new.statusBarAppearance))
-
-                    if (new.navigationBarAppearance != old.navigationBarAppearance)
-                        raiseNavigationBarAppearanceChanged(getSystemBarAppearanceString(new.navigationBarAppearance))
-
-                    if (new.getCanLockScreen() != old.getCanLockScreen())
-                        raiseCanLockScreenChanged(new.getCanLockScreen())
-                }
-
-                prev = new
-            }
-        }
+//        _coroutineScope.launch()
+//        {
+//            var prev: SettingsState? = null
+//            _settings.settingsState.collectLatest()
+//            { new ->
+//                val old = prev
+//
+//                if (old != null)
+//                {
+//                    if (new.showBridgeButton != old.showBridgeButton)
+//                        raiseBridgeButtonVisibilityChanged(getBridgeButtonVisiblityString(new.showBridgeButton))
+//
+//                    if (new.drawSystemWallpaperBehindWebView != old.drawSystemWallpaperBehindWebView)
+//                        raiseDrawSystemWallpaperBehindWebViewChanged(new.drawSystemWallpaperBehindWebView)
+//
+//                    if (new.drawWebViewOverscrollEffects != old.drawWebViewOverscrollEffects)
+//                        raiseOverscrollEffectsChanged(getOverscrollEffects(new.drawWebViewOverscrollEffects))
+//
+//                    if (new.theme != old.theme)
+//                        raiseBridgeThemeChanged(getBridgeThemeString(new.theme))
+//
+//                    if (new.statusBarAppearance != old.statusBarAppearance)
+//                        raiseStatusBarAppearanceChanged(getSystemBarAppearanceString(new.statusBarAppearance))
+//
+//                    if (new.navigationBarAppearance != old.navigationBarAppearance)
+//                        raiseNavigationBarAppearanceChanged(getSystemBarAppearanceString(new.navigationBarAppearance))
+//
+//                    if (new.getCanLockScreen() != old.getCanLockScreen())
+//                        raiseCanLockScreenChanged(new.getCanLockScreen())
+//                }
+//
+//                prev = new
+//            }
+//        }
     }
 
     private var _prevWindowInsetsSnapshot: WindowInsetsSnapshots? = null
@@ -112,12 +109,12 @@ class BridgeToJSAPI(
     // intended to be called from onResume() - there is no API to listen for permission changes, so checks in onResume it is
     fun notifyCanSetSystemNightModeMightHaveChanged()
     {
-        val canSetSystemNightMode = _context.checkCanSetSystemNightMode()
-        if (canSetSystemNightMode != _lastCanSetSystemNightMode)
-        {
-            raiseCanSetSystemNightModeChanged(canSetSystemNightMode)
-            _lastCanSetSystemNightMode = canSetSystemNightMode
-        }
+//        val canSetSystemNightMode = _context.checkCanSetSystemNightMode()
+//        if (canSetSystemNightMode != _lastCanSetSystemNightMode)
+//        {
+//            raiseCanSetSystemNightModeChanged(canSetSystemNightMode)
+//            _lastCanSetSystemNightMode = canSetSystemNightMode
+//        }
     }
 
     fun raiseCanSetSystemNightModeChanged(newValue: Boolean) = notify("canSetSystemNightModeChanged", newValue)

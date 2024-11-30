@@ -29,10 +29,10 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.tored.bridgelauncher.R
 import com.tored.bridgelauncher.services.apps.InstalledApp
-import com.tored.bridgelauncher.ui.theme.textSec
 import com.tored.bridgelauncher.ui2.appdrawer.IAppDrawerApp
 import com.tored.bridgelauncher.ui2.appdrawer.TestApps
 import com.tored.bridgelauncher.ui2.shared.PreviewWithSurfaceAndPadding
+import com.tored.bridgelauncher.ui2.theme.textSec
 import com.tored.bridgelauncher.utils.tryLaunchApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -146,7 +146,7 @@ fun AppListItemPreview(
     PreviewWithSurfaceAndPadding {
         AppListItem(
             app = app,
-            getIconFunc = ::dummyGetIconFunc,
+            getIconFunc = emptyGetIconFunc,
             onTap = {},
             onLongPress = {}
         )

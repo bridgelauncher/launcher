@@ -4,8 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import com.tored.bridgelauncher.R
-import com.tored.bridgelauncher.composables.Btn
-import com.tored.bridgelauncher.ui.shared.ActionCard
+import com.tored.bridgelauncher.ui2.shared.Btn
+import com.tored.bridgelauncher.ui2.shared.ActionCard
 import com.tored.bridgelauncher.ui2.shared.PreviewWithSurfaceAndPadding
 
 @Composable

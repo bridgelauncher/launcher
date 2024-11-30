@@ -4,7 +4,7 @@ import android.content.ComponentName
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import androidx.datastore.preferences.core.edit
-import com.tored.bridgelauncher.services.settings.settingsDataStore
+import com.tored.bridgelauncher.services.settings2.settingsDataStore
 import com.tored.bridgelauncher.services.settings2.BridgeSettings
 import com.tored.bridgelauncher.services.settings2.setBridgeSetting
 import com.tored.bridgelauncher.services.settings2.useBridgeSettingStateFlow

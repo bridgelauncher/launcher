@@ -47,7 +47,7 @@ class InstalledIconPacksHolder(
                     launch {
                         val intent = Intent(action)
                         val resolveInfos = _pm.queryIntentActivities(intent, PackageManager.GET_META_DATA)
-                        resolveInfos.forEach {ri ->
+                        resolveInfos.forEach { ri ->
                             launch {
                                 loadIconPack(ri.activityInfo.packageName)
                             }
@@ -70,5 +70,11 @@ class InstalledIconPacksHolder(
                 }
             }
         }
+    }
+
+    fun startup()
+    {
+        initialLoad()
+        startCollectingAppListChangeEvents()
     }
 }

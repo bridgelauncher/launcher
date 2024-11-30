@@ -7,7 +7,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.plus
 import java.util.concurrent.ConcurrentHashMap
 
-class IconPackCache()
+class IconPackCache
 {
     private val _coroutineScope = CoroutineScope(Dispatchers.Default) + SupervisorJob()
 
@@ -49,6 +49,11 @@ class IconPackCache()
     {
         val entry = getEntry(iconPackPackageName, mustBeGeneratedAfterTimeNano)
         return entry.appFilterXMLParsingDeferred.await()
+    }
+
+    fun startup()
+    {
+
     }
 }
 

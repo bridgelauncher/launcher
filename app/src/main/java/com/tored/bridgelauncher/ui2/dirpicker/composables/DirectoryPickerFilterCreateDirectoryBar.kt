@@ -21,9 +21,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.tored.bridgelauncher.R
-import com.tored.bridgelauncher.composables.ResIcon
-import com.tored.bridgelauncher.ui.shared.TextFieldPlaceholderDecorationBox
 import com.tored.bridgelauncher.ui2.shared.PreviewWithSurfaceAndPadding
+import com.tored.bridgelauncher.ui2.shared.ResIcon
+import com.tored.bridgelauncher.ui2.shared.TextFieldPlaceholderDecorationBox
 
 @Composable
 fun DirectoryPickerFilterCreateDirectoryBar(
@@ -49,7 +49,7 @@ fun DirectoryPickerFilterCreateDirectoryBar(
             onValueChange = onTextChange,
             keyboardOptions = KeyboardOptions(
                 imeAction = ImeAction.Done,
-                autoCorrect = false,
+                autoCorrectEnabled = false,
                 keyboardType = KeyboardType.Uri,
                 capitalization = KeyboardCapitalization.None,
             ),

@@ -3,9 +3,9 @@ package com.tored.bridgelauncher.services.mockexport
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import androidx.core.graphics.drawable.toBitmap
-import com.tored.bridgelauncher.api.server.BridgeAPIEndpointAppsResponse
+import com.tored.bridgelauncher.api2.server.BridgeAPIEndpointAppsResponse
 import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
-import com.tored.bridgelauncher.services.iconpacks.InstalledIconPacksHolder
+import com.tored.bridgelauncher.services.iconpackcache.InstalledIconPacksHolder
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch

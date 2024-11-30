@@ -25,14 +25,14 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.tored.bridgelauncher.R
-import com.tored.bridgelauncher.composables.ResIcon
-import com.tored.bridgelauncher.ui.theme.mono
-import com.tored.bridgelauncher.ui.theme.textSec
-import com.tored.bridgelauncher.ui.theme.warning
 import com.tored.bridgelauncher.ui2.devconsole.IConsoleMessage
 import com.tored.bridgelauncher.ui2.devconsole.TestConsoleMessages
 import com.tored.bridgelauncher.ui2.devconsole.getSourceAndLineString
 import com.tored.bridgelauncher.ui2.shared.PreviewWithSurfaceAndPadding
+import com.tored.bridgelauncher.ui2.shared.ResIcon
+import com.tored.bridgelauncher.ui2.theme.mono
+import com.tored.bridgelauncher.ui2.theme.textSec
+import com.tored.bridgelauncher.ui2.theme.warning
 
 @Composable
 fun ConsoleMessageListItem(
@@ -105,7 +105,7 @@ fun ConsoleMessageListItem(
                                 }
                                     ResIcon(
                                         icon,
-                                        textColor,
+                                        color = textColor,
                                         modifier = Modifier.size(16.dp)
                                     )
                             }
@@ -144,7 +144,7 @@ fun ConsoleMessageListItemPreview(
 {
     PreviewWithSurfaceAndPadding {
         ConsoleMessageListItem(
-            msg = TestConsoleMessages.Msg(message, level),
+            msg = TestConsoleMessages.msg(message, level),
             click = { }
         )
     }

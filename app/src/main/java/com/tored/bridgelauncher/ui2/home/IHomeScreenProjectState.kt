@@ -1,21 +1,21 @@
 package com.tored.bridgelauncher.ui2.home
 
 import androidx.compose.runtime.Immutable
-import com.tored.bridgelauncher.ui.dirpicker.Directory
+import java.io.File
 
 sealed interface IHomeScreenProjectState
 {
     @Immutable
-    object Initializing : IHomeScreenProjectState
+    data object Initializing : IHomeScreenProjectState
 
     @Immutable
-    object NoStoragePerm : IHomeScreenProjectState
+    data object NoStoragePerm : IHomeScreenProjectState
 
     @Immutable
-    object NoProjectLoaded : IHomeScreenProjectState
+    data object NoProjectLoaded : IHomeScreenProjectState
 
     @Immutable
     data class ProjectLoaded(
-        val currentProjectDir: Directory,
+        val currentProjectDir: File,
     ) : IHomeScreenProjectState
 }

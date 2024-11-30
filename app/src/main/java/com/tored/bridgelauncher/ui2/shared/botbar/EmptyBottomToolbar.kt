@@ -16,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import com.tored.bridgelauncher.ui.theme.botBar
+import com.tored.bridgelauncher.ui2.theme.botBar
 import com.tored.bridgelauncher.ui2.shared.PreviewWithSurfaceAndPadding
 import com.tored.bridgelauncher.utils.ComposableContent
 

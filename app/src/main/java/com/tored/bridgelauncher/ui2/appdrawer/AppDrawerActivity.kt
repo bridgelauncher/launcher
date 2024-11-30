@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import com.tored.bridgelauncher.ui.theme.BridgeLauncherTheme
+import com.tored.bridgelauncher.ui2.theme.BridgeLauncherTheme
 import com.tored.bridgelauncher.ui2.appdrawer.composables.AppDrawerScreen
 
 class AppDrawerActivity : ComponentActivity()

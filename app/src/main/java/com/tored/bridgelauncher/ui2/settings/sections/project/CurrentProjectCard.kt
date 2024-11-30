@@ -17,11 +17,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import com.tored.bridgelauncher.composables.Btn
-import com.tored.bridgelauncher.ui.settings.CurrentProjectCardAlert
-import com.tored.bridgelauncher.ui.theme.BridgeLauncherThemeStateless
-import com.tored.bridgelauncher.ui.theme.borders
-import com.tored.bridgelauncher.ui.theme.textSec
+import com.tored.bridgelauncher.ui2.shared.Btn
+import com.tored.bridgelauncher.ui2.theme.BridgeLauncherThemeStateless
+import com.tored.bridgelauncher.ui2.theme.borders
+import com.tored.bridgelauncher.ui2.theme.textSec
 
 @Composable
 fun CurrentProjectCard(

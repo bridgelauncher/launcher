@@ -17,7 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.tored.bridgelauncher.R
-import com.tored.bridgelauncher.composables.ResIcon
+import com.tored.bridgelauncher.ui2.shared.ResIcon
 import com.tored.bridgelauncher.ui2.dirpicker.DirectoryPickerDirectory
 import com.tored.bridgelauncher.ui2.dirpicker.DirectoryPickerDummyDirectory
 import com.tored.bridgelauncher.ui2.dirpicker.DirectoryPickerDummyFile

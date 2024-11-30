@@ -52,11 +52,7 @@ class InstalledIconPackHolder(
 
     suspend fun getIconForOrNull(appPackageName: String): Drawable?
     {
-        val drawableName = getAppFilterParsingResult().items[appPackageName]
-        if (drawableName == null)
-            return null
-        else
-            return getDrawableOrNull(drawableName)
+        return getAppFilterParsingResult().items[appPackageName]?.let { getDrawableOrNull(it) }
     }
 
     fun getDrawableOrNull(name: String): Drawable?

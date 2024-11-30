@@ -6,10 +6,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import com.tored.bridgelauncher.services.settings.SystemBarAppearanceOptions
+import com.tored.bridgelauncher.services.settings2.SystemBarAppearanceOptions
 import com.tored.bridgelauncher.services.settings2.BridgeSettings
-import com.tored.bridgelauncher.ui.settings.SystemBarAppearanceOptionsField
-import com.tored.bridgelauncher.ui.shared.CheckboxField
+import com.tored.bridgelauncher.ui2.shared.CheckboxField
 import com.tored.bridgelauncher.ui2.shared.PreviewWithSurfaceAndPadding
 
 @Composable

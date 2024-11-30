@@ -1,8 +1,10 @@
 package com.tored.bridgelauncher.utils
 
-class URLWithQueryBuilder(val baseURL: String)
+class URLWithQueryBuilder(
+    val baseURL: String
+)
 {
-    val params = mutableListOf<Pair<String, Any?>>();
+    val params = mutableListOf<Pair<String, Any?>>()
 
     fun addParam(name: String, value: Any?, addEvenIfNull: Boolean = false): URLWithQueryBuilder
     {

@@ -16,7 +16,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import com.tored.bridgelauncher.ui.theme.textSec
+import com.tored.bridgelauncher.ui2.theme.textSec
 import com.tored.bridgelauncher.ui2.DirectoryPicker.composables.DirectoryPickerUpDisabledListItem
 import com.tored.bridgelauncher.ui2.DirectoryPicker.composables.DirectoryPickerUpListItem
 import com.tored.bridgelauncher.ui2.dirpicker.DirectoryPickerDirectory

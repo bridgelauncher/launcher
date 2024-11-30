@@ -18,8 +18,8 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tored.bridgelauncher.R
-import com.tored.bridgelauncher.composables.ResIcon
-import com.tored.bridgelauncher.ui.theme.BridgeLauncherThemeStateless
+import com.tored.bridgelauncher.ui2.shared.ResIcon
+import com.tored.bridgelauncher.ui2.theme.BridgeLauncherThemeStateless
 import com.tored.bridgelauncher.ui2.devconsole.DevConsoleActions
 import com.tored.bridgelauncher.ui2.devconsole.DevConsoleVM
 import com.tored.bridgelauncher.ui2.devconsole.IConsoleMessage

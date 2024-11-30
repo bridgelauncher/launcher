@@ -19,11 +19,10 @@ import com.tored.bridgelauncher.R
 import com.tored.bridgelauncher.services.BridgeServices
 import com.tored.bridgelauncher.services.mockexport.MockExportProgressState
 import com.tored.bridgelauncher.services.mockexport.MockExporter
-import com.tored.bridgelauncher.services.perms.PermsManager
-import com.tored.bridgelauncher.services.settings.SettingsHolder
-import com.tored.bridgelauncher.services.settings.settingsDataStore
+import com.tored.bridgelauncher.services.perms.PermsHolder
 import com.tored.bridgelauncher.services.settings2.BridgeSettings
 import com.tored.bridgelauncher.services.settings2.setBridgeSetting
+import com.tored.bridgelauncher.services.settings2.settingsDataStore
 import com.tored.bridgelauncher.services.settings2.useBridgeSettingState
 import com.tored.bridgelauncher.ui2.dirpicker.DirectoryPickerActions
 import com.tored.bridgelauncher.ui2.dirpicker.DirectoryPickerMode
@@ -58,8 +57,7 @@ private val TAG = SettingsScreenVM::class.simpleName
 
 class SettingsScreenVM(
     private val _app: BridgeLauncherApplication,
-    private val _settingsHolder: SettingsHolder,
-    private val _permsManager: PermsManager,
+    private val _permsManager: PermsHolder,
     private val _mockExporter: MockExporter,
 ) : ViewModel()
 {
@@ -70,6 +68,8 @@ class SettingsScreenVM(
 
     // SETTING STATES
 
+    private val _isDeviceAdminEnabled by useBridgeSettingState(_app, BridgeSettings.isDeviceAdminEnabled)
+    private val _isAccessibilityServiceEnabled by useBridgeSettingState(_app, BridgeSettings.isAccessibilityServiceEnabled)
     private val _isQSTileAdded by useBridgeSettingState(_app, BridgeSettings.isQSTileAdded)
 
     private val _currentProjDir by useBridgeSettingState(_app, BridgeSettings.currentProjDir)
@@ -105,8 +105,8 @@ class SettingsScreenVM(
             screenLockingMethod = screenLockingMethod,
             canBridgeTurnScreenOff = when (screenLockingMethod)
             {
-                ScreenLockingMethodOptions.DeviceAdmin -> _settingsHolder.settingsState.value.isDeviceAdminEnabled
-                ScreenLockingMethodOptions.AccessibilityService -> _settingsHolder.settingsState.value.isAccessibilityServiceEnabled
+                ScreenLockingMethodOptions.DeviceAdmin -> _isDeviceAdminEnabled
+                ScreenLockingMethodOptions.AccessibilityService -> _isAccessibilityServiceEnabled
             }
         )
     }
@@ -398,7 +398,6 @@ class SettingsScreenVM(
                 return SettingsScreenVM(
                     _app = context.bridgeLauncherApplication,
                     _permsManager = storagePermsManager,
-                    _settingsHolder = settingsHolder,
                     _mockExporter = mockExporter,
                 )
             }

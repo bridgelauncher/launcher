@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ImageBitmap
 import com.tored.bridgelauncher.services.apps.InstalledApp
 import com.tored.bridgelauncher.services.iconpacks.IconPack
 
@@ -19,8 +18,7 @@ fun AppIcon(
 {
     val bitmap by rememberAppIconStateWithAutoReload(iconPack, app, getIconFunc)
 
-    val bmp = bitmap
-    when (bmp)
+    when (val bmp = bitmap)
     {
         null -> Spacer(
             modifier = modifier

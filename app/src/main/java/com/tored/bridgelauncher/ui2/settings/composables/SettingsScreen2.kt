@@ -21,9 +21,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tored.bridgelauncher.R
 import com.tored.bridgelauncher.services.mockexport.MockExportProgressState
-import com.tored.bridgelauncher.services.settings.SystemBarAppearanceOptions
-import com.tored.bridgelauncher.services.settings.ThemeOptions
-import com.tored.bridgelauncher.ui.theme.BridgeLauncherThemeStateless
+import com.tored.bridgelauncher.services.settings2.SystemBarAppearanceOptions
+import com.tored.bridgelauncher.services.settings2.BridgeThemeOptions
+import com.tored.bridgelauncher.ui2.theme.BridgeLauncherThemeStateless
 import com.tored.bridgelauncher.ui2.dirpicker.DirectoryPickerActions
 import com.tored.bridgelauncher.ui2.dirpicker.DirectoryPickerDialog
 import com.tored.bridgelauncher.ui2.dirpicker.DirectoryPickerState
@@ -259,7 +259,7 @@ fun SettingsScreen2Preview01()
             overlaysSectionActions = SettingsScreen2OverlaysSectionActions.empty(),
 
             bridgeSectionState = SettingsScreen2BridgeSectionState(
-                theme = ThemeOptions.System,
+                theme = BridgeThemeOptions.System,
                 isQSTilePromptSupported = true,
                 isQSTileAdded = false,
                 showBridgeButton = true,

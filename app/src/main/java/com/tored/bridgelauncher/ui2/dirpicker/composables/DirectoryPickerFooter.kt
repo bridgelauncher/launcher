@@ -9,7 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.tored.bridgelauncher.composables.Btn
+import com.tored.bridgelauncher.ui2.shared.Btn
 
 @Composable
 fun DirectoryPickerFooter(
