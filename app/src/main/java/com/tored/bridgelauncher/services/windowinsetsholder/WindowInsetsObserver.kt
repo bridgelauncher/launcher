@@ -1,6 +1,5 @@
 package com.tored.bridgelauncher.services.windowinsetsholder
 
-import android.util.Log
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -24,7 +23,7 @@ fun ObserveWindowInsets(
 
         LaunchedEffect(snapshot)
         {
-            Log.d(TAG, "ObserveWindowInsets.${option.rawValue}: changed")
+//            Log.d(TAG, "ObserveWindowInsets.${option.rawValue}: changed")
             onWindowInsetsChanged(option, snapshot)
         }
     }

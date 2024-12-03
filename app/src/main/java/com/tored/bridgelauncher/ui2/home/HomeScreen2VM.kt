@@ -3,6 +3,7 @@ package com.tored.bridgelauncher.ui2.home
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
+import android.util.Log
 import android.webkit.WebView
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -19,10 +20,8 @@ import com.tored.bridgelauncher.api2.server.BridgeServer
 import com.tored.bridgelauncher.api2.webview.BridgeWebChromeClient
 import com.tored.bridgelauncher.api2.webview.BridgeWebViewClient
 import com.tored.bridgelauncher.services.BridgeServices
-import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
 import com.tored.bridgelauncher.services.devconsole.DevConsoleMessagesHolder
 import com.tored.bridgelauncher.services.displayshape.DisplayShapeHolder
-import com.tored.bridgelauncher.services.iconpackcache.InstalledIconPacksHolder
 import com.tored.bridgelauncher.services.lifecycleevents.LifecycleEventsHolder
 import com.tored.bridgelauncher.services.perms.PermsHolder
 import com.tored.bridgelauncher.services.settings2.BridgeSettings
@@ -43,8 +42,7 @@ private const val TAG = "HomeScreen2VM"
 class HomeScreen2VM(
     private val _app: BridgeLauncherApplication,
     private val _permsManager: PermsHolder,
-    private val _apps: InstalledAppsHolder,
-    private val _iconPacks: InstalledIconPacksHolder,
+    private val _bridgeServer: BridgeServer,
     private val _consoleMessages: DevConsoleMessagesHolder,
     private val _jsToBridgeInterface: JSToBridgeInterface,
     private val _bridgeToJSInterface: BridgeToJSInterface,
@@ -53,12 +51,6 @@ class HomeScreen2VM(
     private val _displayShapeHolder: DisplayShapeHolder,
 ) : ViewModel()
 {
-    private val _bridgeServer = BridgeServer(
-        _app,
-        _apps,
-        _iconPacks,
-    )
-
     // SETTINGS STATE
 
     private val _currentProjDir by useBridgeSettingState(_app, BridgeSettings.currentProjDir)
@@ -93,9 +85,17 @@ class HomeScreen2VM(
         )
     }
 
+    val isBridgeServerReadyToServeState = collectAsStateButInViewModel(_bridgeServer.isReadyToServe, false)
     val projectState = derivedStateOf {
+        Log.d(TAG, "projectState: $_currentProjDir")
         if (!_permsManager.hasStoragePermsState.value)
+        {
             IHomeScreenProjectState.NoStoragePerm
+        }
+        else if (!isBridgeServerReadyToServeState.value)
+        {
+            IHomeScreenProjectState.Initializing
+        }
         else
         {
             val projDir = _currentProjDir
@@ -180,8 +180,7 @@ class HomeScreen2VM(
                 return HomeScreen2VM(
                     _app = context.bridgeLauncherApplication,
                     _permsManager = storagePermsManager,
-                    _apps = installedAppsHolder,
-                    _iconPacks = installedIconPacksHolder,
+                    _bridgeServer = bridgeServer,
                     _consoleMessages = consoleMessagesHolder,
                     _jsToBridgeInterface = jsToBridgeInterface,
                     _bridgeToJSInterface = bridgeToJSInterface,

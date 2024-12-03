@@ -21,6 +21,7 @@ import com.tored.bridgelauncher.utils.q
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.plus
 import kotlinx.serialization.Serializable
 
@@ -49,6 +50,8 @@ class BridgeServer(
     // SETTINGS
     private fun <TPreference, TResult> s(setting: BridgeSetting<TPreference, TResult>) = useBridgeSettingStateFlow(_app.settingsDataStore, _scope, setting)
     private val _currentProjDir = s(BridgeSettings.currentProjDir)
+
+    val isReadyToServe = _currentProjDir.map { it != null }
 
     private val _fileServer = BridgeFileServer(
         _currentProjDir = _currentProjDir,
