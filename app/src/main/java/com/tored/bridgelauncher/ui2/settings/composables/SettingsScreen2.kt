@@ -21,9 +21,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tored.bridgelauncher.R
 import com.tored.bridgelauncher.services.mockexport.MockExportProgressState
-import com.tored.bridgelauncher.services.settings2.SystemBarAppearanceOptions
 import com.tored.bridgelauncher.services.settings2.BridgeThemeOptions
-import com.tored.bridgelauncher.ui2.theme.BridgeLauncherThemeStateless
+import com.tored.bridgelauncher.services.settings2.SystemBarAppearanceOptions
 import com.tored.bridgelauncher.ui2.dirpicker.DirectoryPickerActions
 import com.tored.bridgelauncher.ui2.dirpicker.DirectoryPickerDialog
 import com.tored.bridgelauncher.ui2.dirpicker.DirectoryPickerState
@@ -46,10 +45,14 @@ import com.tored.bridgelauncher.ui2.settings.sections.project.SettingsScreen2Pro
 import com.tored.bridgelauncher.ui2.settings.sections.project.SettingsScreen2ProjectSectionContent
 import com.tored.bridgelauncher.ui2.settings.sections.project.SettingsScreen2ProjectSectionState
 import com.tored.bridgelauncher.ui2.settings.sections.project.SettingsScreen2ProjectSectionStateProjectInfo
+import com.tored.bridgelauncher.ui2.settings.sections.reset.SettingsScreen2ResetSectionActions
+import com.tored.bridgelauncher.ui2.settings.sections.reset.SettingsScreen2ResetSectionContent
+import com.tored.bridgelauncher.ui2.settings.sections.reset.SettingsScreen2ResetSectionState
 import com.tored.bridgelauncher.ui2.settings.sections.wallpaper.SettingsScreen2WallpaperSectionActions
 import com.tored.bridgelauncher.ui2.settings.sections.wallpaper.SettingsScreen2WallpaperSectionContent
 import com.tored.bridgelauncher.ui2.settings.sections.wallpaper.SettingsScreen2WallpaperSectionState
 import com.tored.bridgelauncher.ui2.shared.BotBarScreen
+import com.tored.bridgelauncher.ui2.theme.BridgeLauncherThemeStateless
 import com.tored.bridgelauncher.utils.CurrentAndroidVersion
 import com.tored.bridgelauncher.utils.UseEdgeToEdgeWithTransparentBars
 import com.tored.bridgelauncher.utils.tryStartExtStorageManagerPermissionActivity
@@ -79,6 +82,9 @@ fun SettingsScreen2(vm: SettingsScreenVM = viewModel(), requestFinish: () -> Uni
         mockExportProgressState = vm.mockExportProgressState.value,
         mockExportProgressDialogActions = vm.mockExportProgressDialogActions,
 
+        resetSectionState = vm.resetSectionState.value,
+        resetSectionActions = vm.resetSectionActions,
+
         miscActions = vm.miscActions,
         requestFinish = requestFinish,
     )
@@ -106,6 +112,9 @@ fun SettingsScreen2(
 
     mockExportProgressState: MockExportProgressState?,
     mockExportProgressDialogActions: MockExportProgressDialogActions,
+
+    resetSectionState: SettingsScreen2ResetSectionState,
+    resetSectionActions: SettingsScreen2ResetSectionActions,
 
     miscActions: SettingsScreen2MiscActions,
     requestFinish: () -> Unit,
@@ -206,6 +215,15 @@ fun SettingsScreen2(
                 SettingsScreen2Section(label = "About Bridge Launcher", iconResId = R.drawable.ic_about) {
                     SettingsScreen2AboutSectionContent()
                 }
+
+                Divider()
+
+                SettingsScreen2Section(label = "Reset settings", iconResId = R.drawable.ic_clear_all) {
+                    SettingsScreen2ResetSectionContent(
+                        state = resetSectionState,
+                        actions = resetSectionActions,
+                    )
+                }
             }
         }
     }
@@ -278,8 +296,11 @@ fun SettingsScreen2Preview01()
             mockExportProgressState = null,
             mockExportProgressDialogActions = MockExportProgressDialogActions.empty(),
 
+            resetSectionState = SettingsScreen2ResetSectionState(false),
+            resetSectionActions = SettingsScreen2ResetSectionActions.empty(),
+
             miscActions = SettingsScreen2MiscActions.empty(),
-            requestFinish = {}
+            requestFinish = {},
         )
     }
 }

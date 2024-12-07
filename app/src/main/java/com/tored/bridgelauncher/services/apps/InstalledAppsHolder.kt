@@ -40,7 +40,8 @@ class InstalledAppsHolder(
     private val _packageNameToInstalledAppMap = mutableStateMapOf<String, InstalledApp>()
     val packageNameToInstalledAppMap = _packageNameToInstalledAppMap as Map<String, InstalledApp>
 
-    private val _appListChangeEventFlow = MutableSharedFlow<InstalledAppListChangeEvent>()
+    // if extraBufferCapacity is not set to 1, tryEmit simply doesn't work
+    private val _appListChangeEventFlow = MutableSharedFlow<InstalledAppListChangeEvent>(extraBufferCapacity = 1)
     val appListChangeEventFlow = _appListChangeEventFlow.asSharedFlow()
 
 
@@ -50,7 +51,10 @@ class InstalledAppsHolder(
     {
         val oldApp = _packageNameToInstalledAppMap.putIfAbsent(newApp.packageName, newApp)
         if (oldApp == null)
-            _appListChangeEventFlow.tryEmit(InstalledAppListChangeEvent.Added(newApp))
+        {
+            val result = _appListChangeEventFlow.tryEmit(InstalledAppListChangeEvent.Added(newApp))
+            Log.d(TAG, "addOrChangeInstalledApp: $result")
+        }
         else
             changeInstalledApp(newApp)
     }
@@ -61,11 +65,13 @@ class InstalledAppsHolder(
 
         if (oldApp == null)
         {
-            Log.w(TAG, "${::changeInstalledApp.name}: Changed app ${q(newApp.packageName)} was not on the list of apps. Changed event was not emitted.")
-            return
+            Log.w(TAG, "${::changeInstalledApp.name}: Changed app ${q(newApp.packageName)} was not on the list of apps. Changed event not emitted.")
         }
-
-        _appListChangeEventFlow.tryEmit(InstalledAppListChangeEvent.Changed(oldApp, newApp))
+        else
+        {
+            val result = _appListChangeEventFlow.tryEmit(InstalledAppListChangeEvent.Changed(oldApp, newApp))
+            Log.d(TAG, "changeInstalledApp: $result")
+        }
     }
 
     private fun removeInstalledApp(packageName: String)
@@ -74,7 +80,8 @@ class InstalledAppsHolder(
 
         if (app == null) Log.w(TAG, "${::removeInstalledApp.name}: Removed app ${q(packageName)} was not on the list of apps.")
 
-        _appListChangeEventFlow.tryEmit(InstalledAppListChangeEvent.Removed(packageName))
+        val result = _appListChangeEventFlow.tryEmit(InstalledAppListChangeEvent.Removed(packageName))
+        Log.d(TAG, "removeInstalledApp: $result")
     }
 
     // endregion

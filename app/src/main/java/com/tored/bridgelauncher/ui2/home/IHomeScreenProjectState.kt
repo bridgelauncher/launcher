@@ -6,6 +6,9 @@ import java.io.File
 sealed interface IHomeScreenProjectState
 {
     @Immutable
+    data object FirstTimeLaunch : IHomeScreenProjectState
+
+    @Immutable
     data object Initializing : IHomeScreenProjectState
 
     @Immutable

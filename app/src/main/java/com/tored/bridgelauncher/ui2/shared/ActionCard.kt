@@ -18,12 +18,18 @@ import com.tored.bridgelauncher.ui2.theme.textSec
 import com.tored.bridgelauncher.utils.ComposableContent
 
 @Composable
-fun ActionCard(title: String, description: String, footerContent: ComposableContent? = null)
+fun ActionCard(
+    title: String,
+    description: String,
+    modifier: Modifier = Modifier,
+    footerContent: ComposableContent? = null
+)
 {
     ActionCard(
         title = title,
         descriptionParagraphs = listOf(description),
-        footerContent = footerContent
+        modifier = modifier,
+        footerContent = footerContent,
     )
 }
 
@@ -31,13 +37,14 @@ fun ActionCard(title: String, description: String, footerContent: ComposableCont
 fun ActionCard(
     title: String,
     descriptionParagraphs: Iterable<String>,
-    footerContent: ComposableContent? = null
+    modifier: Modifier = Modifier,
+    footerContent: ComposableContent? = null,
 )
 {
     val pad = 24.dp
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .wrapContentHeight()
             .border(MaterialTheme.borders.soft, MaterialTheme.shapes.large),

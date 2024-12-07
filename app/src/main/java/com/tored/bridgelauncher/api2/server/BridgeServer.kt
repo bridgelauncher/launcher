@@ -71,7 +71,7 @@ class BridgeServer(
         if (host != HOST)
             return null
 
-        Log.i(TAG, "Request to $HOST received.")
+        Log.i(TAG, "received request to ${req.url}")
 
         try
         {

@@ -4,8 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import com.tored.bridgelauncher.R
-import com.tored.bridgelauncher.ui2.shared.Btn
 import com.tored.bridgelauncher.ui2.shared.ActionCard
+import com.tored.bridgelauncher.ui2.shared.Btn
 import com.tored.bridgelauncher.ui2.shared.PreviewWithSurfaceAndPadding
 
 @Composable
@@ -22,7 +22,8 @@ fun SettingsScreen2DevelopmentSectionContent(
                     + "The export will contain a list of apps installed on this device and their icons."
                     + "These files help mock the Bridge JS to Android API for development purposes.",
             "More information is available on the project home page - link in the \"About Bridge\" section near the bottom of this screen.",
-        )
+        ),
+        modifier = modifier,
     )
     {
         Btn(

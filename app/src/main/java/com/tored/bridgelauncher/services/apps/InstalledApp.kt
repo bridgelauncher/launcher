@@ -3,7 +3,6 @@ package com.tored.bridgelauncher.services.apps
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.graphics.drawable.Drawable
-import com.tored.bridgelauncher.api.jsapi.BridgeEventArgs
 import com.tored.bridgelauncher.ui2.appdrawer.IAppDrawerApp
 import kotlinx.serialization.Serializable
 import java.text.Normalizer
@@ -44,4 +43,4 @@ data class InstalledApp(
 data class SerializableInstalledApp(
     val packageName: String,
     var label: String,
-) : BridgeEventArgs
+)

@@ -1,11 +1,12 @@
 package com.tored.bridgelauncher
 
 import android.app.Application
+import android.app.UiModeManager
 import android.content.ComponentName
 import android.util.Log
 import androidx.core.content.ContextCompat
-import com.tored.bridgelauncher.api2.bridgetojs.BridgeToJSInterface
-import com.tored.bridgelauncher.api2.jstobridge.JSToBridgeInterface
+import com.tored.bridgelauncher.api2.bridgetojs.BridgeToJSAPI
+import com.tored.bridgelauncher.api2.jstobridge.JSToBridgeAPI
 import com.tored.bridgelauncher.api2.server.BridgeServer
 import com.tored.bridgelauncher.services.BridgeServices
 import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
@@ -20,6 +21,7 @@ import com.tored.bridgelauncher.services.perms.PermsHolder
 import com.tored.bridgelauncher.services.system.BridgeButtonQSTileService
 import com.tored.bridgelauncher.services.system.BridgeLauncherBroadcastReceiver
 import com.tored.bridgelauncher.services.system.BridgeLauncherDeviceAdminReceiver
+import com.tored.bridgelauncher.services.uimode.SystemUIModeHolder
 import com.tored.bridgelauncher.services.windowinsetsholder.WindowInsetsHolder
 
 private const val TAG = "Application"
@@ -53,6 +55,7 @@ class BridgeLauncherApplication : Application()
         // yeah this probably could be done by some DI library but I'd rather explicitly know what is happening
 
         val pm = packageManager
+        val uiModeManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
 
         val permsHolder = PermsHolder(this)
 
@@ -67,16 +70,20 @@ class BridgeLauncherApplication : Application()
         val lifecycleEventsHolder = LifecycleEventsHolder()
         val windowInsetsHolder = WindowInsetsHolder()
         val displayShapeHolder = DisplayShapeHolder()
+        val systemUIModeHolder = SystemUIModeHolder(
+            _uiModeManager = uiModeManager
+        )
 
-        val bridgeToJSAPI = BridgeToJSInterface(
+        val bridgeToJSAPI = BridgeToJSAPI(
             _app = this,
             _perms = permsHolder,
             _insets = windowInsetsHolder,
             _lifecycleEventsHolder = lifecycleEventsHolder,
             _apps = installedAppsHolder,
+            _systemUIMode = systemUIModeHolder,
         )
 
-        val jsToBridgeAPI = JSToBridgeInterface(
+        val jsToBridgeAPI = JSToBridgeAPI(
             _app = this,
             _windowInsetsHolder = windowInsetsHolder,
             _displayShapeHolder = displayShapeHolder,
@@ -99,24 +106,30 @@ class BridgeLauncherApplication : Application()
         val broadcastReceiver = BridgeLauncherBroadcastReceiver(installedAppsHolder)
 
         return BridgeServices(
+            // system
             packageManager = pm,
-            storagePermsManager = permsHolder,
-
-            installedAppsHolder = installedAppsHolder,
-            installedIconPacksHolder = installedIconPacksHolder,
-            iconPackCache = iconPackCache,
-            iconCache = appIconsCache,
-
-            bridgeServer = bridgeServer,
-            consoleMessagesHolder = consoleMessagesHolder,
+            uiModeManager = uiModeManager,
             broadcastReceiver = broadcastReceiver,
-            bridgeToJSInterface = bridgeToJSAPI,
-            jsToBridgeInterface = jsToBridgeAPI,
+
+            // state holders
+            storagePermsHolder = permsHolder,
+            systemUIModeHolder = systemUIModeHolder,
             windowInsetsHolder = windowInsetsHolder,
             lifecycleEventsHolder = lifecycleEventsHolder,
             displayShapeHolder = displayShapeHolder,
 
+            // apps & icon packs
+            installedAppsHolder = installedAppsHolder,
+            installedIconPacksHolder = installedIconPacksHolder,
+            iconPackCache = iconPackCache,
+            iconCache = appIconsCache,
             mockExporter = mockExporter,
+
+            // webview
+            consoleMessagesHolder = consoleMessagesHolder,
+            bridgeServer = bridgeServer,
+            bridgeToJSInterface = bridgeToJSAPI,
+            jsToBridgeInterface = jsToBridgeAPI,
         )
     }
 

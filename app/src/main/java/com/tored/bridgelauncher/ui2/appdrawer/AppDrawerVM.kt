@@ -33,8 +33,9 @@ class AppDrawerVM(
 
     val filteredApps = derivedStateOf {
         val s = InstalledApp.simplifyLabel(_searchString.value)
-        _appList.value.filter { it.labelSimplified.contains(s) || it.packageName.contains(s)
-        }
+        _appList.value
+            .filter { it.labelSimplified.contains(s) || it.packageName.contains(s) }
+            .sortedBy { it.labelSimplified }
     }
 
     suspend fun getIcon(iconPack: IconPack?, app: InstalledApp): ImageBitmap

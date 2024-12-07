@@ -4,7 +4,10 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.util.Log
 import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
+
+private val TAG = "BroadcastReceiver"
 
 class BridgeLauncherBroadcastReceiver(
     private val _apps: InstalledAppsHolder,
@@ -14,11 +17,13 @@ class BridgeLauncherBroadcastReceiver(
     {
         if (context == null || intent == null) return
 
+        Log.d(TAG, "onReceive: ${intent.action}")
+
         when (intent.action)
         {
             Intent.ACTION_PACKAGE_ADDED ->
             {
-                val packageName = intent.dataString
+                val packageName = intent.data?.encodedSchemeSpecificPart
                 val isReplacing = intent.extras?.getBoolean(Intent.EXTRA_REPLACING) ?: false
 
                 if (packageName != null && !isReplacing)
@@ -27,10 +32,9 @@ class BridgeLauncherBroadcastReceiver(
                 }
             }
 
-            Intent.ACTION_PACKAGE_CHANGED,
             Intent.ACTION_PACKAGE_REPLACED ->
             {
-                val packageName = intent.dataString
+                val packageName = intent.data?.encodedSchemeSpecificPart
                 if (packageName != null)
                 {
                     _apps.notifyAppChanged(packageName)
@@ -39,7 +43,7 @@ class BridgeLauncherBroadcastReceiver(
 
             Intent.ACTION_PACKAGE_REMOVED ->
             {
-                val packageName = intent.dataString
+                val packageName = intent.data?.encodedSchemeSpecificPart
                 val isReplacing = intent.extras?.getBoolean(Intent.EXTRA_REPLACING) ?: false
                 if (packageName != null && !isReplacing)
                 {
@@ -55,8 +59,9 @@ class BridgeLauncherBroadcastReceiver(
         val intentFilter = IntentFilter().apply {
             addAction(Intent.ACTION_PACKAGE_ADDED)
             addAction(Intent.ACTION_PACKAGE_CHANGED)
-            addAction(Intent.ACTION_PACKAGE_REMOVED)
             addAction(Intent.ACTION_PACKAGE_REPLACED)
+            addAction(Intent.ACTION_PACKAGE_REMOVED)
+            addDataScheme("package")
         }
     }
 }

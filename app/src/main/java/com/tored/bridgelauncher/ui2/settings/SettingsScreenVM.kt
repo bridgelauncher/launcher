@@ -5,8 +5,10 @@ import android.app.StatusBarManager
 import android.graphics.drawable.Icon
 import android.os.Environment
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
@@ -21,6 +23,8 @@ import com.tored.bridgelauncher.services.mockexport.MockExportProgressState
 import com.tored.bridgelauncher.services.mockexport.MockExporter
 import com.tored.bridgelauncher.services.perms.PermsHolder
 import com.tored.bridgelauncher.services.settings2.BridgeSettings
+import com.tored.bridgelauncher.services.settings2.ResettableBridgeSettings
+import com.tored.bridgelauncher.services.settings2.resetBridgeSetting
 import com.tored.bridgelauncher.services.settings2.setBridgeSetting
 import com.tored.bridgelauncher.services.settings2.settingsDataStore
 import com.tored.bridgelauncher.services.settings2.useBridgeSettingState
@@ -39,11 +43,14 @@ import com.tored.bridgelauncher.ui2.settings.sections.project.ScreenLockingMetho
 import com.tored.bridgelauncher.ui2.settings.sections.project.SettingsScreen2ProjectSectionActions
 import com.tored.bridgelauncher.ui2.settings.sections.project.SettingsScreen2ProjectSectionState
 import com.tored.bridgelauncher.ui2.settings.sections.project.SettingsScreen2ProjectSectionStateProjectInfo
+import com.tored.bridgelauncher.ui2.settings.sections.reset.SettingsScreen2ResetSectionActions
+import com.tored.bridgelauncher.ui2.settings.sections.reset.SettingsScreen2ResetSectionState
 import com.tored.bridgelauncher.ui2.settings.sections.wallpaper.SettingsScreen2WallpaperSectionActions
 import com.tored.bridgelauncher.ui2.settings.sections.wallpaper.SettingsScreen2WallpaperSectionState
 import com.tored.bridgelauncher.utils.CurrentAndroidVersion
 import com.tored.bridgelauncher.utils.bridgeLauncherApplication
 import com.tored.bridgelauncher.utils.collectAsStateButInViewModel
+import com.tored.bridgelauncher.utils.suspendTryOrShowErrorToast
 import com.tored.bridgelauncher.utils.tryOrShowErrorToast
 import com.tored.bridgelauncher.utils.tryStartWallpaperPickerActivity
 import kotlinx.coroutines.Job
@@ -57,7 +64,7 @@ private val TAG = SettingsScreenVM::class.simpleName
 
 class SettingsScreenVM(
     private val _app: BridgeLauncherApplication,
-    private val _permsManager: PermsHolder,
+    private val _permsHolder: PermsHolder,
     private val _mockExporter: MockExporter,
 ) : ViewModel()
 {
@@ -100,7 +107,7 @@ class SettingsScreenVM(
                     name = name
                 )
             },
-            hasStoragePerms = _permsManager.hasStoragePermsState.value,
+            hasStoragePerms = _permsHolder.hasStoragePermsState.value,
             allowProjectsToTurnScreenOff = _allowProjectsToTurnScreenOff,
             screenLockingMethod = screenLockingMethod,
             canBridgeTurnScreenOff = when (screenLockingMethod)
@@ -241,7 +248,7 @@ class SettingsScreenVM(
     private fun observeStoragePermissionState()
     {
         viewModelScope.launch {
-            _permsManager.hasStoragePermsState.collectLatest { hasStoragePermission ->
+            _permsHolder.hasStoragePermsState.collectLatest { hasStoragePermission ->
                 _directoryPickerStateFlow.value.let { currState ->
                     Log.d(TAG, "observeStoragePermissionState: _permsManager.hasStoragePermsState.collectLatest called, hasStoragePermission = $hasStoragePermission, currState = $currState")
                     if (hasStoragePermission)
@@ -272,7 +279,7 @@ class SettingsScreenVM(
 
     private fun openDirectoryPicker(mode: DirectoryPickerMode)
     {
-        if (_permsManager.hasStoragePermsState.value)
+        if (_permsHolder.hasStoragePermsState.value)
         {
             _directoryPickerStateFlow.value = DirectoryPickerState.HasStoragePermission.fromDirectoryAndFilter(
                 mode = mode,
@@ -368,11 +375,42 @@ class SettingsScreenVM(
         },
     )
 
+    // RESET SETTINGS
+
+    private val _isSettingsResetInProgressState = mutableStateOf(false)
+
+    val resetSectionActions = SettingsScreen2ResetSectionActions(
+        onResetRequest = {
+            val isResetInProgress = _isSettingsResetInProgressState.value
+            if (!isResetInProgress)
+            {
+                viewModelScope.launch {
+                    _isSettingsResetInProgressState.value = true
+
+                    _app.suspendTryOrShowErrorToast {
+                        _app.settingsDataStore.edit { prefs ->
+                            ResettableBridgeSettings.forEach { prefs.resetBridgeSetting(it) }
+                        }
+                        Toast.makeText(_app, "Reset finished.", Toast.LENGTH_SHORT).show()
+                    }
+
+                    _isSettingsResetInProgressState.value = false
+                }
+            }
+        },
+    )
+
+    val resetSectionState = derivedStateOf {
+        SettingsScreen2ResetSectionState(
+            isResetInProgress = _isSettingsResetInProgressState.value,
+        )
+    }
+
 
     // MISC ACTIONS
 
     val miscActions = SettingsScreen2MiscActions(
-        permissionsChanged = { _permsManager.notifyPermsMightHaveChanged() },
+        permissionsChanged = { _permsHolder.notifyPermsMightHaveChanged() },
     )
 
     // utils
@@ -397,7 +435,7 @@ class SettingsScreenVM(
             {
                 return SettingsScreenVM(
                     _app = context.bridgeLauncherApplication,
-                    _permsManager = storagePermsManager,
+                    _permsHolder = storagePermsHolder,
                     _mockExporter = mockExporter,
                 )
             }

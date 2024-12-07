@@ -3,12 +3,12 @@ package com.tored.bridgelauncher.ui2.home.composables
 import android.annotation.SuppressLint
 import android.graphics.Color
 import android.webkit.WebView
-import com.tored.bridgelauncher.api2.jstobridge.JSToBridgeInterface
+import com.tored.bridgelauncher.api2.jstobridge.JSToBridgeAPI
 import com.tored.bridgelauncher.api2.server.BridgeServer
 
 fun onBridgeWebViewCreated(
     webView: WebView,
-    jsToBridgeAPI: JSToBridgeInterface,
+    jsToBridgeAPI: JSToBridgeAPI,
 )
 {
     with(webView.settings)

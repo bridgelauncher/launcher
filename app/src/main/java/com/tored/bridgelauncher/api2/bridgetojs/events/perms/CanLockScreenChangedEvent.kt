@@ -1,4 +1,4 @@
-package com.tored.bridgelauncher.api2.bridgetojs.events.permissions
+package com.tored.bridgelauncher.api2.bridgetojs.events.perms
 
 import com.tored.bridgelauncher.api2.bridgetojs.BridgeEventModel
 import kotlinx.serialization.Serializable

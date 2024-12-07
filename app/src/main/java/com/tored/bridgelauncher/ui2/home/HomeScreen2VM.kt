@@ -3,7 +3,6 @@ package com.tored.bridgelauncher.ui2.home
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
-import android.util.Log
 import android.webkit.WebView
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -14,8 +13,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.tored.bridgelauncher.BridgeLauncherApplication
-import com.tored.bridgelauncher.api2.bridgetojs.BridgeToJSInterface
-import com.tored.bridgelauncher.api2.jstobridge.JSToBridgeInterface
+import com.tored.bridgelauncher.api2.bridgetojs.BridgeToJSAPI
+import com.tored.bridgelauncher.api2.jstobridge.JSToBridgeAPI
 import com.tored.bridgelauncher.api2.server.BridgeServer
 import com.tored.bridgelauncher.api2.webview.BridgeWebChromeClient
 import com.tored.bridgelauncher.api2.webview.BridgeWebViewClient
@@ -28,6 +27,7 @@ import com.tored.bridgelauncher.services.settings2.BridgeSettings
 import com.tored.bridgelauncher.services.settings2.setBridgeSetting
 import com.tored.bridgelauncher.services.settings2.settingsDataStore
 import com.tored.bridgelauncher.services.settings2.useBridgeSettingState
+import com.tored.bridgelauncher.services.uimode.SystemUIModeHolder
 import com.tored.bridgelauncher.services.windowinsetsholder.WindowInsetsHolder
 import com.tored.bridgelauncher.ui2.home.bridgemenu.BridgeMenuActions
 import com.tored.bridgelauncher.ui2.home.bridgemenu.BridgeMenuState
@@ -41,11 +41,12 @@ private const val TAG = "HomeScreen2VM"
 
 class HomeScreen2VM(
     private val _app: BridgeLauncherApplication,
-    private val _permsManager: PermsHolder,
+    private val _permsHolder: PermsHolder,
     private val _bridgeServer: BridgeServer,
+    private val _systemUIModeHolder: SystemUIModeHolder,
     private val _consoleMessages: DevConsoleMessagesHolder,
-    private val _jsToBridgeInterface: JSToBridgeInterface,
-    private val _bridgeToJSInterface: BridgeToJSInterface,
+    private val _jsToBridgeInterface: JSToBridgeAPI,
+    private val _bridgeToJSInterface: BridgeToJSAPI,
     private val _lifecycleEventsHolder: LifecycleEventsHolder,
     private val _windowInsetsHolder: WindowInsetsHolder,
     private val _displayShapeHolder: DisplayShapeHolder,
@@ -85,25 +86,26 @@ class HomeScreen2VM(
         )
     }
 
-    val isBridgeServerReadyToServeState = collectAsStateButInViewModel(_bridgeServer.isReadyToServe, false)
+    private val _isBridgeServerReadyToServeState = collectAsStateButInViewModel(_bridgeServer.isReadyToServe, false)
     val projectState = derivedStateOf {
-        Log.d(TAG, "projectState: $_currentProjDir")
-        if (!_permsManager.hasStoragePermsState.value)
-        {
+
+        val hasStoragePerms = _permsHolder.hasStoragePermsState.value
+        val projDir = _currentProjDir
+
+        if (!hasStoragePerms && projDir == null)
+            IHomeScreenProjectState.FirstTimeLaunch
+
+        else if (!hasStoragePerms)
             IHomeScreenProjectState.NoStoragePerm
-        }
-        else if (!isBridgeServerReadyToServeState.value)
-        {
+
+        else if (projDir == null)
+            IHomeScreenProjectState.NoProjectLoaded
+
+        else if (!_isBridgeServerReadyToServeState.value)
             IHomeScreenProjectState.Initializing
-        }
+
         else
-        {
-            val projDir = _currentProjDir
-            if (projDir == null)
-                IHomeScreenProjectState.NoProjectLoaded
-            else
-                IHomeScreenProjectState.ProjectLoaded(projDir)
-        }
+            IHomeScreenProjectState.ProjectLoaded(projDir)
     }
 
     private val _bridgeMenuIsExpandedStateFlow = MutableStateFlow(false)
@@ -142,15 +144,22 @@ class HomeScreen2VM(
     fun beforePause()
     {
         _lifecycleEventsHolder.notifyHomeScreenPaused()
-//        _bridgeToJSInterface.notify()
+    }
+
+    fun onNewIntent()
+    {
+        _lifecycleEventsHolder.notifyHomeScreenReceivedNewIntent()
     }
 
     fun afterResume()
     {
         _lifecycleEventsHolder.notifyHomeScreenResumed()
-        _permsManager.notifyPermsMightHaveChanged()
-//        _bridgeToJSInterface.notifyCanSetSystemNightModeMightHaveChanged()
-//        _bridgeToJSInterface.raiseAfterResume()
+        _permsHolder.notifyPermsMightHaveChanged()
+    }
+
+    fun onConfigurationChanged()
+    {
+        _systemUIModeHolder.onConfigurationChanged()
     }
 
     fun beforeDestroy()
@@ -179,7 +188,7 @@ class HomeScreen2VM(
             {
                 return HomeScreen2VM(
                     _app = context.bridgeLauncherApplication,
-                    _permsManager = storagePermsManager,
+                    _permsHolder = storagePermsHolder,
                     _bridgeServer = bridgeServer,
                     _consoleMessages = consoleMessagesHolder,
                     _jsToBridgeInterface = jsToBridgeInterface,
@@ -187,6 +196,7 @@ class HomeScreen2VM(
                     _windowInsetsHolder = windowInsetsHolder,
                     _lifecycleEventsHolder = lifecycleEventsHolder,
                     _displayShapeHolder = displayShapeHolder,
+                    _systemUIModeHolder = systemUIModeHolder,
                 )
             }
         }

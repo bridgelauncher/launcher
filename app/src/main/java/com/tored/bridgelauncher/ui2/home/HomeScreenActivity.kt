@@ -1,5 +1,8 @@
 package com.tored.bridgelauncher.ui2.home
 
+import android.app.UiModeManager
+import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -12,10 +15,14 @@ private val TAG = HomeScreenActivity::class.simpleName
 
 class HomeScreenActivity : ComponentActivity()
 {
+    private lateinit var _modeman: UiModeManager
+
     private val _homeScreenVM: HomeScreen2VM by viewModels { HomeScreen2VM.Factory }
 
     override fun onCreate(savedInstanceState: Bundle?)
     {
+        _modeman = getSystemService(UI_MODE_SERVICE) as UiModeManager
+
         _homeScreenVM.afterCreate(this)
 
         enableEdgeToEdge()
@@ -34,10 +41,22 @@ class HomeScreenActivity : ComponentActivity()
         }
     }
 
+    override fun onConfigurationChanged(newConfig: Configuration)
+    {
+        super.onConfigurationChanged(newConfig)
+        _homeScreenVM.onConfigurationChanged()
+    }
+
     override fun onPause()
     {
         _homeScreenVM.beforePause()
         super.onPause()
+    }
+
+    override fun onNewIntent(intent: Intent)
+    {
+        super.onNewIntent(intent)
+        _homeScreenVM.onNewIntent()
     }
 
     override fun onResume()

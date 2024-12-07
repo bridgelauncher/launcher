@@ -110,7 +110,7 @@ class BridgeFileServer(
 
             val mimeType = BetterMimeTypeMap[".${file.extension}"]
 
-            Log.i(TAG, "Responding with OK")
+//            Log.i(TAG, "Responding with OK")
 
             if (method == "GET")
             {

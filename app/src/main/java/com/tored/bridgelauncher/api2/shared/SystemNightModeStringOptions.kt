@@ -16,6 +16,7 @@ enum class SystemNightModeStringOptions(override val rawValue: String) : RawRepr
     Yes("yes"),
     Auto("auto"),
     Custom("custom"),
+    Error("error"),
     ;
 
     companion object
@@ -26,7 +27,7 @@ enum class SystemNightModeStringOptions(override val rawValue: String) : RawRepr
             UiModeManager.MODE_NIGHT_YES -> Yes
             UiModeManager.MODE_NIGHT_AUTO -> Auto
             UiModeManager.MODE_NIGHT_CUSTOM -> Custom
-            else -> Custom.also { Log.e(TAG, "fromUiModeManagerNightMode: uiModeManager.nightMode returned unexpected value $nightMode") }
+            else -> Error.also { Log.e(TAG, "fromUiModeManagerNightMode: uiModeManager.nightMode returned unexpected value $nightMode") }
         }
     }
 

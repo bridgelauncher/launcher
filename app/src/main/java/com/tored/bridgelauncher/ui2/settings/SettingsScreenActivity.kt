@@ -30,7 +30,7 @@ class SettingsScreenActivity : ComponentActivity()
 
     override fun onResume()
     {
-        bridgeLauncherApplication.services.storagePermsManager.notifyPermsMightHaveChanged()
+        bridgeLauncherApplication.services.storagePermsHolder.notifyPermsMightHaveChanged()
         super.onResume()
     }
 

@@ -16,8 +16,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.tored.bridgelauncher.ui2.shared.Btn
+import com.tored.bridgelauncher.ui2.theme.BridgeLauncherThemeStateless
 import com.tored.bridgelauncher.ui2.theme.textSec
-import com.tored.bridgelauncher.ui2.shared.PreviewWithSurfaceAndPadding
 import com.tored.bridgelauncher.utils.tryStartBridgeSettingsActivity
 
 @Composable
@@ -40,7 +40,8 @@ fun HomeScreenPrompt(
                 .fillMaxWidth()
                 .wrapContentHeight(),
             color = MaterialTheme.colors.surface,
-            shape = MaterialTheme.shapes.medium,
+            shape = MaterialTheme.shapes.large,
+            elevation = 4.dp,
         )
         {
             Column(
@@ -70,28 +71,62 @@ fun HomeScreenPrompt(
     }
 }
 
+
 @Composable
-@PreviewLightDark
-fun HomeScreenNoStoragePermsPrompt(modifier: Modifier = Modifier)
+fun HomeScreenWelcomePrompt(modifier: Modifier = Modifier)
 {
-    PreviewWithSurfaceAndPadding {
-        HomeScreenPrompt(
-            modifier = modifier,
-            title = "Storage permission required",
-            message = "Bridge needs access to storage to load project files."
-        )
-    }
+    HomeScreenPrompt(
+        modifier = modifier,
+        title = "Welcome to Bridge Launcher!",
+        message = "No project is loaded yet. Get started by opening the settings and selecting a project."
+    )
 }
 
 @Composable
 @PreviewLightDark
+fun HomeScreenWelcomePromptPreview(modifier: Modifier = Modifier)
+{
+    BridgeLauncherThemeStateless {
+        HomeScreenWelcomePrompt()
+    }
+}
+
+
+@Composable
+fun HomeScreenNoStoragePermsPrompt(modifier: Modifier = Modifier)
+{
+    HomeScreenPrompt(
+        modifier = modifier,
+        title = "Storage permission required",
+        message = "Bridge needs access to storage to load project files."
+    )
+}
+
+@Composable
+@PreviewLightDark
+fun HomeScreenNoStoragePermsPromptPreview(modifier: Modifier = Modifier)
+{
+    BridgeLauncherThemeStateless {
+        HomeScreenNoStoragePermsPrompt()
+    }
+}
+
+
+@Composable
 fun HomeScreenNoProjectPrompt(modifier: Modifier = Modifier)
 {
-    PreviewWithSurfaceAndPadding {
         HomeScreenPrompt(
             modifier = modifier,
             title = "No project loaded",
             message = "You can load a project in Bridge settings."
         )
+}
+
+@Composable
+@PreviewLightDark
+fun HomeScreenNoProjectPromptPreview(modifier: Modifier = Modifier)
+{
+    BridgeLauncherThemeStateless {
+        HomeScreenNoProjectPrompt()
     }
 }

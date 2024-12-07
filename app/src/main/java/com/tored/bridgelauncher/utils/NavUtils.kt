@@ -28,6 +28,18 @@ fun Context.tryOrShowErrorToast(action: Context.() -> Unit)
     }
 }
 
+suspend fun Context.suspendTryOrShowErrorToast(action: suspend Context.() -> Unit)
+{
+    try
+    {
+        action()
+    }
+    catch (ex: Exception)
+    {
+        showErrorToast(ex)
+    }
+}
+
 
 // BRIDGE ACTIVITIES
 
@@ -78,6 +90,13 @@ fun Context.launchApp(packageName: String)
 
 // SYSTEM
 
+/** Open Android settings */
+fun Context.tryStartAndroidSettingsActivity() = tryOrShowErrorToast { startAndroidSettingsActivity() }
+fun Context.startAndroidSettingsActivity()
+{
+    startActivity(Intent(Settings.ACTION_SETTINGS))
+}
+
 /** Change system wallpaper*/
 fun Context.tryStartWallpaperPickerActivity() = tryOrShowErrorToast { startWallpaperPickerActivity() }
 fun Context.startWallpaperPickerActivity()
@@ -101,12 +120,12 @@ fun Context.startExtStorageManagerPermissionActivity()
 {
     if (CurrentAndroidVersion.supportsScopedStorage())
     {
-    startActivity(
-        Intent(
-            Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
-            Uri.parse("package:${packageName}")
+        startActivity(
+            Intent(
+                Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+                Uri.parse("package:${packageName}")
+            )
         )
-    )
     }
 }
 

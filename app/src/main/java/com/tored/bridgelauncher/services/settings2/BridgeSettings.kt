@@ -54,3 +54,19 @@ object BridgeSettings
         displayName = "Show \"Launch apps\" button when the Bridge menu is collapsed",
     )
 }
+
+val ResettableBridgeSettings = with(BridgeSettings)
+{
+    listOf(
+        currentProjDir,
+        lastMockExportDir,
+        theme,
+        allowProjectsToTurnScreenOff,
+        drawSystemWallpaperBehindWebView,
+        statusBarAppearance,
+        navigationBarAppearance,
+        drawWebViewOverscrollEffects,
+        showBridgeButton,
+        showLaunchAppsWhenBridgeButtonCollapsed,
+    )
+}

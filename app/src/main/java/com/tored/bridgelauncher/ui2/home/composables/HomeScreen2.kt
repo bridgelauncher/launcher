@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
-import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -80,69 +79,64 @@ fun HomeScreen2(
         observerCallbacks.onCutoutPathChanged,
     )
 
-    Surface(
+    Box(
         modifier = Modifier
             .fillMaxSize(),
-        color = Color.Transparent,
     )
     {
-        Box(
-            modifier = Modifier
-                .fillMaxSize(),
-        )
+        when (projectState)
         {
-            when (projectState)
+            is IHomeScreenProjectState.FirstTimeLaunch -> PromptContainer { HomeScreenWelcomePrompt() }
+            is IHomeScreenProjectState.NoStoragePerm -> PromptContainer { HomeScreenNoStoragePermsPrompt() }
+            is IHomeScreenProjectState.NoProjectLoaded -> PromptContainer { HomeScreenNoProjectPrompt() }
+            is IHomeScreenProjectState.Initializing -> PromptContainer { HomeScreenLoadingMessage() }
+            is IHomeScreenProjectState.ProjectLoaded ->
             {
-                is IHomeScreenProjectState.Initializing -> Unit
-                is IHomeScreenProjectState.NoStoragePerm -> PromptContainer { HomeScreenNoStoragePermsPrompt() }
-                is IHomeScreenProjectState.NoProjectLoaded -> PromptContainer { HomeScreenNoProjectPrompt() }
-                is IHomeScreenProjectState.ProjectLoaded ->
+                if (webViewDeps == null)
                 {
-                    if (webViewDeps == null)
-                    {
-                        WebViewPlaceholder()
-                    }
-                    else
-                    {
-                        var webView by remember { mutableStateOf<WebView?>(null) }
+                    WebViewPlaceholder()
+                }
+                else
+                {
+                    var webView by remember { mutableStateOf<WebView?>(null) }
 
-                        WebView(
-                            state = webViewState,
-                            navigator = webViewNavigator,
-                            client = webViewDeps.webViewClient,
-                            chromeClient = webViewDeps.chromeClient,
-                            onCreated = {
-                                webView = it
-                                webViewDeps.onCreated(it)
-                            },
-                            onDispose = {
-                                webView = null
-                                webViewDeps.onDispose
-                            },
-                            modifier = Modifier.fillMaxSize(),
-                        )
+                    WebView(
+                        state = webViewState,
+                        navigator = webViewNavigator,
+                        client = webViewDeps.webViewClient,
+                        chromeClient = webViewDeps.chromeClient,
+                        onCreated = {
+                            webView = it
+                            it.clearCache(true)
+                            webViewDeps.onCreated(it)
+                        },
+                        onDispose = {
+                            webView = null
+                            webViewDeps.onDispose
+                        },
+                        modifier = Modifier.fillMaxSize(),
+                    )
 
-                        val drawOverscrollEffects = webViewDeps.drawOverscrollEffects.value
-                        LaunchedEffect(drawOverscrollEffects) {
-                            webView?.overScrollMode = when (drawOverscrollEffects)
-                            {
-                                true -> View.OVER_SCROLL_IF_CONTENT_SCROLLS
-                                false -> View.OVER_SCROLL_NEVER
-                            }
+                    val drawOverscrollEffects = webViewDeps.drawOverscrollEffects.value
+                    LaunchedEffect(drawOverscrollEffects) {
+                        webView?.overScrollMode = when (drawOverscrollEffects)
+                        {
+                            true -> View.OVER_SCROLL_IF_CONTENT_SCROLLS
+                            false -> View.OVER_SCROLL_NEVER
                         }
                     }
                 }
             }
-
-            BridgeMenu(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .systemBarsPadding()
-                    .padding(16.dp),
-                state = bridgeMenuState,
-                actions = bridgeMenuActions,
-            )
         }
+
+        BridgeMenu(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .systemBarsPadding()
+                .padding(16.dp),
+            state = bridgeMenuState,
+            actions = bridgeMenuActions,
+        )
     }
 }
 
