@@ -85,7 +85,14 @@ class BridgeToJSAPI(
                 Log.d(TAG, "appListChangeEventFlow collected: $it")
                 when (it)
                 {
-                    is InstalledAppListChangeEvent.Added -> AppInstalledEvent(it.newApp.toSerializable())
+                    is InstalledAppListChangeEvent.Added ->
+                    {
+                        if (!it.isFromInitialLoad)
+                            AppInstalledEvent(it.newApp.toSerializable())
+                        else
+                            null
+                    }
+
                     is InstalledAppListChangeEvent.Changed -> AppChangedEvent(it.newApp.toSerializable())
                     is InstalledAppListChangeEvent.Removed -> AppRemovedEvent(it.packageName)
                 }
@@ -132,11 +139,13 @@ class BridgeToJSAPI(
         }
     }
 
-    private fun <T> CoroutineScope.onCollect(flow: Flow<T>, newValueToEvent: (newValue: T) -> BridgeEventModel)
+    private fun <T> CoroutineScope.onCollect(flow: Flow<T>, newValueToEvent: (newValue: T) -> BridgeEventModel?)
     {
         launch {
             flow.collect {
-                sendBridgeEvent(newValueToEvent(it))
+                newValueToEvent(it)?.let { ev ->
+                    sendBridgeEvent(ev)
+                }
             }
         }
     }

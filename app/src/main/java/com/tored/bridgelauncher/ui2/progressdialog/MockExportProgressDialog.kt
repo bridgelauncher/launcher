@@ -33,11 +33,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.tored.bridgelauncher.R
-import com.tored.bridgelauncher.ui2.shared.Btn
 import com.tored.bridgelauncher.services.mockexport.MockExportProgressState
 import com.tored.bridgelauncher.services.mockexport.hasFinished
-import com.tored.bridgelauncher.ui2.theme.borderLight
+import com.tored.bridgelauncher.ui2.shared.Btn
 import com.tored.bridgelauncher.ui2.shared.PreviewWithSurfaceAndPadding
+import com.tored.bridgelauncher.ui2.theme.borderLight
+import com.tored.bridgelauncher.ui2.theme.scrim
 
 @Composable
 fun MockExportProgressDialog(
@@ -56,6 +57,7 @@ fun MockExportProgressDialog(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(MaterialTheme.colors.scrim)
                 .statusBarsPadding()
                 .navigationBarsPadding()
                 .imePadding()
@@ -188,7 +190,7 @@ fun MockExportProgressDialogContent(
                         text = "Ok",
                         suffixIcon = R.drawable.ic_check,
                         contentColor = MaterialTheme.colors.primary,
-                        onClick = { TODO() },
+                        onClick = { actions.dismiss() },
                     )
                 }
                 else
@@ -197,7 +199,7 @@ fun MockExportProgressDialogContent(
                         text = "Cancel",
                         suffixIcon = R.drawable.ic_close,
                         contentColor = MaterialTheme.colors.onSurface,
-                        onClick = { TODO() },
+                        onClick = { actions.dismiss() },
                     )
                 }
             }

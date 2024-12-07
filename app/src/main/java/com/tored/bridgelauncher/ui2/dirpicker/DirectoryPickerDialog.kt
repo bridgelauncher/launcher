@@ -1,5 +1,6 @@
 package com.tored.bridgelauncher.ui2.dirpicker
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -34,6 +35,7 @@ import com.tored.bridgelauncher.ui2.dirpicker.composables.DirectoryPickerFooter
 import com.tored.bridgelauncher.ui2.dirpicker.composables.DirectoryPickerHeader
 import com.tored.bridgelauncher.ui2.dirpicker.composables.DirectoryPickerStoragePermissionPrompt
 import com.tored.bridgelauncher.ui2.shared.PreviewWithSurfaceAndPadding
+import com.tored.bridgelauncher.ui2.theme.scrim
 
 @Composable
 fun DirectoryPickerDialog(
@@ -53,6 +55,7 @@ fun DirectoryPickerDialog(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(MaterialTheme.colors.scrim)
                 .statusBarsPadding()
                 .navigationBarsPadding()
                 .imePadding()

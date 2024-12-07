@@ -227,6 +227,7 @@ class SettingsScreenVM(
     val mockExportProgressDialogActions = MockExportProgressDialogActions(
         dismiss = {
             _mockExportJob?.cancel()
+            _mockExportProgressStateFlow.value = null
             _mockExportJob = null
         }
     )
@@ -332,8 +333,6 @@ class SettingsScreenVM(
                             _mockExportJob = viewModelScope.launch {
                                 _mockExporter.exportToDirectory(currState.currentDirectory.file, _mockExportProgressStateFlow)
                                 _app.settingsDataStore.edit { it.setBridgeSetting(BridgeSettings.lastMockExportDir, currState.currentDirectory.file) }
-                                _mockExportProgressStateFlow.value = null
-                                _mockExportJob = null
                             }
                         }
                     }
@@ -361,15 +360,16 @@ class SettingsScreenVM(
                         _app.tryOrShowErrorToast {
                             val newDir = File(currState.currentDirectory.file, currState.filterOrCreateDirectoryText)
                             newDir.mkdirs()
+
+                            // navigate to created directory with a clear filter
+                            _directoryPickerStateFlow.value = DirectoryPickerState.HasStoragePermission.fromDirectoryAndFilter(
+                                mode = currState.mode,
+                                directory = newDir,
+                                filterOrCreateDirectoryText = "",
+                            )
                         }
                     }
 
-                    // refresh
-                    _directoryPickerStateFlow.value = DirectoryPickerState.HasStoragePermission.fromDirectoryAndFilter(
-                        mode = currState.mode,
-                        directory = currState.currentDirectory.file,
-                        filterOrCreateDirectoryText = currState.filterOrCreateDirectoryText,
-                    )
                 }
             }
         },

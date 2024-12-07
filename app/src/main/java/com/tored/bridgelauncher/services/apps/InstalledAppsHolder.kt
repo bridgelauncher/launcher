@@ -8,6 +8,7 @@ import com.tored.bridgelauncher.utils.q
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -15,17 +16,19 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.supervisorScope
 import kotlin.system.measureTimeMillis
 import kotlin.time.measureTimedValue
 
 private const val TAG = "InstalledApps"
 
-sealed class InstalledAppListChangeEvent
+sealed interface InstalledAppListChangeEvent
 {
-    data class Added(val newApp: InstalledApp) : InstalledAppListChangeEvent()
-    data class Removed(val packageName: String) : InstalledAppListChangeEvent()
-    data class Changed(val oldApp: InstalledApp, val newApp: InstalledApp) : InstalledAppListChangeEvent()
+    data class Added(
+        val newApp: InstalledApp,
+        val isFromInitialLoad: Boolean
+    ) : InstalledAppListChangeEvent
+    data class Removed(val packageName: String) : InstalledAppListChangeEvent
+    data class Changed(val oldApp: InstalledApp, val newApp: InstalledApp) : InstalledAppListChangeEvent
 }
 
 class InstalledAppsHolder(
@@ -47,12 +50,15 @@ class InstalledAppsHolder(
 
     // region handling map changes
 
-    private fun addOrChangeInstalledApp(newApp: InstalledApp)
+    private fun addOrChangeInstalledApp(
+        newApp: InstalledApp,
+        isFromInitialLoad: Boolean,
+    )
     {
         val oldApp = _packageNameToInstalledAppMap.putIfAbsent(newApp.packageName, newApp)
         if (oldApp == null)
         {
-            val result = _appListChangeEventFlow.tryEmit(InstalledAppListChangeEvent.Added(newApp))
+            val result = _appListChangeEventFlow.tryEmit(InstalledAppListChangeEvent.Added(newApp, isFromInitialLoad))
             Log.d(TAG, "addOrChangeInstalledApp: $result")
         }
         else
@@ -102,9 +108,9 @@ class InstalledAppsHolder(
 
         measureTimeMillis {
             runBlocking {
-                supervisorScope {
+                coroutineScope {
                     appInfos.forEach {
-                        launch { addFromAppInfoIfLaunchable(it) }
+                        launch { addFromAppInfoIfLaunchable(it, isFromInitialLoad = true) }
                     }
                 }
             }
@@ -115,7 +121,10 @@ class InstalledAppsHolder(
 
     }
 
-    private fun addFromAppInfoIfLaunchable(appInfo: ApplicationInfo): InstalledApp?
+    private fun addFromAppInfoIfLaunchable(
+        appInfo: ApplicationInfo,
+        isFromInitialLoad: Boolean,
+    ): InstalledApp?
     {
         return _pm.getLaunchIntentForPackage(appInfo.packageName)?.let { launchIntent ->
             val newApp = InstalledApp(
@@ -127,7 +136,10 @@ class InstalledAppsHolder(
                 appInfo,
             )
 
-            addOrChangeInstalledApp(newApp)
+            addOrChangeInstalledApp(
+                newApp,
+                isFromInitialLoad,
+            )
 
             newApp
         }
@@ -148,7 +160,7 @@ class InstalledAppsHolder(
     private fun notifyAppAddedOrChanged(packageName: String)
     {
         val appInfo = _pm.getApplicationInfo(packageName, PackageManager.GET_META_DATA)
-        addFromAppInfoIfLaunchable(appInfo)
+        addFromAppInfoIfLaunchable(appInfo, isFromInitialLoad = false)
     }
 
     fun notifyAppRemoved(packageName: String)

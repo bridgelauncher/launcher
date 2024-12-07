@@ -24,7 +24,7 @@ data class BridgeSetting<TPreference, TResult>(
         ): BridgeSetting<Boolean, Boolean>
         {
             return BridgeSetting(
-                booleanPreferencesKey(key),
+                booleanPreferencesKey("SettingsState.$key"),
                 resettable = false,
                 read = { it ?: defaultValue },
                 write = { it },
@@ -39,7 +39,7 @@ data class BridgeSetting<TPreference, TResult>(
         ): BridgeSetting<Boolean, Boolean>
         {
             return BridgeSetting(
-                booleanPreferencesKey(key),
+                booleanPreferencesKey("SettingsState.$key"),
                 resettable = true,
                 displayName = displayName,
                 read = { it ?: defaultValue },
@@ -53,7 +53,7 @@ data class BridgeSetting<TPreference, TResult>(
         ): BridgeSetting<String, File?>
         {
             return BridgeSetting(
-                stringPreferencesKey(key),
+                stringPreferencesKey("SettingsState.$key"),
                 resettable = true,
                 read = { it?.let { File(it) } },
                 write = { it?.canonicalPath },
@@ -70,7 +70,7 @@ data class BridgeSetting<TPreference, TResult>(
                 where TEnum : Enum<TEnum>, TEnum : RawRepresentable<Int>
         {
             return BridgeSetting(
-                intPreferencesKey(key),
+                intPreferencesKey("SettingsState.$key"),
                 resettable = true,
                 displayName = displayName,
                 read = { intToEnumOrDefault(it, defaultValue) },
