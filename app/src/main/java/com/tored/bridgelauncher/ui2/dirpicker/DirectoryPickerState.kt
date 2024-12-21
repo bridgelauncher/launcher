@@ -1,6 +1,6 @@
 package com.tored.bridgelauncher.ui2.dirpicker
 
-import com.tored.bridgelauncher.api2.server.endpoints.BridgeFileServer
+import com.tored.bridgelauncher.api2.server.files.BridgeFileServer
 import com.tored.bridgelauncher.utils.CurrentAndroidVersion
 import java.io.File
 import kotlin.test.assertTrue

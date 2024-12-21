@@ -5,12 +5,12 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.util.Log
-import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
+import com.tored.bridgelauncher.services.pkgevents.PackageEventsHolder
 
 private val TAG = "BroadcastReceiver"
 
 class BridgeLauncherBroadcastReceiver(
-    private val _apps: InstalledAppsHolder,
+    private val _packageEventsHolder: PackageEventsHolder
 ) : BroadcastReceiver()
 {
     override fun onReceive(context: Context?, intent: Intent?)
@@ -28,7 +28,7 @@ class BridgeLauncherBroadcastReceiver(
 
                 if (packageName != null && !isReplacing)
                 {
-                    _apps.notifyAppAdded(packageName)
+                    _packageEventsHolder.notifyPackageAdded(packageName)
                 }
             }
 
@@ -37,7 +37,7 @@ class BridgeLauncherBroadcastReceiver(
                 val packageName = intent.data?.encodedSchemeSpecificPart
                 if (packageName != null)
                 {
-                    _apps.notifyAppChanged(packageName)
+                    _packageEventsHolder.notifyPackageReplaced(packageName)
                 }
             }
 
@@ -47,7 +47,7 @@ class BridgeLauncherBroadcastReceiver(
                 val isReplacing = intent.extras?.getBoolean(Intent.EXTRA_REPLACING) ?: false
                 if (packageName != null && !isReplacing)
                 {
-                    _apps.notifyAppRemoved(packageName)
+                    _packageEventsHolder.notifyPackageRemoved(packageName)
                 }
             }
 

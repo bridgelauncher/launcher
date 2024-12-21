@@ -1,37 +1,21 @@
 package com.tored.bridgelauncher.services.lifecycleevents
 
-import android.util.Log
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 
 private val TAG = LifecycleEventsHolder::class.simpleName
 
 class LifecycleEventsHolder
 {
-    private val _homeScreenBeforePause = Channel<Unit> {  }
-    val homeScreenBeforePause = _homeScreenBeforePause.receiveAsFlow()
+    private val _homeScreenBeforePause = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val homeScreenBeforePause = _homeScreenBeforePause.asSharedFlow()
+    fun notifyHomeScreenPaused() = _homeScreenBeforePause.tryEmit(Unit)
 
-    private val _homeScreenNewIntent = Channel<Unit> {  }
-    val homeScreenNewIntent = _homeScreenNewIntent.receiveAsFlow()
+    private val _homeScreenNewIntent = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val homeScreenNewIntent = _homeScreenNewIntent.asSharedFlow()
+    fun notifyHomeScreenReceivedNewIntent() = _homeScreenNewIntent.tryEmit(Unit)
 
-    private val _homeScreenAfterResume = Channel<Unit> {  }
-    val homeScreenAfterResume = _homeScreenAfterResume.receiveAsFlow()
-
-    fun notifyHomeScreenPaused()
-    {
-        Log.d(TAG, "notifyHomeScreenPaused")
-        _homeScreenBeforePause.trySend(Unit)
-    }
-
-    fun notifyHomeScreenResumed()
-    {
-        Log.d(TAG, "notifyHomeScreenResumed")
-        _homeScreenAfterResume.trySend(Unit)
-    }
-
-    fun notifyHomeScreenReceivedNewIntent()
-    {
-        Log.d(TAG, "notifyHomeScreenReceivedNewIn")
-        _homeScreenNewIntent.trySend(Unit)
-    }
+    private val _homeScreenAfterResume = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val homeScreenAfterResume = _homeScreenAfterResume.asSharedFlow()
+    fun notifyHomeScreenResumed() = _homeScreenAfterResume.tryEmit(Unit)
 }

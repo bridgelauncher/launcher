@@ -9,15 +9,17 @@ import com.tored.bridgelauncher.api2.bridgetojs.BridgeToJSAPI
 import com.tored.bridgelauncher.api2.jstobridge.JSToBridgeAPI
 import com.tored.bridgelauncher.api2.server.BridgeServer
 import com.tored.bridgelauncher.services.BridgeServices
-import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
+import com.tored.bridgelauncher.services.apps.LaunchableInstalledAppsHolder
 import com.tored.bridgelauncher.services.devconsole.DevConsoleMessagesHolder
 import com.tored.bridgelauncher.services.displayshape.DisplayShapeHolder
 import com.tored.bridgelauncher.services.iconcache.IconCache
-import com.tored.bridgelauncher.services.iconpackcache.IconPackCache
-import com.tored.bridgelauncher.services.iconpackcache.InstalledIconPacksHolder
+import com.tored.bridgelauncher.services.iconpacks2.appfilter.parser.AppFilterXMLParser
+import com.tored.bridgelauncher.services.iconpacks2.cache.IconPackCache
+import com.tored.bridgelauncher.services.iconpacks2.list.InstalledIconPacksHolder
 import com.tored.bridgelauncher.services.lifecycleevents.LifecycleEventsHolder
 import com.tored.bridgelauncher.services.mockexport.MockExporter
 import com.tored.bridgelauncher.services.perms.PermsHolder
+import com.tored.bridgelauncher.services.pkgevents.PackageEventsHolder
 import com.tored.bridgelauncher.services.system.BridgeButtonQSTileService
 import com.tored.bridgelauncher.services.system.BridgeLauncherBroadcastReceiver
 import com.tored.bridgelauncher.services.system.BridgeLauncherDeviceAdminReceiver
@@ -57,17 +59,37 @@ class BridgeLauncherApplication : Application()
         val pm = packageManager
         val uiModeManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
 
+        val lifecycleEventsHolder = LifecycleEventsHolder()
+        val packageEventsHolder = PackageEventsHolder()
+
         val permsHolder = PermsHolder(this)
 
-        val installedAppsHolder = InstalledAppsHolder(pm)
-        val iconPackCache = IconPackCache()
-        val appIconsCache = IconCache(pm, installedAppsHolder, iconPackCache)
-        val installedIconPacksHolder = InstalledIconPacksHolder(
-            _pm = pm,
-            _apps = installedAppsHolder
+        val appFilterXMLParser = AppFilterXMLParser(
+            _pm = pm
         )
 
-        val lifecycleEventsHolder = LifecycleEventsHolder()
+        val installedAppsHolder = LaunchableInstalledAppsHolder(
+            _pm = pm,
+            _packageEventsHolder = packageEventsHolder,
+        )
+
+        val installedIconPacksHolder = InstalledIconPacksHolder(
+            _pm = pm,
+            _packageEventsHolder = packageEventsHolder,
+        )
+
+        val iconPackCache = IconPackCache(
+            _appFilterXMLParser = appFilterXMLParser,
+            _installedIconPacks = installedIconPacksHolder,
+        )
+
+        val appIconsCache = IconCache(
+            _pm = pm,
+            _apps = installedAppsHolder,
+            _iconPackCache = iconPackCache,
+            _packageEventsHolder = packageEventsHolder,
+        )
+
         val windowInsetsHolder = WindowInsetsHolder()
         val displayShapeHolder = DisplayShapeHolder()
         val systemUIModeHolder = SystemUIModeHolder(
@@ -90,20 +112,25 @@ class BridgeLauncherApplication : Application()
         )
 
         val bridgeServer = BridgeServer(
-            this,
-            installedAppsHolder,
+            _app = this,
+            _apps = installedAppsHolder,
             _iconPacks = installedIconPacksHolder,
+            _iconCache = appIconsCache,
         )
 
         val consoleMessagesHolder = DevConsoleMessagesHolder()
 
 
         val mockExporter = MockExporter(
-            installedAppsHolder,
-            installedIconPacksHolder
+            _apps = installedAppsHolder,
+            _iconPacks = installedIconPacksHolder,
+            _iconCache = appIconsCache,
+            _iconPackCache = iconPackCache,
         )
 
-        val broadcastReceiver = BridgeLauncherBroadcastReceiver(installedAppsHolder)
+        val broadcastReceiver = BridgeLauncherBroadcastReceiver(
+            _packageEventsHolder = packageEventsHolder,
+        )
 
         return BridgeServices(
             // system
@@ -119,6 +146,7 @@ class BridgeLauncherApplication : Application()
             displayShapeHolder = displayShapeHolder,
 
             // apps & icon packs
+            packageEventsHolder = packageEventsHolder,
             installedAppsHolder = installedAppsHolder,
             installedIconPacksHolder = installedIconPacksHolder,
             iconPackCache = iconPackCache,
@@ -142,8 +170,8 @@ class BridgeLauncherApplication : Application()
             ContextCompat.RECEIVER_EXPORTED,
         )
 
-        services.iconPackCache.startup()
         services.installedIconPacksHolder.startup()
+        services.iconPackCache.startup()
         services.iconCache.startup()
         services.installedAppsHolder.startup()
         services.bridgeToJSInterface.startup()

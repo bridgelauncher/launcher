@@ -4,24 +4,24 @@ import android.content.pm.PackageManager
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.core.graphics.drawable.toBitmap
-import com.tored.bridgelauncher.services.apps.InstalledAppListChangeEvent
-import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
-import com.tored.bridgelauncher.services.iconpackcache.IconPackCache
+import com.tored.bridgelauncher.services.apps.LaunchableInstalledAppsHolder
+import com.tored.bridgelauncher.services.iconpacks2.cache.IconPackCache
+import com.tored.bridgelauncher.services.pkgevents.PackageEventsHolder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.plus
 import java.util.concurrent.ConcurrentHashMap
 
 class IconCache(
     private val _pm: PackageManager,
-    private val _apps: InstalledAppsHolder,
+    private val _packageEventsHolder: PackageEventsHolder,
+    private val _apps: LaunchableInstalledAppsHolder,
     private val _iconPackCache: IconPackCache,
 )
 {
-    private val _coroutineScope = CoroutineScope(Dispatchers.Default) + SupervisorJob()
+    private val _scope = CoroutineScope(Dispatchers.Main)
 
     private val _cache = ConcurrentHashMap<String, IconCacheEntry>()
 
@@ -41,7 +41,7 @@ class IconCache(
                 // no existing request or existing request started before required time
                 IconCacheEntry(
                     generationStartTimeNano = System.nanoTime(),
-                    iconGenerationDeferred = _coroutineScope.async {
+                    iconGenerationDeferred = _scope.async {
                         generateIcon(iconPackPackageName, appPackageName, mustBeGeneratedAfterTimeNano)
                     }
                 )
@@ -81,42 +81,42 @@ class IconCache(
     }
 
 
-    private fun collectAppsLoadingFinished() = _coroutineScope.launch {
-        _apps.initialLoadingFinished.collect { isFinished ->
-            if (isFinished)
-                startPregeneration()
-        }
+    private suspend fun waitForAppsToLoadAndPregenerate()
+    {
+        val apps = _apps.packageNameToInstalledAppMap.first { it != null }!!
+        pregenerate(apps.keys)
     }
 
-    private fun startPregeneration()
+    private suspend fun pregenerate(packageNames: Iterable<String>)
     {
         // TODO: start generating bitmaps for icons that are likely to be loaded
     }
 
-    private fun collectAppListChangeEvents() = _coroutineScope.launch {
-        _apps.appListChangeEventFlow.collect { event ->
-            when (event)
-            {
-                is InstalledAppListChangeEvent.Added,
-                is InstalledAppListChangeEvent.Changed,
-                ->
-                {
-                    // TODO: regenerate icon if it's likely to be loaded by something soon (i.e. app drawer is open or project has indicated that it is using a particular icon pack)
-                }
-
-                is InstalledAppListChangeEvent.Removed ->
-                {
-                    // TODO: clear cached icons for a removed app (that could also be an icon pack)
-                    // for now we're fine leaving this unimplemented bec
-                }
-            }
-        }
+    private suspend fun onAppAddedOrChanged(packageName: String)
+    {
+        // TODO: consider automatically pregenerating icon if it's likely to be loaded by something soon,
+        //  for example app drawer is open or project has indicated that it is using a particular icon pack
     }
+
 
     fun startup()
     {
-        collectAppsLoadingFinished()
-        collectAppListChangeEvents()
+        _scope.launch { waitForAppsToLoadAndPregenerate() }
+
+        with(_packageEventsHolder)
+        {
+            _scope.launch {
+                packageAddedEvents.collect { onAppAddedOrChanged(it.packageName) }
+            }
+            _scope.launch {
+                packageReplacedEvents.collect { onAppAddedOrChanged(it.packageName) }
+            }
+            _scope.launch {
+                packageRemovedEvents.collect {
+                    // TODO: clear cached icons for a removed app (that could also be an icon pack)
+                }
+            }
+        }
     }
 
     companion object

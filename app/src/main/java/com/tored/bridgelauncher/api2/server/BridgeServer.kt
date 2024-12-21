@@ -4,26 +4,19 @@ import android.util.Log
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import com.tored.bridgelauncher.BridgeLauncherApplication
-import com.tored.bridgelauncher.api2.server.endpoints.AppIconsEndpoint
-import com.tored.bridgelauncher.api2.server.endpoints.AppsEndpoint
-import com.tored.bridgelauncher.api2.server.endpoints.BridgeFileServer
-import com.tored.bridgelauncher.api2.server.endpoints.IconPackContentEndpoint
-import com.tored.bridgelauncher.api2.server.endpoints.IconPacksEndpoint
-import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
-import com.tored.bridgelauncher.services.apps.SerializableInstalledApp
-import com.tored.bridgelauncher.services.iconpackcache.InstalledIconPacksHolder
+import com.tored.bridgelauncher.api2.server.api.BridgeServerAPI
+import com.tored.bridgelauncher.api2.server.files.BridgeFileServer
+import com.tored.bridgelauncher.services.apps.LaunchableInstalledAppsHolder
+import com.tored.bridgelauncher.services.iconcache.IconCache
+import com.tored.bridgelauncher.services.iconpacks2.list.InstalledIconPacksHolder
 import com.tored.bridgelauncher.services.settings2.BridgeSetting
 import com.tored.bridgelauncher.services.settings2.BridgeSettings
 import com.tored.bridgelauncher.services.settings2.settingsDataStore
 import com.tored.bridgelauncher.services.settings2.useBridgeSettingStateFlow
 import com.tored.bridgelauncher.utils.URLWithQueryBuilder
-import com.tored.bridgelauncher.utils.q
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.plus
-import kotlinx.serialization.Serializable
 
 private const val TAG = "ReqHandler"
 
@@ -34,18 +27,14 @@ fun getBridgeApiEndpointURL(endpoint: String, vararg queryParams: Pair<String, A
         .build()
 }
 
-@Serializable
-data class BridgeAPIEndpointAppsResponse(
-    val apps: List<SerializableInstalledApp>,
-)
-
 class BridgeServer(
     private val _app: BridgeLauncherApplication,
-    private val _apps: InstalledAppsHolder,
+    private val _apps: LaunchableInstalledAppsHolder,
     private val _iconPacks: InstalledIconPacksHolder,
+    private val _iconCache: IconCache,
 )
 {
-    private val _scope = CoroutineScope(Dispatchers.Main) + SupervisorJob()
+    private val _scope = CoroutineScope(Dispatchers.Main)
 
     // SETTINGS
     private fun <TPreference, TResult> s(setting: BridgeSetting<TPreference, TResult>) = useBridgeSettingStateFlow(_app.settingsDataStore, _scope, setting)
@@ -53,15 +42,12 @@ class BridgeServer(
 
     val isReadyToServe = _currentProjDir.map { it != null }
 
-    private val _fileServer = BridgeFileServer(
-        _currentProjDir = _currentProjDir,
+    private val _api = BridgeServerAPI(
+
     )
 
-    private val _endpoints = mapOf(
-        ENDPOINT_APPS to AppsEndpoint(_apps),
-        ENDPOINT_APP_ICONS to AppIconsEndpoint(_apps, _iconPacks),
-        ENDPOINT_ICON_PACKS to IconPacksEndpoint(_iconPacks),
-        ENDPOINT_ICON_PACK_CONTENT to IconPackContentEndpoint(_iconPacks),
+    private val _fileServer = BridgeFileServer(
+        _currentProjDir = _currentProjDir,
     )
 
     suspend fun handle(req: WebResourceRequest): WebResourceResponse?
@@ -76,15 +62,10 @@ class BridgeServer(
         try
         {
             val path = req.url.path
-            val apiPrefix = "/$API_PATH_ROOT/"
 
-            return if (path != null && path.startsWith(apiPrefix))
+            return if (path?.startsWith(BridgeServerAPI.PATH_PREFIX) == true)
             {
-                val endpointStr = path.substring(apiPrefix.length)
-                val endpoint = _endpoints[endpointStr]
-
-                endpoint?.handle(req)
-                    ?: errorResponse(HTTPStatusCode.BadRequest, "There is no API endpoint at ${q(endpointStr)}.")
+                _api.handle(req)
             }
             else
             {
@@ -107,10 +88,5 @@ class BridgeServer(
         const val HOST = "bridge.launcher"
         const val PROJECT_URL = "https://$HOST/"
         const val API_PATH_ROOT = ":"
-
-        const val ENDPOINT_ICON_PACK_CONTENT = "iconpacks/content"
-        const val ENDPOINT_APPS = "apps"
-        const val ENDPOINT_APP_ICONS = "appicons"
-        const val ENDPOINT_ICON_PACKS = "iconpacks"
     }
 }

@@ -68,7 +68,6 @@ fun Uri.stringQueryParamOrNull(name: String): String?
  * Tries to parse the value of the query parameter with the given name as an enum option.
  * Returns `null` value if the parameter is not present or if the parameter's value is not one of the enum options.
  */
-
 inline fun <reified TEnum> Uri.resolveEnumQueryParam(name: String): TEnum?
         where TEnum : Enum<TEnum>, TEnum : RawRepresentable<String>
 {

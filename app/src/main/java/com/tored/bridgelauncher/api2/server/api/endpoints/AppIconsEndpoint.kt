@@ -1,32 +1,33 @@
-package com.tored.bridgelauncher.api2.server.endpoints
+package com.tored.bridgelauncher.api2.server.api.endpoints
 
 import android.graphics.Bitmap
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
-import androidx.core.graphics.drawable.toBitmap
+import androidx.compose.ui.graphics.asAndroidBitmap
 import com.tored.bridgelauncher.api2.server.HTTPStatusCode
-import com.tored.bridgelauncher.api2.server.IBridgeServerEndpoint
 import com.tored.bridgelauncher.api2.server.badRequest
 import com.tored.bridgelauncher.api2.server.resolveEnumQueryParam
 import com.tored.bridgelauncher.api2.server.stringQueryParamOrNull
-import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
-import com.tored.bridgelauncher.services.iconpackcache.InstalledIconPacksHolder
+import com.tored.bridgelauncher.services.apps.LaunchableInstalledAppsHolder
+import com.tored.bridgelauncher.services.iconcache.IconCache
+import com.tored.bridgelauncher.services.iconpacks2.list.InstalledIconPacksHolder
 import com.tored.bridgelauncher.utils.EncodingStrings
 import com.tored.bridgelauncher.utils.RawRepresentable
 import com.tored.bridgelauncher.utils.q
 import java.io.ByteArrayOutputStream
 
 class AppIconsEndpoint(
-    private val _installedApps: InstalledAppsHolder,
+    private val _installedApps: LaunchableInstalledAppsHolder,
     private val _iconPacks: InstalledIconPacksHolder,
-) : IBridgeServerEndpoint
+    private val _iconCache: IconCache,
+)
 {
-    override suspend fun handle(req: WebResourceRequest): WebResourceResponse
+    suspend fun handle(req: WebResourceRequest): WebResourceResponse
     {
         val packageName = req.url.stringQueryParamOrNull(QUERY_PACKAGE_NAME)
             ?: throw badRequest("No packageName query parameter.")
 
-        val app = _installedApps.packageNameToInstalledAppMap[packageName]
+        val app = _installedApps.packageNameToInstalledAppMap.value?.get(packageName)
             ?: throw badRequest("No app with package name ${q(packageName)}.")
 
         val notFoundBehavior = req.url.resolveEnumQueryParam(QUERY_NOT_FOUND_BEHAVIOR)
@@ -50,11 +51,11 @@ class AppIconsEndpoint(
         }
 
         // TODO: if icon pack is not null, try to get the icon from it
-        val bmp = app.defaultIcon.toBitmap()
+        val bmp = _iconCache.getIcon(iconPackPackageName, packageName, System.nanoTime())
 
         // the WebView is responsible for closing this stream
         val readStream = ByteArrayOutputStream().use { writeStream ->
-            bmp.compress(Bitmap.CompressFormat.PNG, 90, writeStream)
+            bmp.asAndroidBitmap().compress(Bitmap.CompressFormat.PNG, 90, writeStream)
             writeStream.toByteArray().inputStream()
         }
 

@@ -1,25 +1,30 @@
 package com.tored.bridgelauncher.services.mockexport
 
 import android.graphics.Bitmap
-import android.graphics.drawable.Drawable
-import androidx.core.graphics.drawable.toBitmap
-import com.tored.bridgelauncher.api2.server.BridgeAPIEndpointAppsResponse
-import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
-import com.tored.bridgelauncher.services.iconpackcache.InstalledIconPacksHolder
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asAndroidBitmap
+import com.tored.bridgelauncher.api2.server.api.endpoints.apps.AppsGetResp
+import com.tored.bridgelauncher.services.apps.LaunchableInstalledAppsHolder
+import com.tored.bridgelauncher.services.iconcache.IconCache
+import com.tored.bridgelauncher.services.iconpacks2.cache.IconPackCache
+import com.tored.bridgelauncher.services.iconpacks2.list.InstalledIconPacksHolder
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.serialization.json.Json
 import java.io.File
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 // simplified test code for launching tasks in parallel while counting successes and failures
 // https://pl.kotl.in/rV6e9XNhw
 
 class MockExporter(
-    private val _apps: InstalledAppsHolder,
+    private val _apps: LaunchableInstalledAppsHolder,
     private val _iconPacks: InstalledIconPacksHolder,
+    private val _iconCache: IconCache,
+    private val _iconPackCache: IconPackCache,
 )
 {
     suspend fun exportToDirectory(directory: File, progress: MutableStateFlow<MockExportProgressState?>)
@@ -28,6 +33,10 @@ class MockExporter(
             assertTrue(directory.isDirectory, "Specified java.io.File is not a directory.")
 
         assertTrue(directory.canWrite(), "Can't write to the specified directory.")
+
+        val appMap = _apps.packageNameToInstalledAppMap.value
+
+        assertNotNull(appMap)
 
         // ensure the specified directory exists
         directory.mkdirs()
@@ -38,10 +47,10 @@ class MockExporter(
             // mock/apps.json
             launch {
                 progress.countJob {
-                    val apps = _apps.packageNameToInstalledAppMap.values.map { it.toSerializable() }
-                    val resp = BridgeAPIEndpointAppsResponse(apps)
+                    val apps = appMap.values.map { it.toSerializable() }
+                    val resp = AppsGetResp(apps)
                     val appsFile = File(directory, "apps.json")
-                    val appsStr = Json.encodeToString(BridgeAPIEndpointAppsResponse.serializer(), resp)
+                    val appsStr = Json.encodeToString(AppsGetResp.serializer(), resp)
                     appsFile.writeText(appsStr)
                 }
             }
@@ -55,22 +64,22 @@ class MockExporter(
             defIconsDir.mkdir()
 
             // mock/icons/default/com.package.name.png
-            for (app in _apps.packageNameToInstalledAppMap.values)
+            for (app in appMap.values)
             {
                 launch {
                     progress.countJob {
-                        saveDrawableToPNG(app.defaultIcon, File(defIconsDir, "${app.packageName}.png"))
+                        val icon = _iconCache.getIcon(null, app.packageName, System.nanoTime())
+                        saveToPNG(icon, File(defIconsDir, "${app.packageName}.png"))
                     }
                 }
             }
         }
     }
 
-    private fun saveDrawableToPNG(drawable: Drawable, destinationFile: File)
+    private fun saveToPNG(bmp: ImageBitmap, destinationFile: File)
     {
         destinationFile.outputStream().use { stream ->
-            drawable.toBitmap(config = Bitmap.Config.ARGB_8888)
-                .compress(Bitmap.CompressFormat.PNG, 90, stream)
+            bmp.asAndroidBitmap().compress(Bitmap.CompressFormat.PNG, 90, stream)
         }
     }
 }

@@ -2,7 +2,9 @@ package com.tored.bridgelauncher.utils
 
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserException
+import org.xmlpull.v1.XmlPullParserFactory
 import java.io.IOException
+import java.io.InputStream
 
 // https://developer.android.com/develop/connectivity/network-ops/xml#skip
 @Throws(XmlPullParserException::class, IOException::class)
@@ -22,4 +24,12 @@ fun XmlPullParser.skipToEndTag()
             XmlPullParser.START_TAG -> depth++
         }
     }
+}
+
+fun xmlPullParserFor(stream: InputStream): XmlPullParser
+{
+    val factory = XmlPullParserFactory.newInstance()
+    val parser = factory.newPullParser()
+    parser.setInput(stream, null)
+    return parser
 }

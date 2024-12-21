@@ -1,10 +1,9 @@
-package com.tored.bridgelauncher.api2.server.endpoints
+package com.tored.bridgelauncher.api2.server.files
 
 import android.os.Environment
 import android.util.Log
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
-import com.tored.bridgelauncher.api2.server.BetterMimeTypeMap
 import com.tored.bridgelauncher.api2.server.HTTPStatusCode
 import com.tored.bridgelauncher.api2.server.errorResponse
 import com.tored.bridgelauncher.utils.CurrentAndroidVersion

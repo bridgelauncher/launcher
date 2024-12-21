@@ -15,6 +15,17 @@
           <option name="screenY" value="1280" />
         </PersistentDeviceSelectionData>
         <PersistentDeviceSelectionData>
+          <option name="api" value="34" />
+          <option name="brand" value="OPPO" />
+          <option name="codename" value="OP573DL1" />
+          <option name="id" value="OP573DL1" />
+          <option name="manufacturer" value="OPPO" />
+          <option name="name" value="CPH2557" />
+          <option name="screenDensity" value="480" />
+          <option name="screenX" value="1080" />
+          <option name="screenY" value="2400" />
+        </PersistentDeviceSelectionData>
+        <PersistentDeviceSelectionData>
           <option name="api" value="28" />
           <option name="brand" value="DOCOMO" />
           <option name="codename" value="SH-01L" />
@@ -153,17 +164,6 @@
           <option name="id" value="felix" />
           <option name="manufacturer" value="Google" />
           <option name="name" value="Pixel Fold" />
-          <option name="screenDensity" value="420" />
-          <option name="screenX" value="2208" />
-          <option name="screenY" value="1840" />
-        </PersistentDeviceSelectionData>
-        <PersistentDeviceSelectionData>
-          <option name="api" value="33" />
-          <option name="brand" value="google" />
-          <option name="codename" value="felix_camera" />
-          <option name="id" value="felix_camera" />
-          <option name="manufacturer" value="Google" />
-          <option name="name" value="Pixel Fold (Camera-enabled)" />
           <option name="screenDensity" value="420" />
           <option name="screenX" value="2208" />
           <option name="screenY" value="1840" />

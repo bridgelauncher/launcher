@@ -23,8 +23,7 @@ import com.tored.bridgelauncher.api2.shared.BridgeButtonVisibilityStringOptions
 import com.tored.bridgelauncher.api2.shared.BridgeThemeStringOptions
 import com.tored.bridgelauncher.api2.shared.OverscrollEffectsStringOptions
 import com.tored.bridgelauncher.api2.shared.SystemBarAppearanceStringOptions
-import com.tored.bridgelauncher.services.apps.InstalledAppListChangeEvent
-import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
+import com.tored.bridgelauncher.services.apps.LaunchableInstalledAppsHolder
 import com.tored.bridgelauncher.services.lifecycleevents.LifecycleEventsHolder
 import com.tored.bridgelauncher.services.perms.PermsHolder
 import com.tored.bridgelauncher.services.settings2.BridgeSetting
@@ -42,7 +41,7 @@ private val TAG = BridgeToJSAPI::class.simpleName
 
 class BridgeToJSAPI(
     private val _app: Context,
-    private val _apps: InstalledAppsHolder,
+    private val _apps: LaunchableInstalledAppsHolder,
     private val _perms: PermsHolder,
     private val _insets: WindowInsetsHolder,
     private val _systemUIMode: SystemUIModeHolder,
@@ -80,23 +79,9 @@ class BridgeToJSAPI(
 
         with(_apps)
         {
-            Log.d(TAG, "appListChangeEventFlow before onCollect")
-            onCollect(appListChangeEventFlow) {
-                Log.d(TAG, "appListChangeEventFlow collected: $it")
-                when (it)
-                {
-                    is InstalledAppListChangeEvent.Added ->
-                    {
-                        if (!it.isFromInitialLoad)
-                            AppInstalledEvent(it.newApp.toSerializable())
-                        else
-                            null
-                    }
-
-                    is InstalledAppListChangeEvent.Changed -> AppChangedEvent(it.newApp.toSerializable())
-                    is InstalledAppListChangeEvent.Removed -> AppRemovedEvent(it.packageName)
-                }
-            }
+            onCollect(appAddedEvents) { AppInstalledEvent(it.newApp.toSerializable()) }
+            onCollect(appChangedEvents) { AppChangedEvent(it.newApp.toSerializable()) }
+            onCollect(appRemovedEvents) { AppRemovedEvent(it.oldApp.packageName) }
         }
 
         with(BridgeSettings)

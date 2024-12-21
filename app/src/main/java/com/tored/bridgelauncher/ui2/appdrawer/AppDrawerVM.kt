@@ -12,16 +12,16 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.tored.bridgelauncher.BridgeLauncherApplication
 import com.tored.bridgelauncher.services.BridgeServices
 import com.tored.bridgelauncher.services.apps.InstalledApp
-import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
+import com.tored.bridgelauncher.services.apps.LaunchableInstalledAppsHolder
 import com.tored.bridgelauncher.services.iconcache.IconCache
 import com.tored.bridgelauncher.services.iconpacks.IconPack
 
 class AppDrawerVM(
-    private val _apps: InstalledAppsHolder,
+    private val _apps: LaunchableInstalledAppsHolder,
     private val _iconCache: IconCache,
 ) : ViewModel()
 {
-    private val _appList = mutableStateOf(_apps.packageNameToInstalledAppMap.values.toList())
+    private val _appList = mutableStateOf(_apps.packageNameToInstalledAppMap.value?.values?.toList() ?: listOf())
 
     private val _searchString = mutableStateOf("")
     val searchString = _searchString as State<String>

@@ -1,4 +1,4 @@
-package com.tored.bridgelauncher.api2.server
+package com.tored.bridgelauncher.api2.server.files
 
 // list from:
 // https://github.com/samuelneff/MimeTypeMap/blob/master/MimeTypeMap.cs

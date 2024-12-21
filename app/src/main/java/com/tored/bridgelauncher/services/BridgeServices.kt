@@ -5,15 +5,16 @@ import android.content.pm.PackageManager
 import com.tored.bridgelauncher.api2.bridgetojs.BridgeToJSAPI
 import com.tored.bridgelauncher.api2.jstobridge.JSToBridgeAPI
 import com.tored.bridgelauncher.api2.server.BridgeServer
-import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
+import com.tored.bridgelauncher.services.apps.LaunchableInstalledAppsHolder
 import com.tored.bridgelauncher.services.devconsole.DevConsoleMessagesHolder
 import com.tored.bridgelauncher.services.displayshape.DisplayShapeHolder
 import com.tored.bridgelauncher.services.iconcache.IconCache
-import com.tored.bridgelauncher.services.iconpackcache.IconPackCache
-import com.tored.bridgelauncher.services.iconpackcache.InstalledIconPacksHolder
+import com.tored.bridgelauncher.services.iconpacks2.cache.IconPackCache
+import com.tored.bridgelauncher.services.iconpacks2.list.InstalledIconPacksHolder
 import com.tored.bridgelauncher.services.lifecycleevents.LifecycleEventsHolder
 import com.tored.bridgelauncher.services.mockexport.MockExporter
 import com.tored.bridgelauncher.services.perms.PermsHolder
+import com.tored.bridgelauncher.services.pkgevents.PackageEventsHolder
 import com.tored.bridgelauncher.services.system.BridgeLauncherBroadcastReceiver
 import com.tored.bridgelauncher.services.uimode.SystemUIModeHolder
 import com.tored.bridgelauncher.services.windowinsetsholder.WindowInsetsHolder
@@ -31,8 +32,9 @@ data class BridgeServices(
     val lifecycleEventsHolder: LifecycleEventsHolder,
     val displayShapeHolder: DisplayShapeHolder,
 
-// apps & icon packs
-    val installedAppsHolder: InstalledAppsHolder,
+    // apps & icon packs
+    val packageEventsHolder: PackageEventsHolder,
+    val installedAppsHolder: LaunchableInstalledAppsHolder,
     val installedIconPacksHolder: InstalledIconPacksHolder,
     val iconPackCache: IconPackCache,
     val iconCache: IconCache,
